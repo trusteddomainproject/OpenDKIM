@@ -14280,6 +14280,101 @@ fi
 # only thing for it is to include resolv.h, don't redeclare res_ninit(),
 # and use the proper type signature when calling it.
 
+# Before using resolv.h, we need to check headers required for it.
+ac_fn_c_check_header_compile "$LINENO" "sys/types.h" "ac_cv_header_sys_types_h" "#ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>   /* inet_ functions / structs */
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h> /* DNS HEADER struct */
+#endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+"
+if test "x$ac_cv_header_sys_types_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_SYS_TYPES_H 1" >>confdefs.h
+
+fi
+ac_fn_c_check_header_compile "$LINENO" "netinet/in.h" "ac_cv_header_netinet_in_h" "#ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>   /* inet_ functions / structs */
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h> /* DNS HEADER struct */
+#endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+"
+if test "x$ac_cv_header_netinet_in_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_NETINET_IN_H 1" >>confdefs.h
+
+fi
+ac_fn_c_check_header_compile "$LINENO" "arpa/nameser.h" "ac_cv_header_arpa_nameser_h" "#ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>   /* inet_ functions / structs */
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h> /* DNS HEADER struct */
+#endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+"
+if test "x$ac_cv_header_arpa_nameser_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_ARPA_NAMESER_H 1" >>confdefs.h
+
+fi
+ac_fn_c_check_header_compile "$LINENO" "netdb.h" "ac_cv_header_netdb_h" "#ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>   /* inet_ functions / structs */
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h> /* DNS HEADER struct */
+#endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+"
+if test "x$ac_cv_header_netdb_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_NETDB_H 1" >>confdefs.h
+
+fi
+ac_fn_c_check_header_compile "$LINENO" "resolv.h" "ac_cv_header_resolv_h" "#ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>   /* inet_ functions / structs */
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h> /* DNS HEADER struct */
+#endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+"
+if test "x$ac_cv_header_resolv_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_RESOLV_H 1" >>confdefs.h
+
+fi
+
+
+
+
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing res_ninit" >&5
 printf %s "checking for library containing res_ninit... " >&6; }
@@ -14290,6 +14385,18 @@ else $as_nop
   ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
+#ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>   /* inet_ functions / structs */
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h> /* DNS HEADER struct */
+#endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
 #include <resolv.h>
 int
 main (void)
@@ -14299,7 +14406,7 @@ return res_ninit(NULL);
   return 0;
 }
 _ACEOF
-for ac_lib in '' resolv
+for ac_lib in '' resolv bind
 do
   if test -z "$ac_lib"; then
     ac_res="none required"
@@ -14460,99 +14567,6 @@ then :
 printf "%s\n" "#define HAVE_GETOPT_LONG 1" >>confdefs.h
 
 fi
-
-
-ac_fn_c_check_header_compile "$LINENO" "sys/types.h" "ac_cv_header_sys_types_h" "#ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-#endif
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>   /* inet_ functions / structs */
-#endif
-#ifdef HAVE_ARPA_NAMESER_H
-#  include <arpa/nameser.h> /* DNS HEADER struct */
-#endif
-#ifdef HAVE_NETDB_H
-#  include <netdb.h>
-#endif
-"
-if test "x$ac_cv_header_sys_types_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_SYS_TYPES_H 1" >>confdefs.h
-
-fi
-ac_fn_c_check_header_compile "$LINENO" "netinet/in.h" "ac_cv_header_netinet_in_h" "#ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-#endif
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>   /* inet_ functions / structs */
-#endif
-#ifdef HAVE_ARPA_NAMESER_H
-#  include <arpa/nameser.h> /* DNS HEADER struct */
-#endif
-#ifdef HAVE_NETDB_H
-#  include <netdb.h>
-#endif
-"
-if test "x$ac_cv_header_netinet_in_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_NETINET_IN_H 1" >>confdefs.h
-
-fi
-ac_fn_c_check_header_compile "$LINENO" "arpa/nameser.h" "ac_cv_header_arpa_nameser_h" "#ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-#endif
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>   /* inet_ functions / structs */
-#endif
-#ifdef HAVE_ARPA_NAMESER_H
-#  include <arpa/nameser.h> /* DNS HEADER struct */
-#endif
-#ifdef HAVE_NETDB_H
-#  include <netdb.h>
-#endif
-"
-if test "x$ac_cv_header_arpa_nameser_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_ARPA_NAMESER_H 1" >>confdefs.h
-
-fi
-ac_fn_c_check_header_compile "$LINENO" "netdb.h" "ac_cv_header_netdb_h" "#ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-#endif
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>   /* inet_ functions / structs */
-#endif
-#ifdef HAVE_ARPA_NAMESER_H
-#  include <arpa/nameser.h> /* DNS HEADER struct */
-#endif
-#ifdef HAVE_NETDB_H
-#  include <netdb.h>
-#endif
-"
-if test "x$ac_cv_header_netdb_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_NETDB_H 1" >>confdefs.h
-
-fi
-ac_fn_c_check_header_compile "$LINENO" "resolv.h" "ac_cv_header_resolv_h" "#ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-#endif
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>   /* inet_ functions / structs */
-#endif
-#ifdef HAVE_ARPA_NAMESER_H
-#  include <arpa/nameser.h> /* DNS HEADER struct */
-#endif
-#ifdef HAVE_NETDB_H
-#  include <netdb.h>
-#endif
-"
-if test "x$ac_cv_header_resolv_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_RESOLV_H 1" >>confdefs.h
-
-fi
-
 
 
 #
@@ -17827,8 +17841,8 @@ if test \( x"$gtpath" = x"auto" -o x"$gtpath" = x"yes" \) -a x"$PKG_CONFIG" != x
 then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for GNUTLS" >&5
-printf %s "checking for GNUTLS... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gnutls >= 2.11.7" >&5
+printf %s "checking for gnutls >= 2.11.7... " >&6; }
 
 if test -n "$GNUTLS_CFLAGS"; then
     pkg_cv_GNUTLS_CFLAGS="$GNUTLS_CFLAGS"
@@ -17868,7 +17882,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17877,30 +17891,30 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        GNUTLS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gnutls >= 2.11.7" 2>&1`
+                GNUTLS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gnutls >= 2.11.7" 2>&1`
         else
-	        GNUTLS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gnutls >= 2.11.7" 2>&1`
+                GNUTLS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gnutls >= 2.11.7" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$GNUTLS_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$GNUTLS_PKG_ERRORS" >&5
 
-	gnutls_found="auto"
+        gnutls_found="auto"
 	                   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for GnuTLS not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for GnuTLS not found, trying manual search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	gnutls_found="auto"
+        gnutls_found="auto"
 	                   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for GnuTLS not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for GnuTLS not found, trying manual search..." >&2;}
 
 else
-	GNUTLS_CFLAGS=$pkg_cv_GNUTLS_CFLAGS
-	GNUTLS_LIBS=$pkg_cv_GNUTLS_LIBS
+        GNUTLS_CFLAGS=$pkg_cv_GNUTLS_CFLAGS
+        GNUTLS_LIBS=$pkg_cv_GNUTLS_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
-	gnutls_found="pkg-config"
+        gnutls_found="pkg-config"
 fi
 elif test x"$gtpath" != x"no"
 then
@@ -18237,8 +18251,8 @@ if test \( "$sslpath" = "auto" -o x"$sslpath" = x"yes" \) -a x"$PKG_CONFIG" != x
 then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBCRYPTO" >&5
-printf %s "checking for LIBCRYPTO... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for openssl >= 0.9.7" >&5
+printf %s "checking for openssl >= 0.9.7... " >&6; }
 
 if test -n "$LIBCRYPTO_CFLAGS"; then
     pkg_cv_LIBCRYPTO_CFLAGS="$LIBCRYPTO_CFLAGS"
@@ -18278,7 +18292,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -18287,30 +18301,30 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBCRYPTO_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "openssl >= 0.9.7" 2>&1`
+                LIBCRYPTO_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "openssl >= 0.9.7" 2>&1`
         else
-	        LIBCRYPTO_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "openssl >= 0.9.7" 2>&1`
+                LIBCRYPTO_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "openssl >= 0.9.7" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBCRYPTO_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBCRYPTO_PKG_ERRORS" >&5
 
-	openssl_found="no"
+        openssl_found="no"
 	                   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for openssl not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for openssl not found, trying manual search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	openssl_found="no"
+        openssl_found="no"
 	                   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for openssl not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for openssl not found, trying manual search..." >&2;}
 
 else
-	LIBCRYPTO_CFLAGS=$pkg_cv_LIBCRYPTO_CFLAGS
-	LIBCRYPTO_LIBS=$pkg_cv_LIBCRYPTO_LIBS
+        LIBCRYPTO_CFLAGS=$pkg_cv_LIBCRYPTO_CFLAGS
+        LIBCRYPTO_LIBS=$pkg_cv_LIBCRYPTO_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
-	openssl_found="yes"
+        openssl_found="yes"
 fi
 elif test "$sslpath" != "auto" -a x"$sslpath" != x"yes"
 then
@@ -18911,8 +18925,8 @@ if test \( x"$librrdpath" = x"auto" -o x"$librrdpath" = x"yes" \) -a x"$PKG_CONF
 then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for RRDTOOL" >&5
-printf %s "checking for RRDTOOL... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for librrd" >&5
+printf %s "checking for librrd... " >&6; }
 
 if test -n "$RRDTOOL_CFLAGS"; then
     pkg_cv_RRDTOOL_CFLAGS="$RRDTOOL_CFLAGS"
@@ -18952,7 +18966,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -18961,27 +18975,27 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        RRDTOOL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "librrd" 2>&1`
+                RRDTOOL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "librrd" 2>&1`
         else
-	        RRDTOOL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "librrd" 2>&1`
+                RRDTOOL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "librrd" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$RRDTOOL_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$RRDTOOL_PKG_ERRORS" >&5
 
 
 	                  	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for rrdtool not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for rrdtool not found, trying manual search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 	                  	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for rrdtool not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for rrdtool not found, trying manual search..." >&2;}
 
 else
-	RRDTOOL_CFLAGS=$pkg_cv_RRDTOOL_CFLAGS
-	RRDTOOL_LIBS=$pkg_cv_RRDTOOL_LIBS
+        RRDTOOL_CFLAGS=$pkg_cv_RRDTOOL_CFLAGS
+        RRDTOOL_LIBS=$pkg_cv_RRDTOOL_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -19073,8 +19087,8 @@ if test \( x"$libmcdpath" = x"auto" -o x"$libmcdpath" = x"yes" \) -a x"$PKG_CONF
 then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBMEMCACHED" >&5
-printf %s "checking for LIBMEMCACHED... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libmemcached >= 0.36" >&5
+printf %s "checking for libmemcached >= 0.36... " >&6; }
 
 if test -n "$LIBMEMCACHED_CFLAGS"; then
     pkg_cv_LIBMEMCACHED_CFLAGS="$LIBMEMCACHED_CFLAGS"
@@ -19114,7 +19128,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19123,27 +19137,27 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBMEMCACHED_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libmemcached >= 0.36" 2>&1`
+                LIBMEMCACHED_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libmemcached >= 0.36" 2>&1`
         else
-	        LIBMEMCACHED_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libmemcached >= 0.36" 2>&1`
+                LIBMEMCACHED_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libmemcached >= 0.36" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBMEMCACHED_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBMEMCACHED_PKG_ERRORS" >&5
 
 
 	                  	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for libmemcached not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for libmemcached not found, trying manual search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 	                  	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for libmemcached not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for libmemcached not found, trying manual search..." >&2;}
 
 else
-	LIBMEMCACHED_CFLAGS=$pkg_cv_LIBMEMCACHED_CFLAGS
-	LIBMEMCACHED_LIBS=$pkg_cv_LIBMEMCACHED_LIBS
+        LIBMEMCACHED_CFLAGS=$pkg_cv_LIBMEMCACHED_CFLAGS
+        LIBMEMCACHED_LIBS=$pkg_cv_LIBMEMCACHED_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -19720,8 +19734,8 @@ if test \(  x"$trepath" = x"auto" -o x"$trepath" = x"yes" \) -a x"$PKG_CONFIG" !
 then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBTRE" >&5
-printf %s "checking for LIBTRE... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for tre >= 0.8.0" >&5
+printf %s "checking for tre >= 0.8.0... " >&6; }
 
 if test -n "$LIBTRE_CFLAGS"; then
     pkg_cv_LIBTRE_CFLAGS="$LIBTRE_CFLAGS"
@@ -19761,7 +19775,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19770,18 +19784,18 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBTRE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "tre >= 0.8.0" 2>&1`
+                LIBTRE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "tre >= 0.8.0" 2>&1`
         else
-	        LIBTRE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "tre >= 0.8.0" 2>&1`
+                LIBTRE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "tre >= 0.8.0" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBTRE_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBTRE_PKG_ERRORS" >&5
 
 
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBTRE" >&5
-printf %s "checking for LIBTRE... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for tre >= 0.7.5" >&5
+printf %s "checking for tre >= 0.7.5... " >&6; }
 
 if test -n "$LIBTRE_CFLAGS"; then
     pkg_cv_LIBTRE_CFLAGS="$LIBTRE_CFLAGS"
@@ -19821,7 +19835,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19830,12 +19844,12 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBTRE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "tre >= 0.7.5" 2>&1`
+                LIBTRE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "tre >= 0.7.5" 2>&1`
         else
-	        LIBTRE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "tre >= 0.7.5" 2>&1`
+                LIBTRE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "tre >= 0.7.5" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBTRE_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBTRE_PKG_ERRORS" >&5
 
 
 		        tre_found="no"
@@ -19845,7 +19859,7 @@ printf "%s\n" "$as_me: WARNING: pkg-config for libtre >= 0.7.5 not found,
 		             trying manual search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 		        tre_found="no"
@@ -19855,8 +19869,8 @@ printf "%s\n" "$as_me: WARNING: pkg-config for libtre >= 0.7.5 not found,
 		             trying manual search..." >&2;}
 
 else
-	LIBTRE_CFLAGS=$pkg_cv_LIBTRE_CFLAGS
-	LIBTRE_LIBS=$pkg_cv_LIBTRE_LIBS
+        LIBTRE_CFLAGS=$pkg_cv_LIBTRE_CFLAGS
+        LIBTRE_LIBS=$pkg_cv_LIBTRE_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -19869,13 +19883,13 @@ fi
 
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBTRE" >&5
-printf %s "checking for LIBTRE... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for tre >= 0.7.5" >&5
+printf %s "checking for tre >= 0.7.5... " >&6; }
 
 if test -n "$LIBTRE_CFLAGS"; then
     pkg_cv_LIBTRE_CFLAGS="$LIBTRE_CFLAGS"
@@ -19915,7 +19929,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19924,12 +19938,12 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBTRE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "tre >= 0.7.5" 2>&1`
+                LIBTRE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "tre >= 0.7.5" 2>&1`
         else
-	        LIBTRE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "tre >= 0.7.5" 2>&1`
+                LIBTRE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "tre >= 0.7.5" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBTRE_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBTRE_PKG_ERRORS" >&5
 
 
 		        tre_found="no"
@@ -19939,7 +19953,7 @@ printf "%s\n" "$as_me: WARNING: pkg-config for libtre >= 0.7.5 not found,
 		             trying manual search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 		        tre_found="no"
@@ -19949,8 +19963,8 @@ printf "%s\n" "$as_me: WARNING: pkg-config for libtre >= 0.7.5 not found,
 		             trying manual search..." >&2;}
 
 else
-	LIBTRE_CFLAGS=$pkg_cv_LIBTRE_CFLAGS
-	LIBTRE_LIBS=$pkg_cv_LIBTRE_LIBS
+        LIBTRE_CFLAGS=$pkg_cv_LIBTRE_CFLAGS
+        LIBTRE_LIBS=$pkg_cv_LIBTRE_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -19963,11 +19977,11 @@ fi
 
 
 else
-	LIBTRE_CFLAGS=$pkg_cv_LIBTRE_CFLAGS
-	LIBTRE_LIBS=$pkg_cv_LIBTRE_LIBS
+        LIBTRE_CFLAGS=$pkg_cv_LIBTRE_CFLAGS
+        LIBTRE_LIBS=$pkg_cv_LIBTRE_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
-	tre_found="yes"
+        tre_found="yes"
 fi
 fi
 
@@ -20074,8 +20088,8 @@ if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" !
 then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBLUA" >&5
-printf %s "checking for LIBLUA... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for lua5.1" >&5
+printf %s "checking for lua5.1... " >&6; }
 
 if test -n "$LIBLUA_CFLAGS"; then
     pkg_cv_LIBLUA_CFLAGS="$LIBLUA_CFLAGS"
@@ -20115,7 +20129,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20124,20 +20138,20 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBLUA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "lua5.1" 2>&1`
+                LIBLUA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "lua5.1" 2>&1`
         else
-	        LIBLUA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "lua5.1" 2>&1`
+                LIBLUA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "lua5.1" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBLUA_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBLUA_PKG_ERRORS" >&5
 
 
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for lua5.1 not found, trying lua..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for lua5.1 not found, trying lua..." >&2;}
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBLUA" >&5
-printf %s "checking for LIBLUA... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for lua" >&5
+printf %s "checking for lua... " >&6; }
 
 if test -n "$LIBLUA_CFLAGS"; then
     pkg_cv_LIBLUA_CFLAGS="$LIBLUA_CFLAGS"
@@ -20177,7 +20191,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20186,25 +20200,25 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBLUA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "lua" 2>&1`
+                LIBLUA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "lua" 2>&1`
         else
-	        LIBLUA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "lua" 2>&1`
+                LIBLUA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "lua" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBLUA_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBLUA_PKG_ERRORS" >&5
 
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for lua not found, trying manual search..." >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for lua not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for lua not found, trying manual search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for lua not found, trying manual search..." >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for lua not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for lua not found, trying manual search..." >&2;}
 
 else
-	LIBLUA_CFLAGS=$pkg_cv_LIBLUA_CFLAGS
-	LIBLUA_LIBS=$pkg_cv_LIBLUA_LIBS
+        LIBLUA_CFLAGS=$pkg_cv_LIBLUA_CFLAGS
+        LIBLUA_LIBS=$pkg_cv_LIBLUA_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -20215,15 +20229,15 @@ fi
 
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for lua5.1 not found, trying lua..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for lua5.1 not found, trying lua..." >&2;}
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBLUA" >&5
-printf %s "checking for LIBLUA... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for lua" >&5
+printf %s "checking for lua... " >&6; }
 
 if test -n "$LIBLUA_CFLAGS"; then
     pkg_cv_LIBLUA_CFLAGS="$LIBLUA_CFLAGS"
@@ -20263,7 +20277,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20272,25 +20286,25 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBLUA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "lua" 2>&1`
+                LIBLUA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "lua" 2>&1`
         else
-	        LIBLUA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "lua" 2>&1`
+                LIBLUA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "lua" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBLUA_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBLUA_PKG_ERRORS" >&5
 
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for lua not found, trying manual search..." >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for lua not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for lua not found, trying manual search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for lua not found, trying manual search..." >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: pkg-config for lua not found, trying manual search..." >&5
 printf "%s\n" "$as_me: WARNING: pkg-config for lua not found, trying manual search..." >&2;}
 
 else
-	LIBLUA_CFLAGS=$pkg_cv_LIBLUA_CFLAGS
-	LIBLUA_LIBS=$pkg_cv_LIBLUA_LIBS
+        LIBLUA_CFLAGS=$pkg_cv_LIBLUA_CFLAGS
+        LIBLUA_LIBS=$pkg_cv_LIBLUA_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -20301,8 +20315,8 @@ fi
 
 
 else
-	LIBLUA_CFLAGS=$pkg_cv_LIBLUA_CFLAGS
-	LIBLUA_LIBS=$pkg_cv_LIBLUA_LIBS
+        LIBLUA_CFLAGS=$pkg_cv_LIBLUA_CFLAGS
+        LIBLUA_LIBS=$pkg_cv_LIBLUA_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -20596,8 +20610,8 @@ if test \( x"$odbxpath" = x"auto" -o x"$odbxpath" = x"yes" \) -a \
 then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBODBX" >&5
-printf %s "checking for LIBODBX... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for opendbx >= 1.3.7" >&5
+printf %s "checking for opendbx >= 1.3.7... " >&6; }
 
 if test -n "$LIBODBX_CFLAGS"; then
     pkg_cv_LIBODBX_CFLAGS="$LIBODBX_CFLAGS"
@@ -20637,7 +20651,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20646,12 +20660,12 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBODBX_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "opendbx >= 1.3.7" 2>&1`
+                LIBODBX_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "opendbx >= 1.3.7" 2>&1`
         else
-	        LIBODBX_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "opendbx >= 1.3.7" 2>&1`
+                LIBODBX_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "opendbx >= 1.3.7" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBODBX_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBODBX_PKG_ERRORS" >&5
 
 
 	        odbx_found="no"
@@ -20661,7 +20675,7 @@ printf "%s\n" "$as_me: WARNING: pkg-config for libodbx not found, trying manual
 		            search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 	        odbx_found="no"
@@ -20671,11 +20685,11 @@ printf "%s\n" "$as_me: WARNING: pkg-config for libodbx not found, trying manual
 		            search..." >&2;}
 
 else
-	LIBODBX_CFLAGS=$pkg_cv_LIBODBX_CFLAGS
-	LIBODBX_LIBS=$pkg_cv_LIBODBX_LIBS
+        LIBODBX_CFLAGS=$pkg_cv_LIBODBX_CFLAGS
+        LIBODBX_LIBS=$pkg_cv_LIBODBX_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
-	odbx_found="yes"
+        odbx_found="yes"
 fi
 fi
 
@@ -20896,8 +20910,8 @@ if test \( x"$ldappath" = x"auto" -o x"$ldappath" = x"yes" \) -a \
 then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for OPENLDAP" >&5
-printf %s "checking for OPENLDAP... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for openldap >= 2.0.0" >&5
+printf %s "checking for openldap >= 2.0.0... " >&6; }
 
 if test -n "$OPENLDAP_CFLAGS"; then
     pkg_cv_OPENLDAP_CFLAGS="$OPENLDAP_CFLAGS"
@@ -20937,7 +20951,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20946,12 +20960,12 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        OPENLDAP_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "openldap >= 2.0.0" 2>&1`
+                OPENLDAP_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "openldap >= 2.0.0" 2>&1`
         else
-	        OPENLDAP_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "openldap >= 2.0.0" 2>&1`
+                OPENLDAP_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "openldap >= 2.0.0" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$OPENLDAP_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$OPENLDAP_PKG_ERRORS" >&5
 
 
 	        ldap_found="no"
@@ -20961,7 +20975,7 @@ printf "%s\n" "$as_me: WARNING: pkg-config for openldap not found, trying manual
 		            search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 	        ldap_found="no"
@@ -20971,8 +20985,8 @@ printf "%s\n" "$as_me: WARNING: pkg-config for openldap not found, trying manual
 		            search..." >&2;}
 
 else
-	OPENLDAP_CFLAGS=$pkg_cv_OPENLDAP_CFLAGS
-	OPENLDAP_LIBS=$pkg_cv_OPENLDAP_LIBS
+        OPENLDAP_CFLAGS=$pkg_cv_OPENLDAP_CFLAGS
+        OPENLDAP_LIBS=$pkg_cv_OPENLDAP_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -21090,8 +21104,8 @@ if test \( x"$saslpath" = x"auto" -o x"$saslpath" = x"yes" \) -a \
 then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SASL" >&5
-printf %s "checking for SASL... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for cyrussasl >= 2.1.0" >&5
+printf %s "checking for cyrussasl >= 2.1.0... " >&6; }
 
 if test -n "$SASL_CFLAGS"; then
     pkg_cv_SASL_CFLAGS="$SASL_CFLAGS"
@@ -21131,7 +21145,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -21140,12 +21154,12 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        SASL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "cyrussasl >= 2.1.0" 2>&1`
+                SASL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "cyrussasl >= 2.1.0" 2>&1`
         else
-	        SASL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "cyrussasl >= 2.1.0" 2>&1`
+                SASL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "cyrussasl >= 2.1.0" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$SASL_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$SASL_PKG_ERRORS" >&5
 
 
 	        sasl_found="no"
@@ -21155,7 +21169,7 @@ printf "%s\n" "$as_me: WARNING: pkg-config for cyrussasl not found, trying manua
 		            search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 	        sasl_found="no"
@@ -21165,8 +21179,8 @@ printf "%s\n" "$as_me: WARNING: pkg-config for cyrussasl not found, trying manua
 		            search..." >&2;}
 
 else
-	SASL_CFLAGS=$pkg_cv_SASL_CFLAGS
-	SASL_LIBS=$pkg_cv_SASL_LIBS
+        SASL_CFLAGS=$pkg_cv_SASL_CFLAGS
+        SASL_LIBS=$pkg_cv_SASL_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -21418,8 +21432,8 @@ if test \( x"$curlpath" = x"auto" -o x"$curlpath" = x"yes" \) -a \
 then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for CURL" >&5
-printf %s "checking for CURL... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libcurl >= 7.12.0" >&5
+printf %s "checking for libcurl >= 7.12.0... " >&6; }
 
 if test -n "$CURL_CFLAGS"; then
     pkg_cv_CURL_CFLAGS="$CURL_CFLAGS"
@@ -21459,7 +21473,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -21468,12 +21482,12 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        CURL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libcurl >= 7.12.0" 2>&1`
+                CURL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libcurl >= 7.12.0" 2>&1`
         else
-	        CURL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libcurl >= 7.12.0" 2>&1`
+                CURL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libcurl >= 7.12.0" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$CURL_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$CURL_PKG_ERRORS" >&5
 
 
 	        curl_found="no"
@@ -21483,7 +21497,7 @@ printf "%s\n" "$as_me: WARNING: pkg-config for curl not found, trying manual
 		            search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 	        curl_found="no"
@@ -21493,8 +21507,8 @@ printf "%s\n" "$as_me: WARNING: pkg-config for curl not found, trying manual
 		            search..." >&2;}
 
 else
-	CURL_CFLAGS=$pkg_cv_CURL_CFLAGS
-	CURL_LIBS=$pkg_cv_CURL_LIBS
+        CURL_CFLAGS=$pkg_cv_CURL_CFLAGS
+        CURL_LIBS=$pkg_cv_CURL_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
@@ -21612,8 +21626,8 @@ if test \( x"$janssonpath" = x"auto" -o x"$janssonpath" = x"yes" \) -a \
 then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBJANSSON" >&5
-printf %s "checking for LIBJANSSON... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for jansson >= 2.2.1" >&5
+printf %s "checking for jansson >= 2.2.1... " >&6; }
 
 if test -n "$LIBJANSSON_CFLAGS"; then
     pkg_cv_LIBJANSSON_CFLAGS="$LIBJANSSON_CFLAGS"
@@ -21653,7 +21667,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -21662,12 +21676,12 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBJANSSON_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "jansson >= 2.2.1" 2>&1`
+                LIBJANSSON_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "jansson >= 2.2.1" 2>&1`
         else
-	        LIBJANSSON_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "jansson >= 2.2.1" 2>&1`
+                LIBJANSSON_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "jansson >= 2.2.1" 2>&1`
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$LIBJANSSON_PKG_ERRORS" >&5
+        # Put the nasty error message in config.log where it belongs
+        echo "$LIBJANSSON_PKG_ERRORS" >&5
 
 
 	        jansson_found="no"
@@ -21677,7 +21691,7 @@ printf "%s\n" "$as_me: WARNING: pkg-config for libjansson not found, trying manu
 		            search..." >&2;}
 
 elif test $pkg_failed = untried; then
-     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
 	        jansson_found="no"
@@ -21687,8 +21701,8 @@ printf "%s\n" "$as_me: WARNING: pkg-config for libjansson not found, trying manu
 		            search..." >&2;}
 
 else
-	LIBJANSSON_CFLAGS=$pkg_cv_LIBJANSSON_CFLAGS
-	LIBJANSSON_LIBS=$pkg_cv_LIBJANSSON_LIBS
+        LIBJANSSON_CFLAGS=$pkg_cv_LIBJANSSON_CFLAGS
+        LIBJANSSON_LIBS=$pkg_cv_LIBJANSSON_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
