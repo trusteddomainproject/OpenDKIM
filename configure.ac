@@ -135,7 +135,7 @@ m4_define([AC_LANG_CALL], [AC_LANG_PROGRAM([#ifdef HAVE_SYS_TYPES_H
 #endif
 #include <resolv.h>],
                                            [return res_ninit(NULL);])])
-AC_SEARCH_LIBS(res_ninit, resolv,
+AC_SEARCH_LIBS(res_ninit, resolv bind,
                AC_DEFINE(HAVE_RES_NINIT, 1,
                          [Define to 1 if you have the `res_ninit()' function.]))
 m4_rename_force([saved_AC_LANG_CALL], [AC_LANG_CALL])
