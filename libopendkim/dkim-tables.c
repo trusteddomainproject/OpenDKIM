@@ -10,15 +10,28 @@
 
 /* system includes */
 #include <sys/types.h>
+#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
 /* libopendkim includes */
-#include "dkim-tables.h"
 #include "dkim-internal.h"
 
+/* structures */
+struct dkim_nametable
+{
+	const char *	tbl_name;	/* name */
+	const int	tbl_code;	/* code */
+};
+
+struct dkim_iter_ctx
+{
+	DKIM_NAMETABLE	*current;	/* current table entry */
+	_Bool		is_eot;		/* It is last entry or not */
+};
+
 /* lookup tables */
-static struct nametable prv_keyparams[] =	/* key parameters */
+static struct dkim_nametable prv_keyparams[] =	/* key parameters */
 {
 	{ "a",		DKIM_KEY_ALGORITHM },
 	{ "n",		DKIM_KEY_NOTES },
@@ -28,17 +41,17 @@ static struct nametable prv_keyparams[] =	/* key parameters */
 	{ "v",		DKIM_KEY_VERSION },
 	{ NULL,		-1 }
 };
-struct nametable *keyparams = prv_keyparams;
+DKIM_NAMETABLE *dkim_table_keyparams = prv_keyparams;
 
-static struct nametable prv_keyflags[] =	/* key flags */
+static struct dkim_nametable prv_keyflags[] =	/* key flags */
 {
 	{ "y",		DKIM_SIGFLAG_TESTKEY },
 	{ "s",		DKIM_SIGFLAG_NOSUBDOMAIN },
 	{ NULL,		-1 }
 };
-struct nametable *keyflags = prv_keyflags;
+DKIM_NAMETABLE *dkim_table_keyflags = prv_keyflags;
 
-static struct nametable prv_sigparams[] =	/* signature parameters */
+static struct dkim_nametable prv_sigparams[] =	/* signature parameters */
 {
 	{ "a",		DKIM_PARAM_SIGNALG },
 	{ "b",		DKIM_PARAM_SIGNATURE },
@@ -56,49 +69,49 @@ static struct nametable prv_sigparams[] =	/* signature parameters */
 	{ "z",		DKIM_PARAM_COPIEDHDRS },
 	{ NULL,		-1 }
 };
-struct nametable *sigparams = prv_sigparams;
+DKIM_NAMETABLE *dkim_table_sigparams = prv_sigparams;
 
-static struct nametable prv_algorithms[] =	/* signing algorithms */
+static struct dkim_nametable prv_algorithms[] =	/* signing algorithms */
 {
 	{ "rsa-sha1",		DKIM_SIGN_RSASHA1 },
 	{ "rsa-sha256",		DKIM_SIGN_RSASHA256 },
 	{ "ed25519-sha256",	DKIM_SIGN_ED25519SHA256 },
 	{ NULL,		-1 },
 };
-struct nametable *algorithms = prv_algorithms;
+DKIM_NAMETABLE *dkim_table_algorithms = prv_algorithms;
 
-static struct nametable prv_canonicalizations[] = /* canonicalizations */
+static struct dkim_nametable prv_canonicalizations[] = /* canonicalizations */
 {
 	{ "simple",	DKIM_CANON_SIMPLE },
 	{ "relaxed",	DKIM_CANON_RELAXED },
 	{ NULL,		-1 },
 };
-struct nametable *canonicalizations = prv_canonicalizations;
+DKIM_NAMETABLE *dkim_table_canonicalizations = prv_canonicalizations;
 
-static struct nametable prv_hashes[] =		/* hashes */
+static struct dkim_nametable prv_hashes[] =		/* hashes */
 {
 	{ "sha1",	DKIM_HASHTYPE_SHA1 },
 	{ "sha256",	DKIM_HASHTYPE_SHA256 },
 	{ NULL,		-1 },
 };
-struct nametable *hashes = prv_hashes;
+DKIM_NAMETABLE *dkim_table_hashes = prv_hashes;
 
-static struct nametable prv_keytypes[] =	/* key types */
+static struct dkim_nametable prv_keytypes[] =	/* key types */
 {
 	{ "rsa",	DKIM_KEYTYPE_RSA },
 	{ "ed25519",	DKIM_KEYTYPE_ED25519 },
 	{ NULL,		-1 },
 };
-struct nametable *keytypes = prv_keytypes;
+DKIM_NAMETABLE *dkim_table_keytypes = prv_keytypes;
 
-static struct nametable prv_querytypes[] =	/* query types */
+static struct dkim_nametable prv_querytypes[] =	/* query types */
 {
 	{ "dns",	DKIM_QUERY_DNS },
 	{ NULL,		-1 },
 };
-struct nametable *querytypes = prv_querytypes;
+DKIM_NAMETABLE *dkim_table_querytypes = prv_querytypes;
 
-static struct nametable prv_results[] =		/* result codes */
+static struct dkim_nametable prv_results[] =		/* result codes */
 {
 	{ "Success",			DKIM_STAT_OK },
 	{ "Bad signature",		DKIM_STAT_BADSIG },
@@ -116,20 +129,21 @@ static struct nametable prv_results[] =		/* result codes */
 	{ "Invalid result",		DKIM_STAT_CBINVALID },
 	{ "Try again later",		DKIM_STAT_CBTRYAGAIN },
 	{ "Multiple DNS replies",	DKIM_STAT_MULTIDNSREPLY },
+	{ "End of the table",		DKIM_STAT_ITER_EOT },
 	{ NULL,				-1 },
 };
-struct nametable *results = prv_results;
+DKIM_NAMETABLE *dkim_table_results = prv_results;
 
-static struct nametable prv_settypes[] =	/* set types */
+static struct dkim_nametable prv_settypes[] =	/* set types */
 {
 	{ "key",			DKIM_SETTYPE_KEY },
 	{ "signature",			DKIM_SETTYPE_SIGNATURE },
 	{ "signature reporting", 	DKIM_SETTYPE_SIGREPORT },
 	{ NULL,		-1 },
 };
-struct nametable *settypes = prv_settypes;
+DKIM_NAMETABLE *dkim_table_settypes = prv_settypes;
 
-static struct nametable prv_sigerrors[] =	/* signature parsing errors */
+static struct dkim_nametable prv_sigerrors[] =	/* signature parsing errors */
 {
 	{ "no signature error", 		DKIM_SIGERROR_OK },
 	{ "unsupported signature version",	DKIM_SIGERROR_VERSION },
@@ -182,15 +196,15 @@ static struct nametable prv_sigerrors[] =	/* signature parsing errors */
 #endif /* _FFR_CONDITIONAL */
 	{ NULL,					-1 },
 };
-struct nametable *sigerrors = prv_sigerrors;
+DKIM_NAMETABLE *dkim_table_sigerrors = prv_sigerrors;
 
 #ifdef _FFR_CONDITIONAL
-static struct nametable prv_mandatory[] =	/* mandatory DKIM tags */
+static struct dkim_nametable prv_mandatory[] =	/* mandatory DKIM tags */
 {
 	{ "!cd",	0 },
 	{ NULL,		-1 },
 };
-struct nametable *mandatory = prv_mandatory;
+DKIM_NAMETABLE *dkim_table_mandatory = prv_mandatory;
 #endif /* _FFR_CONDITIONAL */
 
 /* ===================================================================== */
@@ -207,7 +221,7 @@ struct nametable *mandatory = prv_mandatory;
 */
 
 const char *
-dkim_code_to_name(struct nametable *tbl, const int code)
+dkim_code_to_name(DKIM_NAMETABLE *tbl, const int code)
 {
 	int c;
 
@@ -235,7 +249,7 @@ dkim_code_to_name(struct nametable *tbl, const int code)
 */
 
 const int
-dkim_name_to_code(struct nametable *tbl, const char *name)
+dkim_name_to_code(DKIM_NAMETABLE *tbl, const char *name)
 {
 	int c;
 
@@ -249,4 +263,94 @@ dkim_name_to_code(struct nametable *tbl, const char *name)
 		if (strcasecmp(tbl[c].tbl_name, name) == 0)
 			return tbl[c].tbl_code;
 	}
+}
+
+/*
+**  DKIM_NAMETABLE_FIRST -- get the first entry of the table and start iteration
+**
+**  Parameters:
+**  	tbl -- name table
+**  	ctx -- iteration context (returned)
+**  	name -- name in the first item in the table (returned)
+**  	code -- code in the first item in the table (returned)
+**
+**  Return value:
+**  	A DKIM_STAT_OK         -- retrieve the first item successfully
+**  	A DKIM_STAT_ITER_EOT   -- the table has no item.
+**  	A DKIM_STAT_NORESOURCE -- cannot allocate memory for the
+** 	                          iteration context
+**
+*/
+DKIM_STAT
+dkim_nametable_first(DKIM_NAMETABLE *tbl, DKIM_ITER_CTX **ctx,
+                 const char **name, int *code)
+{
+	*ctx = (DKIM_ITER_CTX *)
+	       malloc(sizeof(DKIM_ITER_CTX));
+	if (*ctx == NULL)
+	{
+		return DKIM_STAT_NORESOURCE;
+	}
+	if (tbl->tbl_name == NULL)
+	{
+		(*ctx)->current = NULL;
+		(*ctx)->is_eot = TRUE;
+		return DKIM_STAT_ITER_EOT;
+	}
+	*name = tbl->tbl_name;
+	*code = tbl->tbl_code;
+	(*ctx)->current = tbl;
+	(*ctx)->is_eot = (((*ctx)->current)[1].tbl_name == NULL)? TRUE : FALSE;
+	return DKIM_STAT_OK;
+}
+
+/*
+**  DKIM_NAMETABLE_NEXT -- get the next entry on the iteration the table
+**
+**  Parameters:
+**  	ctx -- iteration context (updated)
+**  	name -- name in the first item in the table (returned)
+**  	code -- code in the first item in the table (returned)
+**
+**  Return value:
+**  	A DKIM_STAT_OK         -- retrieve the first item successfully
+**  	A DKIM_STAT_ITER_EOT   -- the table has no item.
+**
+*/
+DKIM_STAT
+dkim_nametable_next(DKIM_ITER_CTX *ctx, const char **name, int *code)
+{
+	if (ctx->is_eot)
+	{
+		return DKIM_STAT_ITER_EOT;
+	}
+	ctx->current++;
+	*name = ctx->current->tbl_name;
+	*code = ctx->current->tbl_code;
+	ctx->is_eot = ((ctx->current)[1].tbl_name == NULL)? TRUE : FALSE;
+	return DKIM_STAT_OK;
+}
+
+/*
+**  DKIM_ITER_CTX_FREE -- release resources associated with
+**                                  a nametable iteration context
+**
+**  Parameters:
+**  	ctx -- iteration context
+**
+**  Return value:
+**  	DKIM_STAT_OK  -- operation was successful
+**
+**  Note: This function is a placeholder to add some operation associated
+**        with future changes of the structure of the tables.
+**
+*/
+DKIM_STAT
+dkim_iter_ctx_free(DKIM_ITER_CTX *ctx)
+{
+	if (ctx != NULL)
+	{
+		free((void *)ctx);
+	}
+	return DKIM_STAT_OK;
 }
