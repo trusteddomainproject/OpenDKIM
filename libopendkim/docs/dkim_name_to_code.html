@@ -1,0 +1,79 @@
+<html>
+<head><title>dkim_name_to_code()</title></head>
+<body>
+<!--
+-->
+<h1>dkim_name_to_code()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+const int dkim_name_to_code(
+	<a href="dkim_nametable.html"><tt>DKIM_NAMETABLE</tt></a> *tbl,
+	const char *name
+);
+</pre>
+Translate a name text in C string into a mnemonic code.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_name_to_code()</tt> can be called at any time.</td>
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>tbl</td>
+	<td>A name table to use for translation. One of values described in
+        <a href="dkim_nametable.html"><tt>DKIM_NAMETABLE</tt>.
+	</td></tr>
+    <tr valign="top"><td>code</td>
+	<td>A name C string to translate.</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr>
+<th valign="top" align=left>RETURN VALUES</th>
+<td>
+<ul>
+<li>A mnemonic code matching the provided name, if found
+<li><tt>-1</tt>, if no maching is found
+</ul>
+</td>
+</tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th>
+<td>
+<ul>
+<li>None.
+</ul>
+</td>
+</tr>
+
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005, 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009-2014, 2024 The Trusted Domain Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>
