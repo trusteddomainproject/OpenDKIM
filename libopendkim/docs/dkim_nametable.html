@@ -1,0 +1,68 @@
+<html>
+<head><title>DKIM_NAMETABLE</title></head>
+<body>
+<!--
+-->
+<h1>DKIM_NAMETABLE</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Purpose</th>
+<td>A <tt>DKIM_NAMETABLE</tt> is a conversion table between an internal code
+    in <tt>libopendkim</tt> and its name text in C string.  It is passed as
+    a parameter to the conversion functions
+    <a href="dkim_code_to_name.html"><tt>dkim_code_to_name()</tt></a> or
+    <a href="dkim_name_to_code.html"><tt>dkim_name_to_code()</tt></a>.
+    For the purpose to aquire all data in a table, there are functions
+    to allow us iteration on a table,
+    <a href="dkim_nametable_first.html"><tt
+    >dkim_nametable_first()</tt></a>,
+    <a href="dkim_nametable_next.html"><tt
+    >dkim_nametable_next()</tt></a>, and
+    <a href="dkim_iter_ctx_free.html"><tt
+    >dkim_iter_free()</tt></a>.
+</td>
+</tr>
+<tr align="left" valign=top>
+<th width="80">Possible Values</th>
+<td>
+<ul>
+<li> <tt>dkim_table_algorithms</tt> -- a conversion table for
+     <a href="dkim_alg_t.html"><tt>dkim_alg_t</tt></a>.</li>
+<li> <tt>dkim_talbe_canonicalizations</tt> -- a conversion table for
+     <a href="dkim_canon_t.html"><tt>dkim_canon_t</tt></a>.</li>
+<li> <tt>dkim_table_keyflags</tt> -- a conversion table for
+     <tt>DKIM_SIGFLAG_*</tt> constants.</li>
+<li> <tt>dkim_table_querytypes</tt> -- a conversion table for
+     <tt>DKIM_QUERY_*</tt> constants.</li>
+<li> <tt>dkim_table_results</tt> -- a conversion table for
+     <a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> constants.</li>
+<li> <tt>dkim_table_sigerrors</tt> -- a conversion table for
+     <a href="dkim_sigerror.html"><tt>DKIM_SIGERROR</tt></a> constants.</li>
+<li> <tt>dkim_table_sigparams</tt> -- a conversion table for
+     <tt>DKIM_PARAM_*</tt> constants.</li>
+</ul>
+</td></tr>
+</table>
+
+</td></tr>
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2008 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009-2014, 2024, The Trusted Domain Project.
+All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

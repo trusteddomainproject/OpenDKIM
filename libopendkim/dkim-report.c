@@ -22,7 +22,6 @@
 #include "dkim-report.h"
 #include "dkim-internal.h"
 #include "dkim-types.h"
-#include "dkim-tables.h"
 #include "util.h"
 
 /* prototypes */

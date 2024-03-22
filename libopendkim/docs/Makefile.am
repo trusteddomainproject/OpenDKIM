@@ -12,6 +12,7 @@ dist_doc_DATA = dkim.html \
 	dkim_cbstat.html \
 	dkim_chunk.html \
 	dkim_close.html \
+	dkim_code_to_name.html \
 	dkim_dns_close.html \
 	dkim_dns_config.html \
 	dkim_dns_init.html \
@@ -48,11 +49,17 @@ dist_doc_DATA = dkim.html \
 	dkim_getuser.html \
 	dkim_header.html \
 	dkim_init.html \
+	dkim_iter_ctx.html \
+	dkim_iter_ctx_free.html \
 	dkim_key_syntax.html \
 	dkim_lib.html \
 	dkim_libfeature.html \
 	dkim_libversion.html \
 	dkim_minbody.html \
+	dkim_name_to_code.html \
+	dkim_nametable.html \
+	dkim_nametable_first.html \
+	dkim_nametable_next.html \
 	dkim_ohdrs.html \
 	dkim_options.html \
 	dkim_param_t.html \
