@@ -4934,10 +4934,12 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 	_Bool found = FALSE;
 	size_t keydatasz = 0;
 	struct signreq *new;
-	struct dkimf_db_data dbd[3];
+	struct dkimf_db_data dbd[4];
 	char keydata[MAXBUFRSZ + 1];
 	char domain[DKIM_MAXHOSTNAMELEN + 1];
 	char selector[BUFRSZ + 1];
+	char signalgstr[BUFRSZ + 1];
+	dkim_alg_t signalg = DKIM_SIGN_DEFAULT;
 	char err[BUFRSZ + 1];
 
 	assert(dfc != NULL);
@@ -4963,6 +4965,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		memset(domain, '\0', sizeof domain);
 		memset(selector, '\0', sizeof selector);
 		memset(keydata, '\0', sizeof keydata);
+		memset(signalgstr, '\0', sizeof signalgstr);
 
 		dbd[0].dbdata_buffer = domain;
 		dbd[0].dbdata_buflen = sizeof domain - 1;
@@ -4973,9 +4976,12 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		dbd[2].dbdata_buffer = keydata;
 		dbd[2].dbdata_buflen = sizeof keydata - 1;
 		dbd[2].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
+		dbd[3].dbdata_buffer = signalgstr;
+		dbd[3].dbdata_buflen = sizeof signalgstr - 1;
+		dbd[3].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
 		if (dkimf_db_get(keytable, keyname, strlen(keyname),
-		                 dbd, 3, &found) != 0)
+		                 dbd, 4, &found) != 0)
 		{
 			memset(err, '\0', sizeof err);
 			(void) dkimf_db_strerror(keytable, err, sizeof err);
@@ -5079,6 +5085,24 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
  			if (curconf->conf_safekeys)
 				return 2;
 		}
+
+		if (dbd[3].dbdata_buflen > 0 && signalgstr[0] != '\0')
+		{
+			signalg = (dkim_alg_t)dkim_name_to_code(dkim_table_algorithms,
+			                                        signalgstr);
+			if (signalg == -1)
+			{
+				if (dolog)
+				{
+					syslog(LOG_ERR,
+					       "KeyTable entry for '%s' corrupt:"
+					       " invalid sign algorithm %s",
+					       keyname, signalgstr);
+				}
+
+				return 2;
+			}
+		}
 	}
 
 	new = malloc(sizeof *new);
@@ -5091,6 +5115,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 	new->srq_selector = NULL;
 	new->srq_keydata = NULL;
 	new->srq_signlen = signlen;
+	new->srq_signalg = signalg;
 	if (signer != NULL && signer[0] != '\0')
 		new->srq_signer = (u_char *) strdup(signer);
 	else
@@ -8327,11 +8352,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			_Bool first = TRUE;
 			_Bool found;
-			struct dkimf_db_data dbd[3];
+			struct dkimf_db_data dbd[4];
 			char keyname[BUFRSZ + 1];
 			char domain[BUFRSZ + 1];
 			char selector[BUFRSZ + 1];
 			char keydata[BUFRSZ + 1];
+			char signalgstr[BUFRSZ + 1];
 			char signer[BUFRSZ + 1];
 
 			dbd[0].dbdata_flags = 0;
@@ -8359,10 +8385,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				dbd[2].dbdata_buffer = keydata;
 				dbd[2].dbdata_buflen = sizeof keydata - 1;
 				dbd[2].dbdata_flags = DKIMF_DB_DATA_BINARY;
+				dbd[3].dbdata_buffer = signalgstr;
+				dbd[3].dbdata_buflen = sizeof signalgstr - 1;
+				dbd[3].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
 				if (dkimf_db_get(conf->conf_keytabledb,	
 				                 keyname, strlen(keyname),
-				                 dbd, 3, &found) != 0 ||
+				                 dbd, 4, &found) != 0 ||
 				    !found ||
 				    dbd[0].dbdata_buflen == 0 ||
 				    dbd[1].dbdata_buflen == 0 ||
@@ -12619,6 +12648,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 		for (sr = dfc->mctx_srhead; sr != NULL; sr = sr->srq_next)
 		{
+			dkim_alg_t signalg;
 #ifdef _FFR_CONDITIONAL
 			if (sr->srq_dkim != NULL)
 				continue;
@@ -12645,13 +12675,15 @@ mlfi_eoh(SMFICTX *ctx)
 				selector = conf->conf_selector;
 			}
 
+			signalg = (sr->srq_signalg == DKIM_SIGN_DEFAULT)?
+			          dfc->mctx_signalg:sr->srq_signalg;
 			sr->srq_dkim = dkim_sign(conf->conf_libopendkim,
 			                         dfc->mctx_jobid,
 			                         NULL, keydata, selector,
 			                         sdomain,
 			                         dfc->mctx_hdrcanon,
 			                         dfc->mctx_bodycanon,
-			                         dfc->mctx_signalg,
+			                         signalg,
 			                         signlen, &status);
 
 			if (sr->srq_dkim == NULL || status != DKIM_STAT_OK)
