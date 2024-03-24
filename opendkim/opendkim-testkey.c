@@ -236,6 +236,8 @@ main(int argc, char **argv)
 	char domain[BUFRSZ];
 	char selector[BUFRSZ];
 	char keypath[MAXBUFRSZ];
+	char signalgstr[BUFRSZ];
+	dkim_alg_t signalg;
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
@@ -464,7 +466,7 @@ main(int argc, char **argv)
 		size_t keylen;
 		DKIMF_DB db;
 		char keyname[BUFRSZ + 1];
-		struct dkimf_db_data dbd[3];
+		struct dkimf_db_data dbd[4];
 
 		memset(dbd, '\0', sizeof dbd);
 
@@ -491,6 +493,7 @@ main(int argc, char **argv)
 			memset(domain, '\0', sizeof domain);
 			memset(selector, '\0', sizeof selector);
 			memset(keypath, '\0', sizeof keypath);
+			memset(signalgstr, '\0', sizeof signalgstr);
 
 			dbd[0].dbdata_buffer = domain;
 			dbd[0].dbdata_buflen = sizeof domain;
@@ -498,11 +501,14 @@ main(int argc, char **argv)
 			dbd[1].dbdata_buflen = sizeof selector;
 			dbd[2].dbdata_buffer = keypath;
 			dbd[2].dbdata_buflen = sizeof keypath;
+			dbd[3].dbdata_buffer = signalgstr;
+			dbd[3].dbdata_buflen = sizeof signalgstr;
+			dbd[3].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
 			keylen = sizeof keyname;
 
 			status = dkimf_db_walk(db, c == 0, keyname, &keylen,
-			                       dbd, 3);
+			                       dbd, 4);
 			if (status == -1)
 			{
 				fprintf(stderr,
@@ -522,6 +528,27 @@ main(int argc, char **argv)
 				fprintf(stderr,
 				        "%s: record %d for '%s' retrieved\n",
 				        progname, c, keyname);
+			}
+
+			if (signalgstr[0] != '\0')
+			{
+				signalg = (dkim_alg_t)dkim_name_to_code(dkim_table_algorithms,
+				                                        signalgstr);
+				if (signalg == -1)
+				{
+					fprintf(stderr,
+					        "%s: unknown sign algorithm "
+					        "'%s' for key '%s'\n",
+					        progname, signalgstr, keyname);
+					return 1;
+				}
+
+				if (verbose > 1)
+				{
+					fprintf(stderr,
+				        "%s: key '%s': sign algorithm is '%s'\n",
+				        progname, keyname, signalgstr);
+				}
 			}
 
 			if (keypath[0] == '/' ||
@@ -571,6 +598,9 @@ main(int argc, char **argv)
 				fprintf(stderr, "%s: checking key '%s'\n",
 				        progname, keyname);
 			}
+
+			/* To do: check consistency of the key and algorithm.
+			   It is needed to extend dkim_test_key() for it */
 
 			dnssec = DKIM_DNSSEC_UNKNOWN;
 
