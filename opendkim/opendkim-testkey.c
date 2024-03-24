@@ -237,6 +237,7 @@ main(int argc, char **argv)
 	char selector[BUFRSZ];
 	char keypath[MAXBUFRSZ];
 	char signalgstr[BUFRSZ];
+	dkim_alg_t default_signalg;
 	dkim_alg_t signalg;
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
@@ -342,6 +343,26 @@ main(int argc, char **argv)
 			(void) config_get(cfg, "KeyFile", &p, sizeof p);
 			if (p != NULL)
 				strlcpy(keypath, p, sizeof keypath);
+		}
+
+		p = NULL;
+		(void) config_get(cfg, "SignatureAlgorithm", &p, sizeof p);
+		if (p != NULL)
+		{
+			default_signalg = (dkim_alg_t)
+			                  dkim_name_to_code(dkim_table_algorithms,
+			                                    p);
+			if (default_signalg == -1)
+			{
+				fprintf(stderr,
+				        "%s: %s: Unknown SignatureAlgorithm %s\n",
+				        progname, path, p);
+				return EX_CONFIG;
+			}
+		}
+		else
+		{
+			default_signalg = DKIM_SIGN_RSASHA256;
 		}
 
 #ifdef USE_LDAP
@@ -550,6 +571,10 @@ main(int argc, char **argv)
 				        progname, keyname, signalgstr);
 				}
 			}
+			else
+			{
+				signalg = default_signalg;
+			}
 
 			if (keypath[0] == '/' ||
 			    strncmp(keypath, "./", 2) == 0 ||
@@ -599,14 +624,11 @@ main(int argc, char **argv)
 				        progname, keyname);
 			}
 
-			/* To do: check consistency of the key and algorithm.
-			   It is needed to extend dkim_test_key() for it */
-
 			dnssec = DKIM_DNSSEC_UNKNOWN;
 
-			status = dkim_test_key(lib, selector, domain,
-			                       keypath, keylen, &dnssec,
-			                       err, sizeof err);
+			status = dkim_test_key2(lib, selector, domain,
+			                        keypath, keylen, signalg,
+			                        &dnssec, err, sizeof err);
 
 			switch (status)
 			{

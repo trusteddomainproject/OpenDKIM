@@ -1453,6 +1453,30 @@ extern DKIM_STAT dkim_get_sigsubstring __P((DKIM *, DKIM_SIGINFO *,
                                             char *, size_t *));
 
 /*
+**  DKIM_TEST_KEY2 -- retrieve a public key and verify it against a provided
+**                    private key
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	selector -- selector
+**  	domain -- domain name
+**  	key -- private key to verify (PEM format)
+**  	keylen -- size of private key
+**  	alg -- signing algorithm
+**  	dnssec -- DNSSEC result (may be NULL)
+**  	err -- error buffer (may be NULL)
+**  	errlen -- size of error buffer
+**
+**  Return value:
+**  	1 -- keys don't match
+**  	0 -- keys match (or no key provided)
+**  	-1 -- error
+*/
+
+extern int dkim_test_key2 __P((DKIM_LIB *, char *, char *, char *, size_t,
+                               dkim_alg_t, int *, char *, size_t));
+
+/*
 **  DKIM_TEST_KEY -- retrieve a public key and verify it against a provided
 **                   private key
 **
