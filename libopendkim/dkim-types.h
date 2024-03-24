@@ -37,6 +37,7 @@
 # include <openssl/bio.h>
 # include <openssl/err.h>
 # include <openssl/sha.h>
+# include <openssl/evp.h>
 #endif /* USE_GNUTLS */
 
 #ifdef QUERY_CACHE
@@ -151,36 +152,22 @@ struct dkim_siginfo
 	struct dkim_dstring *	sig_sslerrbuf;
 };
 
-#ifdef USE_GNUTLS
 /* struct dkim_sha -- stuff needed to do a sha hash */
 struct dkim_sha
 {
+#ifdef USE_GNUTLS
 	int			sha_tmpfd;
 	u_int			sha_outlen;
 	gnutls_hash_hd_t	sha_hd;
 	u_char *		sha_out;
-};
 #else /* USE_GNUTLS */
-/* struct dkim_sha1 -- stuff needed to do a sha1 hash */
-struct dkim_sha1
-{
-	int			sha1_tmpfd;
-	BIO *			sha1_tmpbio;
-	SHA_CTX			sha1_ctx;
-	u_char			sha1_out[SHA_DIGEST_LENGTH];
-};
-
-# ifdef HAVE_SHA256
-/* struct dkim_sha256 -- stuff needed to do a sha256 hash */
-struct dkim_sha256
-{
-	int			sha256_tmpfd;
-	BIO *			sha256_tmpbio;
-	SHA256_CTX		sha256_ctx;
-	u_char			sha256_out[SHA256_DIGEST_LENGTH];
-};
-# endif /* HAVE_SHA256 */
+	int			sha_tmpfd;
+	BIO *			sha_tmpbio;
+	EVP_MD_CTX *		sha_ctx;
+	u_char			sha_out[EVP_MAX_MD_SIZE];
+	u_int			sha_outlen;
 #endif /* USE_GNUTLS */
+};
 
 /* struct dkim_canon -- a canonicalization status handle */
 struct dkim_canon
@@ -220,12 +207,10 @@ struct dkim_crypto
 	gnutls_datum_t 		crypto_rsaout;
 	gnutls_datum_t 		crypto_keydata;
 #else /* USE_GNUTLS */
-	u_char			crypto_pad;
 	int			crypto_keysize;
 	size_t			crypto_inlen;
 	size_t			crypto_outlen;
 	EVP_PKEY *		crypto_pkey;
-	void *			crypto_key;
 	BIO *			crypto_keydata;
 	u_char *		crypto_in;
 	u_char *		crypto_out;
