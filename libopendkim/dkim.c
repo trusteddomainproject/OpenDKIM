@@ -81,7 +81,6 @@
 /* libopendkim includes */
 #include "dkim-internal.h"
 #include "dkim-types.h"
-#include "dkim-tables.h"
 #include "dkim-keys.h"
 #include "dkim-report.h"
 #include "dkim-util.h"
@@ -514,7 +513,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 	}
 
 	set->set_type = type;
-	settype = dkim_code_to_name(settypes, type);
+	settype = dkim_code_to_name(dkim_table_settypes, type);
 	set->set_name = name;
 #ifdef _FFR_CONDITIONAL
 	set->set_minv = 1;
@@ -831,7 +830,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 			     plist != NULL;
 			     plist = plist->plist_next)
 			{
-				if (dkim_name_to_code(mandatory,
+				if (dkim_name_to_code(dkim_table_mandatory,
 				                      plist->plist_param) == -1)
 				{
 					dkim_error(dkim,
@@ -1466,7 +1465,7 @@ dkim_key_hashok(DKIM_SIGINFO *sig, u_char *hashlist)
 			{
 				strlcpy((char *) tmp, (char *) x, sizeof tmp);
 				tmp[y - x] = '\0';
-				hashalg = dkim_name_to_code(hashes,
+				hashalg = dkim_name_to_code(dkim_table_hashes,
 				                            (char *) tmp);
 				if (hashalg == sig->sig_hashtype)
 					return TRUE;
@@ -1525,7 +1524,7 @@ dkim_key_hashesok(DKIM_LIB *lib, u_char *hashlist)
 				strlcpy((char *) tmp, (char *) x, sizeof tmp);
 				tmp[y - x] = '\0';
 
-				hashcode = dkim_name_to_code(hashes,
+				hashcode = dkim_name_to_code(dkim_table_hashes,
 				                             (char *) tmp);
 
 				if (hashcode != -1 &&
@@ -2066,7 +2065,7 @@ dkim_siglist_setup(DKIM *dkim)
 			if (q != NULL)
 				*q = '\0';
 
-			hdrcanon = dkim_name_to_code(canonicalizations, value);
+			hdrcanon = dkim_name_to_code(dkim_table_canonicalizations, value);
 			if (hdrcanon == -1)
 			{
 				dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_HC;
@@ -2079,7 +2078,7 @@ dkim_siglist_setup(DKIM *dkim)
 			}
 			else
 			{
-				bodycanon = dkim_name_to_code(canonicalizations,
+				bodycanon = dkim_name_to_code(dkim_table_canonicalizations,
 				                              q + 1);
 
 				if (bodycanon == -1)
@@ -2099,7 +2098,7 @@ dkim_siglist_setup(DKIM *dkim)
 		}
 		else
 		{
-			signalg = dkim_name_to_code(algorithms,
+			signalg = dkim_name_to_code(dkim_table_algorithms,
 			                            (char *) param);
 
 			if (signalg == -1)
@@ -2234,7 +2233,7 @@ dkim_siglist_setup(DKIM *dkim)
 				}
 
 				/* unknown type */
-				q = dkim_name_to_code(querytypes, (char *) p);
+				q = dkim_name_to_code(dkim_table_querytypes, (char *) p);
 				if (q == (dkim_query_t) -1)
 					continue;
 
@@ -2393,7 +2392,7 @@ dkim_siglist_setup(DKIM *dkim)
 				     plist != NULL;
 				     plist = plist->plist_next)
 				{
-					pcode = dkim_name_to_code(sigparams,
+					pcode = dkim_name_to_code(dkim_table_sigparams,
 					                          (char *) plist->plist_param);
 
 					(void) lib->dkiml_sig_tagvalues(user,
@@ -2522,12 +2521,12 @@ dkim_gensighdr(DKIM *dkim, DKIM_SIGINFO *sig, struct dkim_dstring *dstr,
 
 	(void) dkim_dstring_printf(dstr, format,
 	                           v, delim,
-	                           dkim_code_to_name(algorithms,
+	                           dkim_code_to_name(dkim_table_algorithms,
 	                                             sig->sig_signalg),
 	                           delim,
-	                           dkim_code_to_name(canonicalizations,
+	                           dkim_code_to_name(dkim_table_canonicalizations,
 	                                             sig->sig_hdrcanonalg),
-	                           dkim_code_to_name(canonicalizations,
+	                           dkim_code_to_name(dkim_table_canonicalizations,
 	                                             sig->sig_bodycanonalg),
 	                           delim,
 	                           sig->sig_domain, delim,
@@ -3057,7 +3056,7 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig, _Bool test)
 		sig->sig_error = DKIM_SIGERROR_KEYTYPEMISSING;
 		return DKIM_STAT_SYNTAX;
 	}
-	else if (dkim_name_to_code(keytypes, (char *) p) == -1)
+	else if (dkim_name_to_code(dkim_table_keytypes, (char *) p) == -1)
 	{
 		dkim_error(dkim, "unknown key type '%s'", p);
 		sig->sig_error = DKIM_SIGERROR_KEYTYPEUNKNOWN;
@@ -3113,7 +3112,7 @@ dkim_get_key(DKIM *dkim, DKIM_SIGINFO *sig, _Bool test)
 		     t != NULL;
 		     t = strtok_r(NULL, ":", &last))
 		{
-			flag = (u_int) dkim_name_to_code(keyflags, t);
+			flag = (u_int) dkim_name_to_code(dkim_table_keyflags, t);
 			if (flag != (u_int) -1)
 				sig->sig_flags |= flag;
 		}
@@ -3627,7 +3626,7 @@ dkim_eoh_verify(DKIM *dkim)
 			    sig->sig_error != DKIM_SIGERROR_OK)
 			{
 				dkim_error(dkim,
-				           dkim_code_to_name(sigerrors,
+				           dkim_code_to_name(dkim_table_sigerrors,
 				                             sig->sig_error));
 			}
 
@@ -4322,7 +4321,7 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 		if (dkim->dkim_error == NULL ||
 		    dkim->dkim_error[0] == '\0')
 		{
-			dkim_error(dkim, dkim_code_to_name(sigerrors,
+			dkim_error(dkim, dkim_code_to_name(dkim_table_sigerrors,
 			                                   sig->sig_error));
 		}
 
@@ -8189,7 +8188,7 @@ dkim_set_margin(DKIM *dkim, int value)
 const char *
 dkim_getresultstr(DKIM_STAT result)
 {
-	return dkim_code_to_name(results, result);
+	return dkim_code_to_name(dkim_table_results, result);
 }
 
 /*
@@ -8522,7 +8521,7 @@ dkim_sig_getalgorithm(DKIM_SIGINFO *siginfo)
 {
 	assert(siginfo != NULL);
 
-	return (unsigned char *) dkim_code_to_name(algorithms,
+	return (unsigned char *) dkim_code_to_name(dkim_table_algorithms,
 	                                           siginfo->sig_signalg);
 }
 
@@ -8582,7 +8581,7 @@ dkim_sig_geterror(DKIM_SIGINFO *siginfo)
 const char *
 dkim_sig_geterrorstr(DKIM_SIGERROR sigerr)
 {
-	return dkim_code_to_name(sigerrors, sigerr);
+	return dkim_code_to_name(dkim_table_sigerrors, sigerr);
 }
 
 /*
@@ -9496,7 +9495,7 @@ dkim_add_xtag(DKIM *dkim, const char *tag, const char *value)
 	/* check that it's not in sigparams */
 	if (tag[0] == '\0' || value[0] == '\0')
 		return DKIM_STAT_INVALID;
-	pcode = dkim_name_to_code(sigparams, tag);
+	pcode = dkim_name_to_code(dkim_table_sigparams, tag);
 	if (pcode != (dkim_param_t) -1)
 		return DKIM_STAT_INVALID;
 

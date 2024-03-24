@@ -21,7 +21,6 @@
 #include "dkim.h"
 #include "dkim-internal.h"
 #include "dkim-types.h"
-#include "dkim-tables.h"
 #include "util.h"
 
 #ifdef USE_GNUTLS
@@ -142,7 +141,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	/* confirm it requested a hash we know how to do */
 	if (strcasecmp(ahash, "none") != 0)
 	{
-		hash = dkim_name_to_code(hashes, ahash);
+		hash = dkim_name_to_code(dkim_table_hashes, ahash);
 		if (hash == -1)
 			return DKIM_STAT_INVALID;
 	}
