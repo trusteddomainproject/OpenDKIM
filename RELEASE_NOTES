@@ -13,6 +13,8 @@ release, and a summary of the changes in that release.
 	Make odkim.internal_ip() available to all Lua hooks.  Problem noted
 		by Iosif Fettich.
 	Make bind code DNSSEC-aware.  Patch from Jack Bates.
+	Extend KeyTable to specify signing algorithm.
+		Patch from Yasuhito Futatsuki.
 	Fix dkimf_db_nextpunct() so it doesn't incorrectly identify an encoded
 		hex digit as a value delimiter.
 	Fix issue #8: The password file critical section isn't big enough.
@@ -49,8 +51,16 @@ release, and a summary of the changes in that release.
 		oversized input lines.  Reported by Mars Peng.
 	LIBOPENDKIM: Fix parsing bug in dkim_mail_parse_multi(), where quotes
 		were not being properly handled.
+	LIBOPENDKIM: Expose conversion table between internal code already
+		provided as DKIM_ macros and their literal name in C string.
+	LIBOPENDKIM: Extend dkim_test_key() to allow testing a ed25519 key,
+		as dkim_test_key2(). For API compatibility, function interface
+		of dkim_test_key() is not changed, but it only calls
+		dkim_test_key2(). Patch from Yasuhito Futatsuki.
 	TOOLS: Feature requrest #187: Add option to match subdomains when
 		generating zone files.  Patch from Andreas Schulze.
+	TOOLS: issue #183: On opendkim-testkey, add support for ed25519 keys.
+		Patch from Yasuhito Futatsuki.
 
 2.10.3		2015/05/12
 	LIBOPENDKIM: Make strict header checking non-destructive.  The last

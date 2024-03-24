@@ -27,6 +27,7 @@
 # include <openssl/bio.h>
 # include <openssl/rsa.h>
 # include <openssl/evp.h>
+# include <openssl/x509.h>
 #endif /* USE_GNUTLS */
 
 /* libopendkim includes */
@@ -266,8 +267,8 @@ dkim_test_dns_get(DKIM *dkim, u_char *buf, size_t buflen)
 }
 
 /*
-**  DKIM_TEST_KEY -- retrieve a public key and verify it against a provided
-**                   private key
+**  DKIM_TEST_KEY2 -- retrieve a public key and verify it against a provided
+**                    private key
 **
 **  Parameters:
 **  	lib -- DKIM library handle
@@ -276,6 +277,7 @@ dkim_test_dns_get(DKIM *dkim, u_char *buf, size_t buflen)
 **  	key -- private key to verify (PEM format)
 **  	keylen -- size of private key
 **  	dnssec -- DNSSEC result (may be NULL)
+**  	alg -- signing algorithm
 **  	err -- error buffer (may be NULL)
 **  	errlen -- size of error buffer
 **
@@ -286,8 +288,9 @@ dkim_test_dns_get(DKIM *dkim, u_char *buf, size_t buflen)
 */
 
 int
-dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
-              char *key, size_t keylen, int *dnssec, char *err, size_t errlen)
+dkim_test_key2(DKIM_LIB *lib, char *selector, char *domain,
+               char *key, size_t keylen, dkim_alg_t alg,
+               int *dnssec, char *err, size_t errlen)
 {
 	int status = 0;
 	DKIM_STAT stat;
@@ -299,10 +302,12 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 #else /* USE_GNUTLS */
 	BIO *keybuf;
 	BIO *outkey;
+	size_t outkey_len;
 #endif /* USE_GNUTLS */
 	void *ptr;
 	struct dkim_crypto *crypto;
 	char buf[BUFRSZ];
+	const char *algstr;
 
 	assert(lib != NULL);
 	assert(selector != NULL);
@@ -316,8 +321,10 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 		return -1;
 	}
 
-	snprintf(buf, sizeof buf, "v=1; d=%s; s=%s; h=x; b=x; a=x",
-	         domain, selector);
+	algstr = dkim_code_to_name(dkim_table_algorithms, alg);
+
+	snprintf(buf, sizeof buf, "v=1; d=%s; s=%s; h=x; b=x; a=%s",
+	         domain, selector, algstr);
 
 	stat = dkim_process_set(dkim, DKIM_SETTYPE_SIGNATURE, (u_char *) buf,
 	                        strlen(buf), NULL, FALSE, NULL);
@@ -407,7 +414,18 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 #endif /* USE_GNUTLS */
 
 		sig->sig_signature = (void *) crypto;
-		sig->sig_keytype = DKIM_KEYTYPE_RSA;
+		switch(alg)
+		{
+		  case DKIM_SIGN_RSASHA1:
+		  case DKIM_SIGN_RSASHA256:
+			sig->sig_keytype = DKIM_KEYTYPE_RSA;
+			break;
+		  case DKIM_SIGN_ED25519SHA256:
+			sig->sig_keytype = DKIM_KEYTYPE_ED25519;
+			break;
+		  default:
+			return -1;
+		}
 
 #ifdef USE_GNUTLS
 		if (err != NULL)
@@ -431,62 +449,105 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			return -1;
 		}
 
-		crypto->crypto_key = EVP_PKEY_get1_RSA(crypto->crypto_pkey);
-		if (crypto->crypto_key == NULL)
+		if (sig->sig_keytype == DKIM_KEYTYPE_ED25519)
 		{
-			BIO_free(keybuf);
-			(void) dkim_free(dkim);
-			if (err != NULL)
+			outkey_len = sizeof(buf);
+			if (! EVP_PKEY_get_raw_public_key(crypto->crypto_pkey,
+			                                  buf, &outkey_len))
 			{
-				strlcpy(err, "EVP_PKEY_get1_RSA() failed",
+				strlcpy(err,
+				        "EVP_PKEY_get_raw_public_key() failed",
 				        errlen);
+				return -1;
 			}
-			return -1;
+			ptr = buf;
 		}
-	
-		crypto->crypto_keysize = RSA_size(crypto->crypto_key);
-		crypto->crypto_pad = RSA_PKCS1_PADDING;
-
-		outkey = BIO_new(BIO_s_mem());
-		if (outkey == NULL)
+		else
 		{
-			BIO_free(keybuf);
-			(void) dkim_free(dkim);
-			if (err != NULL)
-				strlcpy(err, "BIO_new() failed", errlen);
-			return -1;
+			crypto->crypto_keysize = EVP_PKEY_size(crypto->crypto_pkey);
+
+			outkey = BIO_new(BIO_s_mem());
+			if (outkey == NULL)
+			{
+				BIO_free(keybuf);
+				(void) dkim_free(dkim);
+				if (err != NULL)
+					strlcpy(err, "BIO_new() failed", errlen);
+				return -1;
+			}
+
+			status = i2d_PUBKEY_bio(outkey, crypto->crypto_pkey);
+			if (status == 0)
+			{
+				BIO_free(keybuf);
+				BIO_free(outkey);
+				(void) dkim_free(dkim);
+				if (err != NULL)
+				{
+					strlcpy(err, "i2d_RSA_PUBKEY_bio() failed",
+					        errlen);
+				}
+				return -1;
+			}
+			(void) BIO_get_mem_data(outkey, &ptr);
+
+			outkey_len = BIO_number_written(outkey);
+
 		}
 
-		status = i2d_RSA_PUBKEY_bio(outkey, crypto->crypto_key);
-		if (status == 0)
+		if (outkey_len == sig->sig_keylen)
+		{
+			status = memcmp(ptr, sig->sig_key, sig->sig_keylen);
+			if (status != 0)
+			{
+				strlcpy(err, "keys do not match", errlen);
+			}
+		}
+		else
+		{
+			status = 1;
+			snprintf(err, errlen,
+				 "key do not match: local = %zd, remote = %zd",
+			         outkey_len, sig->sig_keylen);
+		}
+
+		if (sig->sig_keytype != DKIM_KEYTYPE_ED25519)
 		{
 			BIO_free(keybuf);
 			BIO_free(outkey);
-			(void) dkim_free(dkim);
-			if (err != NULL)
-			{
-				strlcpy(err, "i2d_RSA_PUBKEY_bio() failed",
-				        errlen);
-			}
-			return -1;
 		}
-
-		(void) BIO_get_mem_data(outkey, &ptr);
-
-		if (BIO_number_written(outkey) == sig->sig_keylen)
-			status = memcmp(ptr, sig->sig_key, sig->sig_keylen);
-		else
-			status = 1;
-
-		if (status != 0)
-			strlcpy(err, "keys do not match", errlen);
-
-		BIO_free(keybuf);
-		BIO_free(outkey);
 #endif /* USE_GNUTLS */
 	}
 
 	(void) dkim_free(dkim);
 
 	return (status == 0 ? 0 : 1);
+}
+
+/*
+**  DKIM_TEST_KEY -- retrieve a public key and verify it against a provided
+**                   private key
+**
+**  Parameters:
+**  	lib -- DKIM library handle
+**  	selector -- selector
+**  	domain -- domain name
+**  	key -- private key to verify (PEM format)
+**  	keylen -- size of private key
+**  	dnssec -- DNSSEC result (may be NULL)
+**  	err -- error buffer (may be NULL)
+**  	errlen -- size of error buffer
+**
+**  Return value:
+**  	1 -- keys don't match
+**  	0 -- keys match (or no key provided)
+**  	-1 -- error
+*/
+
+int
+dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
+              char *key, size_t keylen, int *dnssec, char *err, size_t errlen)
+{
+	return dkim_test_key2(lib, selector, domain, key, keylen,
+                              DKIM_SIGN_RSASHA256, dnssec, err, errlen);
 }

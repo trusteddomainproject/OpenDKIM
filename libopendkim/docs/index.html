@@ -69,8 +69,21 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td> <a href="dkim_iter_ctx.html"> <tt>DKIM_ITER_CTX</tt>
+       </a> </td>
+  <td> An iteration context over some table (currently, only support
+       <a href="dkim_nametable.html"><tt>DKIM_NAMETABLE</tt>).</td>
+ </tr>
+
+ <tr>
   <td> <a href="dkim_lib.html"> <tt>DKIM_LIB</tt> </a> </td>
   <td> An instance of the <tt>libopendkim</tt> service. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_nametable.html"> <tt>DKIM_NAMETABLE</tt> </a> </td>
+  <td> Look up tables for conversion between mnemonic codes and its name
+       text as C strings</td>
  </tr>
 
  <tr>
@@ -516,6 +529,11 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td> <a href="dkim_code_to_name.html"> <tt>dkim_code_to_name()</tt> </a> </td>
+  <td> Translate a mnemonic code to its name. </td>
+ </tr>
+
+ <tr>
   <td> <a href="dkim_getid.html"> <tt>dkim_getid()</tt> </a> </td>
   <td> Retrieve "id" string from handle. </td>
  </tr>
@@ -533,6 +551,11 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
  </tr>
 
  <tr>
+  <td> <a href="dkim_iter_ctx_free.html"> <tt>dkim_iter_ctx_free()</tt> </a> </td>
+  <td> Release resources associated with a <tt>DKIM_ITER_CTX</tt> context.</td>
+ </tr>
+
+ <tr>
   <td> <a href="dkim_key_syntax.html"> <tt>dkim_key_syntax()</tt> </a> </td>
   <td> Check the syntax of a key record. </td>
  </tr>
@@ -547,6 +570,21 @@ package, that uses <tt>libopendkim</tt> to implement this facility. <p>
   <td> <a href="dkim_mail_parse_multi.html"> <tt>dkim_mail_parse_multi()</tt> </a> </td>
   <td> Parse a message header field, e.g. <tt>To:</tt> or <tt>Cc:</tt>, to get
        users and domains. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_name_to_code.html"> <tt>dkim_name_to_code()</tt> </a> </td>
+  <td> Translate a name to a mnemonic code. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_nametable_first.html"> <tt>dkim_nametable_first()</tt> </a> </td>
+  <td> Get first table item and start iteration. </td>
+ </tr>
+
+ <tr>
+  <td> <a href="dkim_nametable_next.html"> <tt>dkim_nametable_next()</tt> </a> </td>
+  <td> Get next table item on the iteration. </td>
  </tr>
 
  <tr>

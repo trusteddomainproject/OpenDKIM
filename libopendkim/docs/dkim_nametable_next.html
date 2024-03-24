@@ -1,0 +1,96 @@
+<html>
+<head><title>dkim_nametable_next()</title></head>
+<body>
+<!--
+-->
+<h1>dkim_nametable_next()</h1>
+<p align="right"><a href="index.html">[back to index]</a></p>
+
+<table border="0" cellspacing=4 cellpadding=4>
+<!---------- Synopsis ----------->
+<tr><th valign="top" align=left width=150>SYNOPSIS</th><td>
+<pre>
+#include &lt;dkim.h&gt;
+<a href="dkim_stat.html"><tt>DKIM_STAT</tt></a> dkim_nametable_next(
+	<a href="dkim_iter_ctx.html"><tt>DKIM_ITER_CTX</tt></a> *ctx,
+	const char **name,
+	int *code
+);
+</pre>
+Get the next entry on the iteration over the table.
+</td></tr>
+
+<!----------- Description ---------->
+<tr><th valign="top" align=left>DESCRIPTION</th><td>
+<table border="1" cellspacing=1 cellpadding=4>
+<tr align="left" valign=top>
+<th width="80">Called When</th>
+<td><tt>dkim_nametable_next()</tt> can be called with valid
+<a href="dkim_iter_ctx.html"><tt>DKIM_ITER_CTX</tt></a>.
+</tr>
+</table>
+
+<!----------- Arguments ---------->
+<tr><th valign="top" align=left>ARGUMENTS</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Argument</th><th>Description</th></tr>
+    <tr valign="top"><td>ctx</td>
+	<td>Pointer to a valid
+	<a href="dkim_iter_ctx.html"><tt
+	>DKIM_ITER_CTX</tt></a>.
+	</td></tr>
+    <tr valign="top"><td>name</td>
+	<td>Pointer to a variable of type <tt>(char **)</tt> which will be
+	set to point to the name in the next entry of the iteration conext.
+	</td></tr>
+    <tr valign="top"><td>code</td>
+	<td>Pointer to a variable of type <tt>(int *)</tt> which will be
+	set to the mnemonic code in the next entry of the iteration context.
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Return Values ---------->
+<tr><th valign="top" align=left>RETURN VALUES</th><td>
+    <table border="1" cellspacing=0>
+    <tr bgcolor="#dddddd"><th>Return Value</th><th>Description</th></tr>
+    <tr valign="top"><td>DKIM_STAT_OK</td>
+	<td>The next entry of the table is retrieved successfully.
+	</td></tr>
+    <tr valign="top"><td>DKIM_STAT_ITER_EOT</td>
+	<td>The iteration has reached to the end of the table.
+	(<tt>name</tt> and <tt>code</tt> are not set)
+	</td></tr>
+    </table>
+</td></tr>
+
+<!----------- Notes ---------->
+<tr>
+<th valign="top" align=left>NOTES</th>
+<td>
+<ul>
+<li>Pointer arguments <tt>name</tt> and <tt>code</tt> would be set only if
+    <tt>DKIM_STAT_OK</tt> is returned.
+<li>The iteration context <tt>ctx</tt> should be released by the caller
+    by using <a href="dkim_iter_ctx_free.html"
+    ><tt>dkim_iter_ctx_free()</tt></a> when the iteration is no
+    longer needed</a>.
+</ul>
+</td>
+</tr>
+
+</table>
+
+<hr size="1">
+<font size="-1">
+Copyright (c) 2005, 2007 Sendmail, Inc. and its suppliers.
+All rights reserved.
+<br>
+Copyright (c) 2009-2014, 2024 The Trusted Domain Project.  All rights reserved.
+
+<br>
+By using this file, you agree to the terms and conditions set
+forth in the respective licenses.
+</font>
+</body>
+</html>

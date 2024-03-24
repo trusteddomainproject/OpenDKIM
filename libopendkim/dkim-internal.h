@@ -97,6 +97,8 @@ typedef int dkim_key_t;
 #define	DKIM_KEY_SERVICE	5	/* s */
 #define	DKIM_KEY_FLAGS		6	/* t */
 
+extern DKIM_NAMETABLE *dkim_table_keyparams;
+
 /*
 **  DKIM_SETTYPE -- types of sets
 */
@@ -108,6 +110,8 @@ typedef int dkim_set_t;
 #define	DKIM_SETTYPE_KEY	1
 #define DKIM_SETTYPE_SIGREPORT	2
 
+extern DKIM_NAMETABLE *dkim_table_settypes;
+
 /*
 **  DKIM_HASHTYPE -- types of hashes
 */
@@ -116,6 +120,8 @@ typedef int dkim_set_t;
 #define DKIM_HASHTYPE_SHA1	0
 #define DKIM_HASHTYPE_SHA256	1
 
+extern DKIM_NAMETABLE *dkim_table_hashes;
+
 /*
 **  DKIM_KEYTYPE -- types of keys
 */
@@ -123,6 +129,8 @@ typedef int dkim_set_t;
 #define	DKIM_KEYTYPE_UNKNOWN	(-1)
 #define	DKIM_KEYTYPE_RSA	0
 #define	DKIM_KEYTYPE_ED25519	1
+
+extern DKIM_NAMETABLE *dkim_table_keytypes;
 
 /*
 **  DKIM_SET -- a set of parameters and values
@@ -151,6 +159,15 @@ typedef struct dkim_key DKIM_KEY;
 
 struct dkim_canon;
 typedef struct dkim_canon DKIM_CANON;
+
+
+#ifdef _FFR_CONDITIONAL
+
+/*
+**  mandatory DKIM tags
+*/
+extern DKIM_NAMETABLE *dkim_table_mandatory;
+#endif /* _FFR_CONDITIONAL */
 
 /* prototypes */
 extern DKIM_STAT dkim_process_set __P((DKIM *, dkim_set_t, u_char *, size_t,

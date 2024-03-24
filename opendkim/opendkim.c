@@ -622,21 +622,6 @@ struct lookup dkimf_values[] =
 	{ NULL,			-1 },
 };
 
-struct lookup dkimf_canon[] =
-{
-	{ "relaxed",		DKIM_CANON_RELAXED },
-	{ "simple",		DKIM_CANON_SIMPLE },
-	{ NULL,			-1 },
-};
-
-struct lookup dkimf_sign[] =
-{
-	{ "rsa-sha1",		DKIM_SIGN_RSASHA1 },
-	{ "rsa-sha256",		DKIM_SIGN_RSASHA256 },
-	{ "ed25519-sha256",	DKIM_SIGN_ED25519SHA256 },
-	{ NULL,			-1 },
-};
-
 struct lookup dkimf_atpshash[] =
 {
 #ifdef HAVE_SHA256
@@ -4934,10 +4919,12 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 	_Bool found = FALSE;
 	size_t keydatasz = 0;
 	struct signreq *new;
-	struct dkimf_db_data dbd[3];
+	struct dkimf_db_data dbd[4];
 	char keydata[MAXBUFRSZ + 1];
 	char domain[DKIM_MAXHOSTNAMELEN + 1];
 	char selector[BUFRSZ + 1];
+	char signalgstr[BUFRSZ + 1];
+	dkim_alg_t signalg = DKIM_SIGN_DEFAULT;
 	char err[BUFRSZ + 1];
 
 	assert(dfc != NULL);
@@ -4963,6 +4950,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		memset(domain, '\0', sizeof domain);
 		memset(selector, '\0', sizeof selector);
 		memset(keydata, '\0', sizeof keydata);
+		memset(signalgstr, '\0', sizeof signalgstr);
 
 		dbd[0].dbdata_buffer = domain;
 		dbd[0].dbdata_buflen = sizeof domain - 1;
@@ -4973,9 +4961,12 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		dbd[2].dbdata_buffer = keydata;
 		dbd[2].dbdata_buflen = sizeof keydata - 1;
 		dbd[2].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
+		dbd[3].dbdata_buffer = signalgstr;
+		dbd[3].dbdata_buflen = sizeof signalgstr - 1;
+		dbd[3].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
 		if (dkimf_db_get(keytable, keyname, strlen(keyname),
-		                 dbd, 3, &found) != 0)
+		                 dbd, 4, &found) != 0)
 		{
 			memset(err, '\0', sizeof err);
 			(void) dkimf_db_strerror(keytable, err, sizeof err);
@@ -5079,6 +5070,24 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
  			if (curconf->conf_safekeys)
 				return 2;
 		}
+
+		if (dbd[3].dbdata_buflen > 0 && signalgstr[0] != '\0')
+		{
+			signalg = (dkim_alg_t)dkim_name_to_code(dkim_table_algorithms,
+			                                        signalgstr);
+			if (signalg == -1)
+			{
+				if (dolog)
+				{
+					syslog(LOG_ERR,
+					       "KeyTable entry for '%s' corrupt:"
+					       " invalid sign algorithm %s",
+					       keyname, signalgstr);
+				}
+
+				return 2;
+			}
+		}
 	}
 
 	new = malloc(sizeof *new);
@@ -5091,6 +5100,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 	new->srq_selector = NULL;
 	new->srq_keydata = NULL;
 	new->srq_signlen = signlen;
+	new->srq_signalg = signalg;
 	if (signer != NULL && signer[0] != '\0')
 		new->srq_signer = (u_char *) strdup(signer);
 	else
@@ -7697,8 +7707,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 
 	if (conf->conf_signalgstr != NULL)
 	{
-		conf->conf_signalg = dkimf_lookup_strtoint(conf->conf_signalgstr,
-		                                           dkimf_sign);
+		conf->conf_signalg = dkim_name_to_code(dkim_table_algorithms,
+		                                       conf->conf_signalgstr);
 		if (conf->conf_signalg == -1)
 		{
 			snprintf(err, errlen,
@@ -7719,8 +7729,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		p = strchr(conf->conf_canonstr, '/');
 		if (p == NULL)
 		{
-			conf->conf_hdrcanon = dkimf_lookup_strtoint(conf->conf_canonstr,
-			                                            dkimf_canon);
+			conf->conf_hdrcanon = dkim_name_to_code(dkim_table_canonicalizations,
+			                                        conf->conf_canonstr);
 			if (conf->conf_hdrcanon == -1)
 			{
 				snprintf(err, errlen,
@@ -7735,8 +7745,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			*p = '\0';
 
-			conf->conf_hdrcanon = dkimf_lookup_strtoint(conf->conf_canonstr,
-			                                            dkimf_canon);
+			conf->conf_hdrcanon = dkim_name_to_code(dkim_table_canonicalizations,
+			                                        conf->conf_canonstr);
 			if (conf->conf_hdrcanon == -1)
 			{
 				snprintf(err, errlen,
@@ -7745,8 +7755,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				return -1;
 			}
 
-			conf->conf_bodycanon = dkimf_lookup_strtoint(p + 1,
-			                                             dkimf_canon);
+			conf->conf_bodycanon = dkim_name_to_code(dkim_table_canonicalizations,
+			                                         p + 1);
 			if (conf->conf_bodycanon == -1)
 			{
 				snprintf(err, errlen,
@@ -8327,11 +8337,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			_Bool first = TRUE;
 			_Bool found;
-			struct dkimf_db_data dbd[3];
+			struct dkimf_db_data dbd[4];
 			char keyname[BUFRSZ + 1];
 			char domain[BUFRSZ + 1];
 			char selector[BUFRSZ + 1];
 			char keydata[BUFRSZ + 1];
+			char signalgstr[BUFRSZ + 1];
 			char signer[BUFRSZ + 1];
 
 			dbd[0].dbdata_flags = 0;
@@ -8359,10 +8370,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				dbd[2].dbdata_buffer = keydata;
 				dbd[2].dbdata_buflen = sizeof keydata - 1;
 				dbd[2].dbdata_flags = DKIMF_DB_DATA_BINARY;
+				dbd[3].dbdata_buffer = signalgstr;
+				dbd[3].dbdata_buflen = sizeof signalgstr - 1;
+				dbd[3].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
 				if (dkimf_db_get(conf->conf_keytabledb,	
 				                 keyname, strlen(keyname),
-				                 dbd, 3, &found) != 0 ||
+				                 dbd, 4, &found) != 0 ||
 				    !found ||
 				    dbd[0].dbdata_buflen == 0 ||
 				    dbd[1].dbdata_buflen == 0 ||
@@ -11718,10 +11732,10 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		{
 			*slash = '\0';
 
-			c = dkimf_lookup_strtoint(headerv, dkimf_canon);
+			c = dkim_name_to_code(dkim_table_canonicalizations, headerv);
 			if (c != -1)
 				dfc->mctx_hdrcanon = (dkim_canon_t) c;
-			c = dkimf_lookup_strtoint(slash + 1, dkimf_canon);
+			c = dkim_name_to_code(dkim_table_canonicalizations, slash + 1);
 			if (c != -1)
 				dfc->mctx_bodycanon = (dkim_canon_t) c;
 
@@ -11729,7 +11743,7 @@ mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
 		}
 		else
 		{
-			c = dkimf_lookup_strtoint(headerv, dkimf_canon);
+			c = dkim_name_to_code(dkim_table_canonicalizations, headerv);
 			if (c != -1)
 				dfc->mctx_hdrcanon = (dkim_canon_t) c;
 		}
@@ -12619,6 +12633,7 @@ mlfi_eoh(SMFICTX *ctx)
 
 		for (sr = dfc->mctx_srhead; sr != NULL; sr = sr->srq_next)
 		{
+			dkim_alg_t signalg;
 #ifdef _FFR_CONDITIONAL
 			if (sr->srq_dkim != NULL)
 				continue;
@@ -12645,13 +12660,15 @@ mlfi_eoh(SMFICTX *ctx)
 				selector = conf->conf_selector;
 			}
 
+			signalg = (sr->srq_signalg == DKIM_SIGN_DEFAULT)?
+			          dfc->mctx_signalg:sr->srq_signalg;
 			sr->srq_dkim = dkim_sign(conf->conf_libopendkim,
 			                         dfc->mctx_jobid,
 			                         NULL, keydata, selector,
 			                         sdomain,
 			                         dfc->mctx_hdrcanon,
 			                         dfc->mctx_bodycanon,
-			                         dfc->mctx_signalg,
+			                         signalg,
 			                         signlen, &status);
 
 			if (sr->srq_dkim == NULL || status != DKIM_STAT_OK)
@@ -15544,6 +15561,10 @@ main(int argc, char **argv)
 	char *end;
 	char argstr[MAXARGV];
 	char err[BUFRSZ + 1];
+	DKIM_STAT dkim_stat;
+	DKIM_ITER_CTX *iter_ctx;
+	int entry_code;
+	char *entry_name;
 
 	/* initialize */
 	reload = FALSE;
@@ -15771,17 +15792,55 @@ main(int argc, char **argv)
 			printf("\tlibmilter version %d.%d.%d\n",
 			       mvmajor, mvminor, mvrelease);
 #endif /* HAVE_SMFI_VERSION */
+			dkim_stat = dkim_nametable_first(dkim_table_algorithms,
+			                                 &iter_ctx, &entry_name,
+			                                 &entry_code);
 			printf("\tSupported signing algorithms:\n");
-			for (c = 0; dkimf_sign[c].str != NULL; c++)
+			if (dkim_stat == DKIM_STAT_NORESOURCE)
 			{
-				if (dkimf_sign[c].code != DKIM_SIGN_RSASHA256 ||
-	    			    dkim_libfeature(curconf->conf_libopendkim,
-				                    DKIM_FEATURE_SHA256))
-					printf("\t\t%s\n", dkimf_sign[c].str);
+				printf("\twarn: list of algorithms is not "
+				       "available\n");
+			}
+			else
+			{
+				while(dkim_stat == DKIM_STAT_OK)
+				{
+					if (entry_code != DKIM_SIGN_RSASHA256 ||
+					    dkim_libfeature(curconf->conf_libopendkim,
+					                    DKIM_FEATURE_SHA256))
+					{
+						printf("\t\t%s\n", entry_name);
+					}
+					dkim_stat = dkim_nametable_next(iter_ctx,
+					                                &entry_name,
+					                                &entry_code);
+				}
+				dkim_stat = dkim_iter_ctx_free(iter_ctx);
+				/* we can do nothing eveif dkim_stat is not
+				   DKIM_STAT_OK ... */
 			}
 			printf("\tSupported canonicalization algorithms:\n");
-			for (c = 0; dkimf_canon[c].str != NULL; c++)
-				printf("\t\t%s\n", dkimf_canon[c].str);
+			dkim_stat = dkim_nametable_first(dkim_table_canonicalizations,
+			                                 &iter_ctx, &entry_name,
+			                                 &entry_code);
+			if (dkim_stat == DKIM_STAT_NORESOURCE)
+			{
+				printf("\twarn: list of canonicalizations "
+				       "is not available\n");
+			}
+			else
+			{
+				while(dkim_stat == DKIM_STAT_OK)
+				{
+					printf("\t\t%s\n", entry_name);
+					dkim_stat = dkim_nametable_next(iter_ctx,
+					                                &entry_name,
+					                                &entry_code);
+				}
+				dkim_stat = dkim_iter_ctx_free(iter_ctx);
+				/* we can do nothing eveif dkim_stat is not
+				   DKIM_STAT_OK ... */
+			}
 			dkimf_optlist(stdout);
 			return EX_OK;
 
