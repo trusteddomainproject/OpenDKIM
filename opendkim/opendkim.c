@@ -12105,8 +12105,10 @@ mlfi_eoh(SMFICTX *ctx)
 
 				if (domainok)
 				{
-					strlcpy((char *) dfc->mctx_domain, p,
-					        sizeof dfc->mctx_domain);
+					// We must not use strlcpy() here since
+					// src and dst overlap.
+					char* p2 = dfc->mctx_domain;
+					while( (*p2++ = *p++) );
 					break;
 				}
 			}
