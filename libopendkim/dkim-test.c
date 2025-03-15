@@ -301,6 +301,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 	BIO *outkey;
 #endif /* USE_GNUTLS */
 	void *ptr;
+	long pubkey_bio_bytes;
 	struct dkim_crypto *crypto;
 	char buf[BUFRSZ];
 
@@ -407,7 +408,6 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 #endif /* USE_GNUTLS */
 
 		sig->sig_signature = (void *) crypto;
-		sig->sig_keytype = DKIM_KEYTYPE_RSA;
 
 #ifdef USE_GNUTLS
 		if (err != NULL)
@@ -465,15 +465,42 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			(void) dkim_free(dkim);
 			if (err != NULL)
 			{
-				strlcpy(err, "i2d_RSA_PUBKEY_bio() failed",
+				strlcpy(err, "i2d_PUBKEY_bio() failed",
 				        errlen);
 			}
 			return -1;
 		}
 
-		(void) BIO_get_mem_data(outkey, &ptr);
+		pubkey_bio_bytes = BIO_get_mem_data(outkey, &ptr);
 
-		if (BIO_number_written(outkey) == sig->sig_keylen)
+		/* The ed25519 pubkey in DNS doesn't have the 12-byte ASN */
+		/* prefix that RSA keys in DNS and the i2d_PUBKEY output do. */
+		/* Verify and skip over it for the comparison. */
+		if(EVP_PKEY_id(crypto->crypto_pkey) == EVP_PKEY_ED25519)
+		{
+			const unsigned char asnhdr[12] =
+				{ 0x30, 0x2a, 0x30, 0x05,
+				  0x06, 0x03, 0x2b, 0x65,
+				  0x70, 0x03, 0x21, 0x00 };
+			if(pubkey_bio_bytes != 44 ||
+			   memcmp(ptr, asnhdr, sizeof(asnhdr)))
+			{
+				BIO_free(keybuf);
+				BIO_free(outkey);
+				(void) dkim_free(dkim);
+				if (err != NULL)
+				{
+					strlcpy(err,
+					  "invalid Ed25519 PUBKEY conversion",
+				          errlen);
+				}
+				return -1;
+			}
+			ptr += sizeof(asnhdr);
+			pubkey_bio_bytes -= sizeof(asnhdr);
+		}
+
+		if (pubkey_bio_bytes == sig->sig_keylen)
 			status = memcmp(ptr, sig->sig_key, sig->sig_keylen);
 		else
 			status = 1;
