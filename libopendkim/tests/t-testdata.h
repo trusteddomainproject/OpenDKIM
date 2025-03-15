@@ -25,6 +25,7 @@
 #define	SELECTORNOP	"nop"
 #define	SELECTOREMPTYP	"emptyp"
 #define	SELECTORCORRUPTP "corruptp"
+#define	SELECTORRFC8463 "rfc8463"
 #define	DOMAIN		"example.com"
 #define	DOMAIN2		"sendmail.com"
 #define	REPLYADDRESS	"postmaster"
@@ -156,6 +157,34 @@
 	"GKz2uWnV65RAxa1Pw352BqizqiKOBjgYGzj8pJQSs8tOvv/2k6jpI809RnESqOFg" \
 	"F0gu3UJbNnu3+cd8k/kiQj+q4cKKRpAT92ccxc7svhCNgN1sBGmROYZuysG3Vu3D" \
 	"yc079gSLtnSrgXb+gQIDAQ"
+
+#define RFC8463_ED25519KEY	"-----BEGIN PRIVATE KEY-----\n" \
+	"MC4CAQAwBQYDK2VwBCIEIJ1hsZ3v/VpguoRK9JLsLMREScVpezJpGXA7rAMcrn9g\n" \
+	"-----END PRIVATE KEY-----\n" 
+#define RFC8463_ED25519PUBLICKEY	"v=DKIM1; k=ed25519; p=" \
+	"11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+
+#define RFC8463_RSAKEY	"-----BEGIN RSA PRIVATE KEY-----\n" \
+	"MIICXQIBAAKBgQDkHlOQoBTzWRiGs5V6NpP3idY6Wk08a5qhdR6wy5bdOKb2jLQi\n" \
+	"Y/J16JYi0Qvx/byYzCNb3W91y3FutACDfzwQ/BC/e/8uBsCR+yz1Lxj+PL6lHvqM\n" \
+	"KrM3rG4hstT5QjvHO9PzoxZyVYLzBfO2EeC3Ip3G+2kryOTIKT+l/K4w3QIDAQAB\n" \
+	"AoGAH0cxOhFZDgzXWhDhnAJDw5s4roOXN4OhjiXa8W7Y3rhX3FJqmJSPuC8N9vQm\n" \
+	"6SVbaLAE4SG5mLMueHlh4KXffEpuLEiNp9Ss3O4YfLiQpbRqE7Tm5SxKjvvQoZZe\n" \
+	"zHorimOaChRL2it47iuWxzxSiRMv4c+j70GiWdxXnxe4UoECQQDzJB/0U58W7RZy\n" \
+	"6enGVj2kWF732CoWFZWzi1FicudrBFoy63QwcowpoCazKtvZGMNlPWnC7x/6o8Gc\n" \
+	"uSe0ga2xAkEA8C7PipPm1/1fTRQvj1o/dDmZp243044ZNyxjg+/OPN0oWCbXIGxy\n" \
+	"WvmZbXriOWoSALJTjExEgraHEgnXssuk7QJBALl5ICsYMu6hMxO73gnfNayNgPxd\n" \
+	"WFV6Z7ULnKyV7HSVYF0hgYOHjeYe9gaMtiJYoo0zGN+L3AAtNP9huqkWlzECQE1a\n" \
+	"licIeVlo1e+qJ6Mgqr0Q7Aa7falZ448ccbSFYEPD6oFxiOl9Y9se9iYHZKKfIcst\n" \
+	"o7DUw1/hz2Ck4N5JrgUCQQCyKveNvjzkkd8HjYs0SwM0fPjK16//5qDZ2UiDGnOe\n" \
+	"uEzxBDAr518Z8VFbR41in3W4Y3yCDgQlLlcETrS+zYcL\n" \
+	"-----END RSA PRIVATE KEY-----\n"
+#define RFC8463_RSAPUBLICKEY	"v=DKIM1; k=ed25519; p=" \
+	"MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDkHlOQoBTzWR" \
+	"iGs5V6NpP3idY6Wk08a5qhdR6wy5bdOKb2jLQiY/J16JYi0Qvx/byYzCNb3W91y3FutAC" \
+	"DfzwQ/BC/e/8uBsCR+yz1Lxj+PL6lHvqMKrM3rG4hstT5QjvHO9PzoxZyVYLzBfO2EeC3" \
+	"Ip3G+2kryOTIKT+l/K4w3QIDAQAB"
+
 #define	REPORTRECORD	"ra=postmaster; rs=" SMTPTOKENENC
 
 #define	GIBBERISH	"abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 !@#$%^&*()_+|-={}[];':,./<>?`~\r\n"

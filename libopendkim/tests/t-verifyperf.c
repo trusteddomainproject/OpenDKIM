@@ -10,6 +10,7 @@
 
 /* system includes */
 #include <sys/types.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -105,6 +106,8 @@ alg_code(char *name)
 		return (dkim_alg_t) DKIM_SIGN_RSASHA1;
 	else if (strcasecmp(name, "rsa-sha256") == 0)
 		return (dkim_alg_t) DKIM_SIGN_RSASHA256;
+	else if (strcasecmp(name, "ed25519-sha256") == 0)
+		return (dkim_alg_t) DKIM_SIGN_ED25519SHA256;
 	else
 		return (dkim_alg_t) DKIM_SIGN_UNKNOWN;
 }
@@ -132,6 +135,9 @@ alg_name(dkim_alg_t code)
 
 	  case DKIM_SIGN_RSASHA256:
 		return "rsa-sha256";
+
+	  case DKIM_SIGN_ED25519SHA256:
+		return "ed25519-sha256";
 
 	  case DKIM_SIGN_UNKNOWN:
 	  default:
@@ -194,6 +200,9 @@ main(int argc, char **argv)
 	DKIM *dkim;
 	DKIM_LIB *lib;
 	dkim_sigkey_t key;
+	int keybits;
+	const char *selector;
+	unsigned int seed;
 	unsigned char hdr[MAXHEADER + 1];
 	unsigned char body[BODYBUFRSZ];
 
@@ -275,8 +284,11 @@ main(int argc, char **argv)
 		else
 			signalg = DKIM_SIGN_RSASHA1;
 	}
-	else if (signalg == DKIM_SIGN_RSASHA256 &&
-	         !dkim_libfeature(lib, DKIM_FEATURE_SHA256))
+	else if ((signalg == DKIM_SIGN_RSASHA256 &&
+	          !dkim_libfeature(lib, DKIM_FEATURE_SHA256)) ||
+	         (signalg == DKIM_SIGN_ED25519SHA256 &&
+	          (!dkim_libfeature(lib, DKIM_FEATURE_ED25519) ||
+	           !dkim_libfeature(lib, DKIM_FEATURE_SHA256))))
 	{
 		fprintf(stdout,
 		        "### requested signing algorithm not available\n");
@@ -284,19 +296,31 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	fprintf(stdout,
-	        "*** VERIFYING SPEED TEST: %s/%s with %s, size %u for %lds\n",
-	        canon_name(hcanon), canon_name(bcanon), alg_name(signalg),
-	        (unsigned int) msgsize, (long) testint);
+	if (signalg == DKIM_SIGN_ED25519SHA256)
+	{
+		key = RFC8463_ED25519KEY;
+		keybits = 256;
+		selector = SELECTORRFC8463;
+	}
+	else
+	{
+		key = KEY;
+		keybits = 1024;
+		selector = SELECTOR;
+	}
 
-	key = KEY;
+	seed = time(NULL);
+	srandom(seed);
+
+	fprintf(stdout,
+	        "*** VERIFYING SPEED TEST: %d-bit %s/%s with %s, body size %u for %lds, random seed %u\n",
+	        keybits, canon_name(hcanon), canon_name(bcanon), alg_name(signalg),
+	        (unsigned int) msgsize, (long) testint, seed);
 
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYMETHOD,
 	                    &qtype, sizeof qtype);
 	(void) dkim_options(lib, DKIM_OP_SETOPT, DKIM_OPTS_QUERYINFO,
 	                    KEYFILE, strlen(KEYFILE));
-
-	srandom(time(NULL));
 
 	/* prepare a random body buffer */
 	for (c = 0, w = 0; c < sizeof body; c++)
@@ -313,8 +337,9 @@ main(int argc, char **argv)
 	}
 
 	/* generate the signature */
-	dkim = dkim_sign(lib, JOBID, NULL, key, SELECTOR, DOMAIN,
+	dkim = dkim_sign(lib, JOBID, NULL, key, selector, DOMAIN,
 	                 hcanon, bcanon, signalg, -1L, &status);
+	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER02, strlen(HEADER02));
 
@@ -345,7 +370,7 @@ main(int argc, char **argv)
 		msgrem -= wsz;
 	}
 
-	status = dkim_eom(dkim, NULL);
+	assert(dkim_eom(dkim, NULL) == DKIM_STAT_OK);
 
 	memset(hdr, '\0', sizeof hdr);
 	snprintf(hdr, sizeof hdr, "%s: ", DKIM_SIGNHEADER);
@@ -361,6 +386,7 @@ main(int argc, char **argv)
 	while (time(NULL) < start + testint)
 	{
 		dkim = dkim_verify(lib, JOBID, NULL, &status);
+		assert(status == DKIM_STAT_OK);
 
 		status = dkim_header(dkim, hdr, strlen(hdr));
 
@@ -394,6 +420,18 @@ main(int argc, char **argv)
 		}
 
 		status = dkim_eom(dkim, NULL);
+#if 0
+		if(status != DKIM_STAT_OK)
+		{
+			DKIM_SIGINFO *sig;
+			const char *str;
+
+			assert((sig = dkim_getsignature(dkim)) != NULL);
+			str = dkim_sig_geterrorstr(dkim_sig_geterror(sig)),
+			fprintf(stderr, "%s\n", str);
+		}
+#endif
+		assert(status == DKIM_STAT_OK);
 
 		status = dkim_free(dkim);
 
