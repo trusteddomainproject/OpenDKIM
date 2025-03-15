@@ -130,6 +130,14 @@ main(int argc, char **argv)
 	}
 	fprintf(f, "\n");
 
+	fprintf(f, "%s.%s.%s ", SELECTORRFC8463, DKIM_DNSKEYNAME, DOMAIN);
+	for (p = RFC8463_ED25519PUBLICKEY; *p != '\0'; p++)
+	{
+		if (*p != '\n')
+			putc(*p, f);
+	}
+	fprintf(f, "\n");
+
 	fprintf(f, "dkim=all; t=s; r=%s\n", REPLYADDRESS);
 
 	fprintf(f, "%s exists\n", DOMAIN2);

@@ -1,0 +1,6 @@
+#!/bin/sh
+#
+#
+# Speed signing test using ed25519 algorithm
+
+./t-signperf -s ed25519-sha256
