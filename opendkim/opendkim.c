@@ -5020,7 +5020,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		}
 
 		if (domain[0] == '%' && domain[1] == '\0' &&
-		    dfc->mctx_domain == NULL)
+		    dfc->mctx_domain[0] == '\0')
 		{
 			if (dolog)
 			{

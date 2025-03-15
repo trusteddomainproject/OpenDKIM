@@ -1065,8 +1065,7 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 		    vbr->vbr_dns_service == NULL &&
 		    vbr->vbr_dns_init(&vbr->vbr_dns_service) != 0)
 		{
-			snprintf(vbr->vbr_error, sizeof vbr->vbr_error,
-			         "unable to start resolver for '%s'",
+			vbr_error(vbr, "unable to start resolver for '%s'",
 			         query);
 			return VBR_STAT_DNSERROR;
 		}
@@ -1077,8 +1076,7 @@ vbr_query(VBR *vbr, u_char **res, u_char **cert)
 
 		if (status != VBR_STAT_OK)
 		{
-			snprintf(vbr->vbr_error, sizeof vbr->vbr_error,
-			         "unable to start query for '%s'",
+			vbr_error(vbr, "unable to start query for '%s'",
 			         query);
 			return VBR_STAT_DNSERROR;
 		}
