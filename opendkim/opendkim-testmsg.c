@@ -32,7 +32,7 @@
 
 #define	BUFRSZ		1024
 #define	DEFTMPDIR	"/tmp"
-#define	CMDLINEOPTS	"Cd:Kk:s:t:"
+#define	CMDLINEOPTS	"12eCd:Kk:s:t:"
 #define STRORNULL(x)	((x) == NULL ? "(null)" : (x))
 #define	TMPTEMPLATE	"dkimXXXXXX"
 
@@ -57,6 +57,9 @@ usage(void)
 {
 	fprintf(stderr,
 	        "%s: usage: %s [options]\nValid options:\n"
+	        "\t-1         \tsign with RSA-SHA1\n"
+	        "\t-2         \tsign with RSA-SHA256 (default)\n"
+	        "\t-e         \tsign with Ed25519-SHA256\n"
 	        "\t-C         \tpreserve CRLFs\n"
 	        "\t-d domain  \tset signing domain\n"
 	        "\t-K         \tkeep temporary files\n"
@@ -120,7 +123,7 @@ main(int argc, char **argv)
 	ssize_t rlen;
 	ssize_t wlen;
 	ssize_t l = (ssize_t) -1;
-	dkim_alg_t sa = DKIM_SIGN_RSASHA1;
+	dkim_alg_t sa = DKIM_SIGN_RSASHA256;
 	dkim_canon_t bc = DKIM_CANON_SIMPLE;
 	dkim_canon_t hc = DKIM_CANON_RELAXED;
 	DKIM_LIB *lib;
@@ -140,6 +143,18 @@ main(int argc, char **argv)
 	{
 		switch (c)
 		{
+		  case '1':
+			sa = DKIM_SIGN_RSASHA1;
+			break;
+
+		  case '2':
+			sa = DKIM_SIGN_RSASHA256;
+			break;
+
+		  case 'e':
+			sa = DKIM_SIGN_ED25519SHA256;
+			break;
+
 		  case 'C':
 			keepcrlf = TRUE;
 			break;

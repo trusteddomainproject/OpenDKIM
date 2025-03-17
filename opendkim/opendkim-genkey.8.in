@@ -50,6 +50,7 @@ Instructs the tool to change to the named
 prior to creating files.  By default the current directory is used.
 
 .TP
+.I \-e
 .I \-\-ed25519
 generate a ed25519 key.
 

@@ -51,7 +51,7 @@
 
 /* definitions */
 #define	BUFRSZ		1024
-#define	CMDLINEOPTS	"C:d:DE:Fo:N:r:R:sSt:T:uvx:"
+#define	CMDLINEOPTS	"C:d:DME:Fo:N:r:R:sSt:T:uvx:"
 #define	DEFCONFFILE	CONFIG_BASE "/opendkim.conf"
 #define	DEFEXPIRE	604800
 #define	DEFREFRESH	10800
@@ -194,6 +194,7 @@ usage(void)
 	                "\t-D          \tinclude '._domainkey' suffix\n"
 	                "\t-E secs     \tuse specified expiration time in SOA\n"
 	                "\t-F          \tinclude '._domainkey' suffix and domainname\n"
+			"\t-M          \trestricts the keys for use in e-mail signing only\n"
 	                "\t-o file     \toutput file\n"
 	                "\t-N ns[,...] \tlist NS records\n"
 	                "\t-r secs     \tuse specified refresh time in SOA\n"
@@ -229,6 +230,7 @@ main(int argc, char **argv)
 	_Bool fqdnsuffix = FALSE;
 	_Bool subdomains = FALSE;
 	_Bool writesoa = FALSE;
+	_Bool mailrestrict = FALSE;
 	int c;
 	int status;
 	int verbose = 0;
@@ -273,6 +275,8 @@ main(int argc, char **argv)
 	char keydata[LARGEBUFRSZ];
 	char derdata[LARGEBUFRSZ];
 	struct dkimf_db_data dbd[3];
+	_Bool key_is_ed25519 = FALSE;
+	int ed25519_keyskip;
 
 	progname = (p = strrchr(argv[0], '/')) == NULL ? argv[0] : p + 1;
 
@@ -305,6 +309,10 @@ main(int argc, char **argv)
 		  case 'F':
 			suffix = TRUE;
 			fqdnsuffix = TRUE;
+			break;
+
+		  case 'M':
+			mailrestrict = TRUE;
 			break;
 
 		  case 'N':
@@ -729,6 +737,21 @@ main(int argc, char **argv)
 			return -1;
 		}
 
+		switch (gnutls_x509_privkey_get_pk_algorithm(xprivkey))
+		{
+		  case GNUTLS_PK_RSA:
+		  	key_is_ed25519 = FALSE;
+			break;
+		  case GNUTLS_PK_EDDSA_ED25519:
+		  	key_is_ed25519 = TRUE;
+			break;
+		  default:
+			fprintf(stderr, "%s: key for '%s' invalid algorithm\n",
+			        progname, keyname);
+			(void) gnutls_x509_privkey_deinit(xprivkey);
+			return -1;
+		}
+
 		status = gnutls_privkey_init(&privkey);
 		if (status != GNUTLS_E_SUCCESS)
 		{
@@ -835,9 +858,17 @@ main(int argc, char **argv)
 			}
 		}
 
-		if (EVP_PKEY_base_id(pkey) != EVP_PKEY_RSA)
+		switch (EVP_PKEY_base_id(pkey))
 		{
-			fprintf(stderr, "%s: not an RSA key\n", progname);
+		  case EVP_PKEY_RSA:
+		  	key_is_ed25519 = FALSE;
+			break;
+		  case EVP_PKEY_ED25519:
+		  	key_is_ed25519 = TRUE;
+			break;
+		  default:
+			fprintf(stderr, "%s: key for '%s' invalid algorithm\n",
+			        progname, keyname);
 			(void) dkimf_db_close(db);
 			(void) BIO_free(private);
 			(void) EVP_PKEY_free(pkey);
@@ -866,33 +897,39 @@ main(int argc, char **argv)
 			fprintf(out, "zone %s\n", domain);
 
 			snprintf(tmpbuf, sizeof tmpbuf,
-			         "update add %s%s%s%s%s %d TXT \"",
+			         "update add %s%s%s%s%s %d TXT \"v=DKIM1\\;k=%s\\;%sp=",
 			         selector, suffix ? DKIMZONE : "",
 			         fqdnsuffix ? "." : "",
 			         fqdnsuffix ? domain : "",
 			         fqdnsuffix ? "." : "",
-			         ttl == -1 ? defttl : ttl);
+ 			         ttl == -1 ? defttl : ttl,
+				 key_is_ed25519 ? "ed25519" : "rsa",
+ 				 mailrestrict ? "s=email\\;" : "");
 		}
 		else
 		{
 			if (ttl == -1)
 			{
 				snprintf(tmpbuf, sizeof tmpbuf,
-				         "%s%s%s%s%s\tIN\tTXT\t( \"v=DKIM1; k=rsa; p=",
+				         "%s%s%s%s%s\tIN\tTXT\t( \"v=DKIM1\\;k=%s\\;%sp=",
 				         selector, suffix ? DKIMZONE : "",
 				         fqdnsuffix ? "." : "",
 				         fqdnsuffix ? domain : "",
-				         fqdnsuffix ? "." : "");
+ 				         fqdnsuffix ? "." : "",
+					 key_is_ed25519 ? "ed25519" : "rsa",
+ 					 mailrestrict ? "s=email\\;" : "");
 			}
 			else
 			{
 				snprintf(tmpbuf, sizeof tmpbuf,
-				         "%s%s%s%s%s\t%d\tIN\tTXT\t( \"v=DKIM1; k=rsa; p=",
+				         "%s%s%s%s%s\t%d\tIN\tTXT\t( \"v=DKIM1\\;k=%s\\;%sp=",
 				         selector, suffix ? DKIMZONE : "",
 				         fqdnsuffix ? "." : "",
 				         fqdnsuffix ? domain : "",
 				         fqdnsuffix ? "." : "",
-				         ttl);
+ 				         ttl,
+					 key_is_ed25519 ? "ed25519" : "rsa",
+ 				         mailrestrict ? "s=email\\;" : "");
 			}
 		}
 
@@ -904,6 +941,11 @@ main(int argc, char **argv)
 			olen = strflen(tmpbuf);
 
 		seenlf = FALSE;
+
+		/* Per RFC8463 the ed25519 key in the DNS TXT record doesn't have the ASN */
+		/* prefix that RSA keys have. The base64-encoded 12-byte ASN prefix is the */
+		/* first 16 characters in the PEM "PRIVATE KEY" key value. Skip over it. */
+		ed25519_keyskip = 16;
 
 #ifdef USE_GNUTLS
 		if (gnutls_pubkey_init(&pubkey) != GNUTLS_E_SUCCESS)
@@ -956,6 +998,10 @@ main(int argc, char **argv)
 			else if (!seenlf)
 			{
 				continue;
+			}
+			else if (key_is_ed25519 && ed25519_keyskip > 0)
+			{
+				ed25519_keyskip--;
 			}
 			else if (isascii(*p) && !isspace(*p))
 			{

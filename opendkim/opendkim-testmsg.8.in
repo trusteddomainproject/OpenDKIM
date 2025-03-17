@@ -23,6 +23,15 @@ verified.  If some but not all are present, an error is returned.
 
 .SH OPTIONS
 .TP
+.I -1
+In signing mode, generate an RSA-SHA1 signature. The key must be an RSA key.
+.TP
+.I -2
+In signing mode, generate an RSA-SHA256 signature. The key must be an RSA key. (default)
+.TP
+.I -e
+In signing mode, generate an ED25519-SHA256 signature. The key must be an ED25519 key.
+.TP
 .I -C
 If specified, the signature header field generated in signing mode will
 be line-terminated with carriage-return line-feed, instead of just line-feed.

@@ -91,7 +91,7 @@ my $opt_retval = &Getopt::Long::GetOptions('a|append-domain!' => \$append,
                                            'b|bits=i' => \$bits,
                                            'D|directory=s' => \$outdir,
                                            'd|domain=s' => \$domain,
-                                           'ed25519' => \$ed25519,
+                                           'e|ed25519' => \$ed25519,
                                            'h|hash-algorithms=s' => \$hashalgs,
                                            'help!' => \$helponly,
                                            'n|note=s' => \$note,
@@ -130,10 +130,10 @@ umask(077);
 
 if ($ed25519)
 {
-	$status = system("openssl version 2>/dev/null | grep --silent --ignore-case '^openssl 1.1.1'");
+	$status = system("openssl genpkey -algorithm ed25519 > /dev/null 2>&1");
 	if ($status != 0)
 	{
-		print STDERR "$progname: OpenSSL 1.1.1 is required for ED25519 support\n";
+		print STDERR "$progname: At least OpenSSL 1.1.1 is required for ED25519 support\n";
 		exit(1);
 	}
 }
