@@ -26,7 +26,6 @@
 # include <gnutls/abstract.h>
 # include <gnutls/x509.h>
 #else /* USE_GNUTLS */
-# include <openssl/rsa.h>
 # include <openssl/pem.h>
 # include <openssl/evp.h>
 # include <openssl/bio.h>
@@ -264,7 +263,6 @@ main(int argc, char **argv)
 	BIO *private;
 	BIO *outbio = NULL;
 	EVP_PKEY *pkey;
-	RSA *rsa;
 #endif /* USE_GNUTLS */
 	DKIMF_DB db;
 	char keyname[BUFRSZ + 1];
@@ -837,12 +835,9 @@ main(int argc, char **argv)
 			}
 		}
 
-		rsa = EVP_PKEY_get1_RSA(pkey);
-		if (rsa == NULL)
+		if (EVP_PKEY_base_id(pkey) != EVP_PKEY_RSA)
 		{
-			fprintf(stderr,
-			        "%s: EVP_PKEY_get1_RSA() failed\n",
-			        progname);
+			fprintf(stderr, "%s: not an RSA key\n", progname);
 			(void) dkimf_db_close(db);
 			(void) BIO_free(private);
 			(void) EVP_PKEY_free(pkey);
@@ -851,11 +846,11 @@ main(int argc, char **argv)
 		}
 
 		/* convert private to public */
-		status = PEM_write_bio_RSA_PUBKEY(outbio, rsa);
+		status = PEM_write_bio_PUBKEY(outbio, pkey);
 		if (status == 0)
 		{
 			fprintf(stderr,
-			        "%s: PEM_write_bio_RSA_PUBKEY() failed\n",
+			        "%s: PEM_write_bio_PUBKEY() failed\n",
 			        progname);
 			(void) dkimf_db_close(db);
 			(void) BIO_free(private);

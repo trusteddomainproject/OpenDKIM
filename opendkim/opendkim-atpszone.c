@@ -144,11 +144,6 @@ main(int argc, char **argv)
 	DKIMF_DB db;
 #ifdef USE_GNUTLS
 	gnutls_hash_hd_t sha;
-#else /* USE_GNUTLS */
-	SHA_CTX sha;
-# ifdef HAVE_SHA256
-	SHA256_CTX sha256;
-# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 	char domain[DKIM_MAXHOSTNAMELEN + 1];
 	char hostname[DKIM_MAXHOSTNAMELEN + 1];
@@ -443,20 +438,19 @@ main(int argc, char **argv)
 # ifdef HAVE_SHA256
 			if (hash == NULL || strcasecmp(hash, "sha256") == 0)
 			{
-				SHA256_Init(&sha256);
-				SHA256_Update(&sha256, domain, strlen(domain));
-				SHA256_Final(shaout, &sha256);
+				(void) EVP_Digest(domain, strlen(domain),
+				                  shaout, NULL, EVP_sha256(),
+				                  NULL);
 			}
 			else
 			{
-				SHA1_Init(&sha);
-				SHA1_Update(&sha, domain, strlen(domain));
-				SHA1_Final(shaout, &sha);
+				(void) EVP_Digest(domain, strlen(domain),
+				                  shaout, NULL, EVP_sha1(),
+				                  NULL);
 			}
 # else /* HAVE_SHA256 */
-			SHA1_Init(&sha);
-			SHA1_Update(&sha, domain, strlen(domain));
-			SHA1_Final(shaout, &sha);
+			(void) EVP_Digest(domain, strlen(domain), shaout, NULL,
+			                  EVP_sha1(), NULL);
 # endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 

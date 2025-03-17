@@ -116,38 +116,27 @@ dkim_canon_free(DKIM *dkim, DKIM_CANON *canon)
 
 #else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
-		  {
-			struct dkim_sha1 *sha1;
-
-			sha1 = (struct dkim_sha1 *) canon->canon_hash;
-
-			if (sha1->sha1_tmpbio != NULL)
-			{
-				BIO_free(sha1->sha1_tmpbio);
-				sha1->sha1_tmpfd = -1;
-				sha1->sha1_tmpbio = NULL;
-			}
-
-			break;
-		  }
-
-# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
-			struct dkim_sha256 *sha256;
+			struct dkim_sha *sha;
 
-			sha256 = (struct dkim_sha256 *) canon->canon_hash;
+			sha = (struct dkim_sha *) canon->canon_hash;
 
-			if (sha256->sha256_tmpbio != NULL)
+			if (sha->sha_tmpbio != NULL)
 			{
-				BIO_free(sha256->sha256_tmpbio);
-				sha256->sha256_tmpfd = -1;
-				sha256->sha256_tmpbio = NULL;
+				BIO_free(sha->sha_tmpbio);
+				sha->sha_tmpfd = -1;
+				sha->sha_tmpbio = NULL;
+			}
+
+			if (sha->sha_ctx != NULL)
+			{
+				EVP_MD_CTX_free(sha->sha_ctx);
+				sha->sha_ctx = NULL;
 			}
 
 			break;
 		  }
-# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 
 		  default:
@@ -217,32 +206,18 @@ dkim_canon_write(DKIM_CANON *canon, u_char *buf, size_t buflen)
 	  }
 #else /* USE_GNUTLS */
 	  case DKIM_HASHTYPE_SHA1:
-	  {
-		struct dkim_sha1 *sha1;
-
-		sha1 = (struct dkim_sha1 *) canon->canon_hash;
-		SHA1_Update(&sha1->sha1_ctx, buf, buflen);
-
-		if (sha1->sha1_tmpbio != NULL)
-			BIO_write(sha1->sha1_tmpbio, buf, buflen);
-
-		break;
-	  }
-
-# ifdef HAVE_SHA256
 	  case DKIM_HASHTYPE_SHA256:
 	  {
-		struct dkim_sha256 *sha256;
+		struct dkim_sha *sha;
 
-		sha256 = (struct dkim_sha256 *) canon->canon_hash;
-		SHA256_Update(&sha256->sha256_ctx, buf, buflen);
+		sha = (struct dkim_sha *) canon->canon_hash;
+		EVP_DigestUpdate(sha->sha_ctx, buf, buflen);
 
-		if (sha256->sha256_tmpbio != NULL)
-			BIO_write(sha256->sha256_tmpbio, buf, buflen);
+		if (sha->sha_tmpbio != NULL)
+			BIO_write(sha->sha_tmpbio, buf, buflen);
 
 		break;
 	  }
-# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 	}
 
@@ -700,76 +675,51 @@ dkim_canon_init(DKIM *dkim, _Bool tmp, _Bool keep)
 		  }
 #else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
-		  {
-			struct dkim_sha1 *sha1;
-
-			sha1 = (struct dkim_sha1 *) DKIM_MALLOC(dkim,
-			                                        sizeof(struct dkim_sha1));
-			if (sha1 == NULL)
-			{
-				dkim_error(dkim,
-				           "unable to allocate %d byte(s)",
-				           sizeof(struct dkim_sha1));
-				return DKIM_STAT_NORESOURCE;
-			}
-
-			memset(sha1, '\0', sizeof(struct dkim_sha1));
-			SHA1_Init(&sha1->sha1_ctx);
-
-			if (tmp)
-			{
-				status = dkim_tmpfile(dkim, &fd, keep);
-				if (status != DKIM_STAT_OK)
-				{
-					DKIM_FREE(dkim, sha1);
-					return status;
-				}
-
-				sha1->sha1_tmpfd = fd;
-				sha1->sha1_tmpbio = BIO_new_fd(fd, 1);
-			}
-
-			cur->canon_hash = sha1;
-
-		  	break;
-		  }
-
-# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
-			struct dkim_sha256 *sha256;
+			struct dkim_sha *sha;
 
-			sha256 = (struct dkim_sha256 *) DKIM_MALLOC(dkim,
-			                                            sizeof(struct dkim_sha256));
-			if (sha256 == NULL)
+			sha = (struct dkim_sha *) DKIM_MALLOC(dkim,
+			                                      sizeof(struct dkim_sha));
+			if (sha == NULL)
 			{
 				dkim_error(dkim,
 				           "unable to allocate %d byte(s)",
-				           sizeof(struct dkim_sha256));
+				           sizeof(struct dkim_sha));
 				return DKIM_STAT_NORESOURCE;
 			}
 
-			memset(sha256, '\0', sizeof(struct dkim_sha256));
-			SHA256_Init(&sha256->sha256_ctx);
+			memset(sha, '\0', sizeof(struct dkim_sha));
+
+			sha->sha_ctx = EVP_MD_CTX_new();
+			if (cur->canon_hashtype == DKIM_HASHTYPE_SHA1)
+			{
+				(void) EVP_DigestInit_ex(sha->sha_ctx,
+				                         EVP_sha1(), NULL);
+			}
+			else
+			{
+				(void) EVP_DigestInit_ex(sha->sha_ctx,
+				                         EVP_sha256(), NULL);
+			}
 
 			if (tmp)
 			{
 				status = dkim_tmpfile(dkim, &fd, keep);
 				if (status != DKIM_STAT_OK)
 				{
-					DKIM_FREE(dkim, sha256);
+					DKIM_FREE(dkim, sha);
 					return status;
 				}
 
-				sha256->sha256_tmpfd = fd;
-				sha256->sha256_tmpbio = BIO_new_fd(fd, 1);
+				sha->sha_tmpfd = fd;
+				sha->sha_tmpbio = BIO_new_fd(fd, 1);
 			}
 
-			cur->canon_hash = sha256;
+			cur->canon_hash = sha;
 
 		  	break;
 		  }
-# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 
 		  default:
@@ -1420,32 +1370,19 @@ dkim_canon_runheaders(DKIM *dkim)
 
 #else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
-		  {
-			struct dkim_sha1 *sha1;
-
-			sha1 = (struct dkim_sha1 *) cur->canon_hash;
-			SHA1_Final(sha1->sha1_out, &sha1->sha1_ctx);
-
-			if (sha1->sha1_tmpbio != NULL)
-				(void) BIO_flush(sha1->sha1_tmpbio);
-
-			break;
-		  }
-
-# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
-			struct dkim_sha256 *sha256;
+			struct dkim_sha *sha;
 
-			sha256 = (struct dkim_sha256 *) cur->canon_hash;
-			SHA256_Final(sha256->sha256_out, &sha256->sha256_ctx);
+			sha = (struct dkim_sha *) cur->canon_hash;
+			EVP_DigestFinal_ex(sha->sha_ctx, sha->sha_out,
+			                   &sha->sha_outlen);
 
-			if (sha256->sha256_tmpbio != NULL)
-				(void) BIO_flush(sha256->sha256_tmpbio);
+			if (sha->sha_tmpbio != NULL)
+				(void) BIO_flush(sha->sha_tmpbio);
 
 			break;
 		  }
-# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 
 		  default:
@@ -1556,34 +1493,22 @@ dkim_canon_signature(DKIM *dkim, struct dkim_header *hdr)
 
 			break;
 		  }
+
 #else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
-		  {
-			struct dkim_sha1 *sha1;
-
-			sha1 = (struct dkim_sha1 *) cur->canon_hash;
-			SHA1_Final(sha1->sha1_out, &sha1->sha1_ctx);
-
-			if (sha1->sha1_tmpbio != NULL)
-				(void) BIO_flush(sha1->sha1_tmpbio);
-
-			break;
-		  }
-
-# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
-			struct dkim_sha256 *sha256;
+			struct dkim_sha *sha;
 
-			sha256 = (struct dkim_sha256 *) cur->canon_hash;
-			SHA256_Final(sha256->sha256_out, &sha256->sha256_ctx);
+			sha = (struct dkim_sha *) cur->canon_hash;
+			EVP_DigestFinal_ex(sha->sha_ctx, sha->sha_out,
+			                   &sha->sha_outlen);
 
-			if (sha256->sha256_tmpbio != NULL)
-				(void) BIO_flush(sha256->sha256_tmpbio);
+			if (sha->sha_tmpbio != NULL)
+				(void) BIO_flush(sha->sha_tmpbio);
 
 			break;
 		  }
-# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 
 		  default:
@@ -1993,32 +1918,19 @@ dkim_canon_closebody(DKIM *dkim)
 		  }
 #else /* USE_GNUTLS */
 		  case DKIM_HASHTYPE_SHA1:
-		  {
-			struct dkim_sha1 *sha1;
-
-			sha1 = (struct dkim_sha1 *) cur->canon_hash;
-			SHA1_Final(sha1->sha1_out, &sha1->sha1_ctx);
-
-			if (sha1->sha1_tmpbio != NULL)
-				(void) BIO_flush(sha1->sha1_tmpbio);
-
-			break;
-		  }
-
-# ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
 		  {
-			struct dkim_sha256 *sha256;
+			struct dkim_sha *sha;
 
-			sha256 = (struct dkim_sha256 *) cur->canon_hash;
-			SHA256_Final(sha256->sha256_out, &sha256->sha256_ctx);
+			sha = (struct dkim_sha *) cur->canon_hash;
+			EVP_DigestFinal_ex(sha->sha_ctx, sha->sha_out,
+			                   &sha->sha_outlen);
 
-			if (sha256->sha256_tmpbio != NULL)
-				(void) BIO_flush(sha256->sha256_tmpbio);
+			if (sha->sha_tmpbio != NULL)
+				(void) BIO_flush(sha->sha_tmpbio);
 
 			break;
 		  }
-# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 
 		  default:
@@ -2070,28 +1982,16 @@ dkim_canon_getfinal(DKIM_CANON *canon, u_char **digest, size_t *dlen)
 	  }
 #else /* USE_GNUTLS */
 	  case DKIM_HASHTYPE_SHA1:
-	  {
-		struct dkim_sha1 *sha1;
-
-		sha1 = (struct dkim_sha1 *) canon->canon_hash;
-		*digest = sha1->sha1_out;
-		*dlen = sizeof sha1->sha1_out;
-
-		return DKIM_STAT_OK;
-	  }
-
-# ifdef HAVE_SHA256
 	  case DKIM_HASHTYPE_SHA256:
 	  {
-		struct dkim_sha256 *sha256;
+		struct dkim_sha *sha;
 
-		sha256 = (struct dkim_sha256 *) canon->canon_hash;
-		*digest = sha256->sha256_out;
-		*dlen = sizeof sha256->sha256_out;
+		sha = (struct dkim_sha *) canon->canon_hash;
+		*digest = sha->sha_out;
+		*dlen = sha->sha_outlen;
 
 		return DKIM_STAT_OK;
 	  }
-# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 
 	  default:

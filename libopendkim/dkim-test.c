@@ -27,6 +27,7 @@
 # include <openssl/bio.h>
 # include <openssl/rsa.h>
 # include <openssl/evp.h>
+# include <openssl/x509.h>
 #endif /* USE_GNUTLS */
 
 /* libopendkim includes */
@@ -431,21 +432,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			return -1;
 		}
 
-		crypto->crypto_key = EVP_PKEY_get1_RSA(crypto->crypto_pkey);
-		if (crypto->crypto_key == NULL)
-		{
-			BIO_free(keybuf);
-			(void) dkim_free(dkim);
-			if (err != NULL)
-			{
-				strlcpy(err, "EVP_PKEY_get1_RSA() failed",
-				        errlen);
-			}
-			return -1;
-		}
-	
-		crypto->crypto_keysize = RSA_size(crypto->crypto_key);
-		crypto->crypto_pad = RSA_PKCS1_PADDING;
+		crypto->crypto_keysize = EVP_PKEY_size(crypto->crypto_pkey);
 
 		outkey = BIO_new(BIO_s_mem());
 		if (outkey == NULL)
@@ -457,7 +444,7 @@ dkim_test_key(DKIM_LIB *lib, char *selector, char *domain,
 			return -1;
 		}
 
-		status = i2d_RSA_PUBKEY_bio(outkey, crypto->crypto_key);
+		status = i2d_PUBKEY_bio(outkey, crypto->crypto_pkey);
 		if (status == 0)
 		{
 			BIO_free(keybuf);
