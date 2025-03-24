@@ -51,8 +51,8 @@ prior to creating files.  By default the current directory is used.
 
 .TP
 .I \-e
-.I \-\-ed25519
-generate a ed25519 key.
+(\-\-ed25519)
+Generate an ed25519 key.
 
 .TP
 .I \-h algorithms
