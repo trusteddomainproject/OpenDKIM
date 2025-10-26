@@ -13291,6 +13291,8 @@ mlfi_eoh(SMFICTX *ctx)
 			dfc->mctx_addheader = TRUE;
 		return SMFIS_CONTINUE;
 
+
+	  case DKIM_STAT_KEYFAIL:
 	  case DKIM_STAT_NOKEY:
 		dfc->mctx_status = DKIMF_STATUS_NOKEY;
 		dfc->mctx_addheader = TRUE;
@@ -13873,6 +13875,7 @@ mlfi_eom(SMFICTX *ctx)
 			}
 			break;
 
+		  case DKIM_STAT_KEYFAIL:
 		  case DKIM_STAT_NOKEY:
 			dfc->mctx_addheader = TRUE;
 			dfc->mctx_status = DKIMF_STATUS_NOKEY;
