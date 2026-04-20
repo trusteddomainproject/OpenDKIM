@@ -724,9 +724,31 @@ dkimf_db_hexdigit(int c)
 	else if (c >= 'A' && c <= 'F')
 		return c - 'A' + 10;
 	else if (c >= 'a' && c <= 'f')
-		return c - 'f' + 10;
+		return c - 'a' + 10;
 	else
 		return 0;
+}
+
+static void
+dkimf_db_dsn_decode(char *str)
+{
+	char *r;
+	char *w;
+
+	for (r = w = str; *r != '\0'; r++, w++)
+	{
+		if (*r == '=' && isxdigit(*(r + 1)) && isxdigit(*(r + 2)))
+		{
+			*w = 16 * dkimf_db_hexdigit(*(r + 1)) +
+			         dkimf_db_hexdigit(*(r + 2));
+			r += 2;
+		}
+		else
+		{
+			*w = *r;
+		}
+	}
+	*w = '\0';
 }
 #endif /* USE_ODBX */
 
@@ -2666,6 +2688,12 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 			free(new);
 			return -1;
 		}
+
+		dkimf_db_dsn_decode(dsn->dsn_user);
+		dkimf_db_dsn_decode(dsn->dsn_password);
+		dkimf_db_dsn_decode(dsn->dsn_host);
+		dkimf_db_dsn_decode(dsn->dsn_port);
+		dkimf_db_dsn_decode(dsn->dsn_dbase);
 
 		for (p = strtok_r(q, "?", &r);
 		     p != NULL;
