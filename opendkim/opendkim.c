@@ -9579,16 +9579,18 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			if (selector != NULL && domain != NULL)
 			{
 				syslog(LOG_ERR,
-				       "%s: key retrieval failed (s=%s, d=%s)%s%s",
+				       "%s: %s (s=%s, d=%s)%s%s",
 				       JOBID(dfc->mctx_jobid), selector,
+				       dkimf_lookup_inttostr(status, dkimf_statusstrings),
 				       domain,
 				       err == NULL ? "" : ": ",
 				       err == NULL ? "" : err);
 			}
 			else
 			{
-				syslog(LOG_ERR, "%s: key retrieval failed%s%s",
+				syslog(LOG_ERR, "%s: key %s%s%s",
 				       JOBID(dfc->mctx_jobid),
+				       dkimf_lookup_inttostr(status, dkimf_statusstrings),
 				       err == NULL ? "" : ": ",
 				       err == NULL ? "" : err);
 			}
