@@ -9552,12 +9552,14 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			retcode = dkimf_miltercode(ctx,
 			                           conf->conf_handling.hndl_dnserr,
 			                           NULL);
+			replytxt = "DKIM key retrieval timeout";
 		}
 		else
 		{
 			retcode = dkimf_miltercode(ctx,
 			                           conf->conf_handling.hndl_nokey,
 			                           NULL);
+			replytxt = "DKIM key retrieval failed";
 		}
 
 		if (conf->conf_dolog)
@@ -9595,7 +9597,6 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 				       err == NULL ? "" : err);
 			}
 		}
-		replytxt = "DKIM key retrieval failed";
 		break;
 
 	  case DKIM_STAT_SYNTAX:
