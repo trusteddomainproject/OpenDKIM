@@ -13433,7 +13433,7 @@ mlfi_eom(SMFICTX *ctx)
 	_Bool authorsig;
 	int status = DKIM_STAT_OK;
 	int c;
-	sfsistat ret;
+	sfsistat ret = SMFIS_ACCEPT;
 	connctx cc;
 	msgctx dfc;
 	DKIM *lastdkim = NULL;
@@ -13903,8 +13903,8 @@ mlfi_eom(SMFICTX *ctx)
 				                     (char *) dfc->mctx_jobid);
 			}
 
-			status = dkimf_libstatus(ctx, dfc->mctx_dkimv,
-			                         "dkim_eom()", status);
+			ret = dkimf_libstatus(ctx, dfc->mctx_dkimv,
+			                      "dkim_eom()", status);
 
 #ifdef SMFIF_QUARANTINE
 			if (dfc->mctx_capture)
@@ -13920,7 +13920,7 @@ mlfi_eom(SMFICTX *ctx)
 					}
 				}
 
-				status = SMFIS_ACCEPT;
+				ret = SMFIS_ACCEPT;
 			}
 #endif /* ! SMFIF_QUARANTINE */
 			break;
@@ -15283,8 +15283,6 @@ mlfi_eom(SMFICTX *ctx)
 	/*
 	**  If we got this far, we're ready to complete.
 	*/
-
-	ret = SMFIS_ACCEPT;
 
 	/* translate the stored status */
 	switch (dfc->mctx_status)
