@@ -13227,17 +13227,18 @@ mlfi_eoh(SMFICTX *ctx)
 #ifdef USE_LUA
 	if (conf->conf_screenscript != NULL)
 	{
+		int hkstat;
 		_Bool dofree = TRUE;
 		struct dkimf_lua_script_result lres;
 
 		memset(&lres, '\0', sizeof lres);
 
-		status = dkimf_lua_screen_hook(ctx, conf->conf_screenfunc,
+		hkstat = dkimf_lua_screen_hook(ctx, conf->conf_screenfunc,
 		                               conf->conf_screenfuncsz,
 		                               "screen script", &lres,
 		                               NULL, NULL);
 
-		if (status != 0)
+		if (hkstat != 0)
 		{
 			if (conf->conf_dolog)
 			{
@@ -13245,7 +13246,7 @@ mlfi_eoh(SMFICTX *ctx)
 				{
 					dofree = FALSE;
 
-					switch (status)
+					switch (hkstat)
 					{
 					  case 2:
 						lres.lrs_error = "processing error";
