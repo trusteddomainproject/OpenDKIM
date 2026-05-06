@@ -13302,6 +13302,11 @@ mlfi_eoh(SMFICTX *ctx)
 		dfc->mctx_addheader = TRUE;
 		return SMFIS_CONTINUE;
 
+	  case DKIM_STAT_KEYFAIL:
+		dfc->mctx_addheader = TRUE;
+		dfc->mctx_status = DKIMF_STATUS_KEYFAIL;
+		return SMFIS_CONTINUE;
+
 	  case DKIM_STAT_SYNTAX:
 		dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
 		dfc->mctx_addheader = TRUE;
