@@ -1673,12 +1673,7 @@ dkimf_mkregexp(char *src, char *dst, size_t dstlen)
 */
 
 void
-dkimf_base64_encode_file(infd, out, lm, rm, initial)
-	int infd;
-	FILE *out;
-	int lm;
-	int rm;
-	int initial;
+dkimf_base64_encode_file(int infd, FILE *out, int lm, int rm, int initial)
 {
 	int len;
 	int bits;
