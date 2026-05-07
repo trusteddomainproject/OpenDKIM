@@ -10,8 +10,13 @@
 
 /* system includes */
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 #ifdef USE_GNUTLS
 # include <gnutls/gnutls.h>
@@ -34,12 +39,28 @@
 int
 main(int argc, char **argv)
 {
+	int fd;
 	char *p;
 	FILE *f;
 
 	printf("*** test setup\n");
 
-	f = fopen(KEYFILE, "w");
+	if (unlink(KEYFILE) != 0 && errno != ENOENT)
+	{
+		fprintf(stderr, "unlink(%s): %s\n", KEYFILE, strerror(errno));
+		return 1;
+	}
+
+	fd = open(KEYFILE,
+	          O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW,
+	          S_IRUSR | S_IWUSR);
+	if (fd < 0)
+	{
+		fprintf(stderr, "open(%s): %s\n", KEYFILE, strerror(errno));
+		return 1;
+	}
+
+	f = fdopen(fd, "w");
 	assert(f != NULL);
 
 	fprintf(f, "%s.%s.%s ", SELECTOR, DKIM_DNSKEYNAME, DOMAIN);
