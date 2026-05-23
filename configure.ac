@@ -1653,8 +1653,8 @@ then
 	AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <lua.h>
 
-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
-# error Lua version 5.1 or later is required
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501 || LUA_VERSION_NUM >= 505
+# error Lua version 5.1 - 5.4 is required
 #endif
 
 int
@@ -1664,7 +1664,7 @@ main()
 }
 				])],
 				AC_MSG_RESULT([ok]), 
-				AC_MSG_ERROR([Lua version 5.1 or later required]))
+				AC_MSG_ERROR([Lua version 5.1 - 5.4 is required]))
 	CPPFLAGS="$saved_CPPFLAGS"
 	AC_DEFINE([USE_LUA], 1, [support for Lua scripting])
 	AC_SUBST([LUA_MANNOTICE], "")
