@@ -8361,6 +8361,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			{
 				first = FALSE;
 				found = FALSE;
+				memset(signalgstr, '\0', sizeof signalgstr);
 				dbd[0].dbdata_buffer = domain;
 				dbd[0].dbdata_buflen = sizeof domain - 1;
 				dbd[0].dbdata_flags = 0;
@@ -8374,7 +8375,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				dbd[3].dbdata_buflen = sizeof signalgstr - 1;
 				dbd[3].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 
-				if (dkimf_db_get(conf->conf_keytabledb,	
+				if (dkimf_db_get(conf->conf_keytabledb,
 				                 keyname, strlen(keyname),
 				                 dbd, 4, &found) != 0 ||
 				    !found ||
@@ -8386,6 +8387,19 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 					         "could not find valid key record \"%s\" in KeyTable",
 					         keyname);
 					return -1;
+				}
+
+				if (dbd[3].dbdata_buflen > 0 && signalgstr[0] != '\0')
+				{
+					if (dkim_name_to_code(dkim_table_algorithms,
+					                     signalgstr) == -1)
+					{
+						snprintf(err, errlen,
+						         "KeyTable entry for \"%s\" has"
+						         " invalid sign algorithm \"%s\"",
+						         keyname, signalgstr);
+						return -1;
+					}
 				}
 
 				memset(keyname, '\0', sizeof keyname);
