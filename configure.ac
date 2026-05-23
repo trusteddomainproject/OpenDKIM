@@ -1540,45 +1540,18 @@ then
 	fi
 fi
 
-if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
+if test x"$lua_found" = x"no" -a x"$luapath" != x"no"
 then
 	AC_MSG_CHECKING([for Lua])
-	luadirs="/usr /usr/local"
+	if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \)
+	then
+		luadirs="/usr /usr/local"
+        else
+		luadirs="$luapath"
+	fi
 	for d in $luadirs
 	do
-		if test -f $d/include/lua51/lua.h
-		then
-			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$d/include/lua51"
-			LIBLUA_LIBDIRS="-L$d/lib/lua51"
-			LIBLUA_LIBS="-llua -lm"
-			lua_found="yes"
-			break
-		elif test -f $d/include/lua52/lua.h
-		then
-			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$d/include/lua52"
-			LIBLUA_LIBDIRS="-L$d/lib/lua52"
-			LIBLUA_LIBS="-llua -lm"
-			lua_found="yes"
-			break
-		elif test -f $d/include/lua5.1/lua.h
-		then
-			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$d/include/lua5.1"
-			LIBLUA_LIBDIRS="-L$d/lib"
-			LIBLUA_LIBS="-llua5.1 -lm"
-			lua_found="yes"
-			break
-		elif test -f $d/include/lua5.2/lua.h
-		then
-			AC_MSG_RESULT($d)
-			LIBLUA_INCDIRS="-I$d/include/lua5.2"
-			LIBLUA_LIBDIRS="-L$d/lib"
-			LIBLUA_LIBS="-llua5.2 -lm"
-			lua_found="yes"
-			break
-		elif test -f $d/include/lua.h
+		if test -f $luapath/include/lua.h
 		then
 			AC_MSG_RESULT($d)
 			LIBLUA_INCDIRS="-I$d/include"
@@ -1588,57 +1561,84 @@ then
 			break
 		fi
 	done
-	if test x"$LIBLUA_LIBS" = x""
+	if test x"$lua_found" = x"no"
 	then
-		LIBLUA_INCDIRS=""
-		LIBLUA_LIBDIRS=""
-		LIBLUA_LIBS=""
-		AC_MSG_ERROR(not found)
-	else
-		lua_found="yes"
-	fi
-fi
-
-if test x"$luapath" != x"yes" -a x"$luapath" != x"auto" -a x"$luapath" != x"no" -a x"$lua_found" = x"no"
-then
-	AC_MSG_CHECKING([for Lua])
-	if test -f $luapath/include/lua51/lua.h
-	then
-		AC_MSG_RESULT($luapath)
-		LIBLUA_INCDIRS="-I$luapath/include/lua51"
-		LIBLUA_LIBDIRS="-L$luapath/lib/lua51"
-		LIBLUA_LIBS="-llua -lm"
-		lua_found="yes"
-	elif test -f $luapath/include/lua52/lua.h
-	then
-		AC_MSG_RESULT($luapath)
-		LIBLUA_INCDIRS="-I$luapath/include/lua52"
-		LIBLUA_LIBDIRS="-L$luapath/lib/lua52"
-		LIBLUA_LIBS="-llua -lm"
-		lua_found="yes"
-	elif test -f $luapath/include/lua5.1/lua.h
-	then
-		AC_MSG_RESULT($luapath)
-		LIBLUA_INCDIRS="-I$luapath/include/lua5.1"
-		LIBLUA_LIBDIRS="-L$luapath/lib"
-		LIBLUA_LIBS="-llua5.1 -lm"
-		lua_found="yes"
-	elif test -f $luapath/include/lua5.2/lua.h
-	then
-		AC_MSG_RESULT($luapath)
-		LIBLUA_INCDIRS="-I$luapath/include/lua5.2"
-		LIBLUA_LIBDIRS="-L$luapath/lib"
-		LIBLUA_LIBS="-llua5.2 -lm"
-		lua_found="yes"
-	elif test -f $luapath/include/lua.h
-	then
-		AC_MSG_RESULT($luapath)
-		LIBLUA_INCDIRS="-I$luapath/include"
-		LIBLUA_LIBDIRS="-L$luapath/lib"
-		LIBLUA_LIBS="-llua -lm"
-		lua_found="yes"
-	else
-		AC_MSG_ERROR(not found at $luapath)
+		for verminor in 4 3 2 1
+		do
+			for d in $luadirs
+			do
+				if test -f $d/include/lua5${verminor}/lua.h
+				then
+					LIBLUA_INCDIRS="-I$d/include/lua5${verminor}"
+				elif test -f $d/include/lua5.${verminor}/lua.h
+				then
+					LIBLUA_INCDIRS="-I$d/include/lua5.${verminor}"
+				else
+					continue
+				fi
+				if (found_lualib=$(find "$d/lib/lua5${verminor}" -depth 1 -name "liblua.*" 2> /dev/null); test x"${fond_lualib}" != x"")
+				then
+					LIBLUA_LIBDIRS="-L$d/lib/lua5${verminor}"
+					LIBLUA_LIBS="-llua -lm"
+					lua_found="yes"
+					break
+				elif (found_lualib=$(find "$d/lib/lua5.${verminor}" -depth 1 -name "liblua.*" 2> /dev/null); test x"${fond_lualib}" != x"")
+				then
+					LIBLUA_LIBDIRS="-L$d/lib/lua5.${verminor}"
+					LIBLUA_LIBS="-llua -lm"
+					lua_found="yes"
+					break
+				elif (found_lualib=$(find "$d/lib/lua-5${verminor}" -depth 1 -name "liblua.*" 2> /dev/null); test x"${fond_lualib}" != x"")
+				then
+					LIBLUA_LIBDIRS="-L$d/lib/lua-5${verminor}"
+					LIBLUA_LIBS="-llua -lm"
+					lua_found="yes"
+					break
+				elif (found_lualib=$(find "$d/lib/lua-5.${verminor}" -depth 1 -name "liblua.*" 2> /dev/null); test x"${fond_lualib}" != x"")
+				then
+					LIBLUA_LIBDIRS="-L$d/lib/lua-5.${verminor}"
+					LIBLUA_LIBS="-llua -lm"
+					lua_found="yes"
+					break
+				elif (found_lualib=$(find "$d/lib/" -name "liblua5${verminor}.*"); test x"${found_lualib}" != x"")
+				then
+					LIBLUA_LIBDIRS="-L$d/lib"
+					LIBLUA_LIBS="-llua5${verminor} -lm"
+					lua_found="yes"
+					break
+				elif (found_lualib=$(find "$d/lib/" -name "liblua5.${verminor}.*"); test x"${found_lualib}" != x"")
+				then
+					LIBLUA_LIBDIRS="-L$d/lib"
+					LIBLUA_LIBS="-llua5.${verminor} -lm"
+					lua_found="yes"
+					break
+				elif (found_lualib=$(find "$d/lib/" -name "liblua-5${verminor}.*"); test "${found_lualib}" != "")
+				then
+					LIBLUA_LIBDIRS="-L$d/lib"
+					LIBLUA_LIBS="-llua-5${verminor} -lm"
+					lua_found="yes"
+					break
+				elif (found_lualib=$(find "$d/lib/" -name "liblua-5.${verminor}.*"); test x"${found_lualib}" != x"")
+				then
+					LIBLUA_LIBDIRS="-L$d/lib"
+					LIBLUA_LIBS="-llua-5.${verminor} -lm"
+					lua_found="yes"
+					break
+				fi
+			done
+			if test x"$lua_found" = x"yes"
+			then
+				AC_MSG_RESULT($d)
+				break
+			fi
+		done
+		if test x"$lua_found" = x"no"
+		then
+			LIBLUA_INCDIRS=""
+			LIBLUA_LIBDIRS=""
+			LIBLUA_LIBS=""
+			AC_MSG_ERROR(not found)
+		fi
 	fi
 fi
 
