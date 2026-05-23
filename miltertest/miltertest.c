@@ -3883,7 +3883,11 @@ main(int argc, char **argv)
 	rusage = FALSE;
 	nowait = FALSE;
 
+#if LUA_VERSION_NUM >= 505
+	l = lua_newstate(mt_lua_alloc, NULL, 0);
+#else
 	l = lua_newstate(mt_lua_alloc, NULL);
+#endif
 	if (l == NULL)
 	{
 		fprintf(stderr, "%s: unable to allocate new Lua state\n",
