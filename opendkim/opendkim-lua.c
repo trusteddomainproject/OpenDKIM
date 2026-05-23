@@ -232,8 +232,8 @@ dkimf_lua_writer(lua_State *l, const void *buf, size_t sz, void *data)
 	assert(l != NULL);
 	assert(data != NULL);
 
-	/* Lua 5.5 calls the writer once with sz=0 to signal end of dump. */
-	if (sz == 0)
+	/* Lua 5.5 calls the writer once with buf=NULL to signal end of dump. */
+	if (buf == NULL)
 		return 0;
 
 	assert(buf != NULL);
@@ -499,8 +499,8 @@ dkimf_lua_setup_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_setglobal(l, "odkim");
 # else /* LUA_VERSION_NUM >= 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_setup);
-# endif /* LUA_VERSION_NUM >= 502 */
 	lua_pop(l, 1);
+# endif /* LUA_VERSION_NUM >= 502 */
 
 	/*
 	**  Register constants.
@@ -662,8 +662,8 @@ dkimf_lua_screen_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_setglobal(l, "odkim");
 # else /* LUA_VERSION_NUM >= 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_screen);
-# endif /* LUA_VERSION_NUM >= 502 */
 	lua_pop(l, 1);
+# endif /* LUA_VERSION_NUM >= 502 */
 
 	/*
 	**  Register constants.
@@ -815,8 +815,8 @@ dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_setglobal(l, "odkim");
 # else /* LUA_VERSION_NUM >= 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_stats);
-# endif /* LUA_VERSION_NUM >= 502 */
 	lua_pop(l, 1);
+# endif /* LUA_VERSION_NUM >= 502 */
 
 	/*
 	**  Register constants.
@@ -1060,8 +1060,8 @@ dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
 	lua_setglobal(l, "odkim");
 # else /* LUA_VERSION_NUM >= 502 */
 	luaL_register(l, "odkim", dkimf_lua_lib_final);
-# endif /* LUA_VERSION_NUM >= 502 */
 	lua_pop(l, 1);
+# endif /* LUA_VERSION_NUM >= 502 */
 
 	/*
 	**  Register constants.
