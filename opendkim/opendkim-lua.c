@@ -230,8 +230,13 @@ dkimf_lua_writer(lua_State *l, const void *buf, size_t sz, void *data)
 	struct dkimf_lua_io *io;
 
 	assert(l != NULL);
-	assert(buf != NULL);
 	assert(data != NULL);
+
+	/* Lua 5.5 calls the writer once with sz=0 to signal end of dump. */
+	if (sz == 0)
+		return 0;
+
+	assert(buf != NULL);
 
 	io = (struct dkimf_lua_io *) data;
 
@@ -475,7 +480,11 @@ dkimf_lua_setup_hook(void *ctx, const char *script, size_t scriptlen,
 	gc.gc_head = NULL;
 	gc.gc_tail = NULL;
 
+#if LUA_VERSION_NUM >= 505
+	l = lua_newstate(dkimf_lua_alloc, NULL, 0);
+#else
 	l = lua_newstate(dkimf_lua_alloc, NULL);
+#endif
 	if (l == NULL)
 		return -1;
 
@@ -634,7 +643,11 @@ dkimf_lua_screen_hook(void *ctx, const char *script, size_t scriptlen,
 	gc.gc_head = NULL;
 	gc.gc_tail = NULL;
 
+#if LUA_VERSION_NUM >= 505
+	l = lua_newstate(dkimf_lua_alloc, NULL, 0);
+#else
 	l = lua_newstate(dkimf_lua_alloc, NULL);
+#endif
 	if (l == NULL)
 		return -1;
 
@@ -783,7 +796,11 @@ dkimf_lua_stats_hook(void *ctx, const char *script, size_t scriptlen,
 	gc.gc_head = NULL;
 	gc.gc_tail = NULL;
 
+#if LUA_VERSION_NUM >= 505
+	l = lua_newstate(dkimf_lua_alloc, NULL, 0);
+#else
 	l = lua_newstate(dkimf_lua_alloc, NULL);
+#endif
 	if (l == NULL)
 		return -1;
 
@@ -1024,7 +1041,11 @@ dkimf_lua_final_hook(void *ctx, const char *script, size_t scriptlen,
 	gc.gc_head = NULL;
 	gc.gc_tail = NULL;
 
+#if LUA_VERSION_NUM >= 505
+	l = lua_newstate(dkimf_lua_alloc, NULL, 0);
+#else
 	l = lua_newstate(dkimf_lua_alloc, NULL);
+#endif
 	if (l == NULL)
 		return -1;
 
@@ -1255,7 +1276,11 @@ dkimf_lua_db_hook(const char *script, size_t scriptlen, const char *query,
 	else
 		io.lua_io_len = scriptlen;
 
+#if LUA_VERSION_NUM >= 505
+	l = lua_newstate(dkimf_lua_alloc, NULL, 0);
+#else
 	l = lua_newstate(dkimf_lua_alloc, NULL);
+#endif
 	if (l == NULL)
 		return -1;
 
