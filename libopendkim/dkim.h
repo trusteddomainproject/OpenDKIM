@@ -65,6 +65,13 @@ extern "C" {
 #define	DKIM_SIG_CHECK(x)	((dkim_sig_getflags((x)) & DKIM_SIGFLAG_PASSED) != 0 && dkim_sig_getbh((x)) == DKIM_SIGBH_MATCH)
 
 /*
+**  DKIM_NAMETABLE -- tables for conversion between code and name
+*/
+
+struct dkim_nametable;
+typedef struct dkim_nametable DKIM_NAMETABLE;
+
+/*
 **  DKIM_STAT -- status code type
 */
 
@@ -88,6 +95,9 @@ typedef int DKIM_STAT;
 #define	DKIM_STAT_CBERROR	15	/* callback error */
 #define	DKIM_STAT_MULTIDNSREPLY	16	/* multiple DNS replies */
 #define	DKIM_STAT_SIGGEN	17	/* signature generation failed */
+#define	DKIM_STAT_ITER_EOT	18	/* the table has no more item */
+
+extern DKIM_NAMETABLE *dkim_table_results;
 
 /*
 **  DKIM_CBSTAT -- callback status code type
@@ -159,6 +169,8 @@ typedef int DKIM_SIGERROR;
 #define DKIM_SIGERROR_CONDITIONAL	47	/* conditional sig error */
 #define DKIM_SIGERROR_CONDLOOP		48	/* conditional sig loop */
 
+extern DKIM_NAMETABLE *dkim_table_sigerrors;
+
 /* generic DNS error codes */
 #define	DKIM_DNS_ERROR		(-1)		/* error in transit */
 #define	DKIM_DNS_SUCCESS	0		/* reply available */
@@ -176,6 +188,8 @@ typedef int dkim_canon_t;
 #define DKIM_CANON_SIMPLE	0	/* as specified in DKIM spec */
 #define DKIM_CANON_RELAXED	1	/* as specified in DKIM spec */
 
+extern DKIM_NAMETABLE *dkim_table_canonicalizations;
+
 #define DKIM_CANON_DEFAULT	DKIM_CANON_SIMPLE
 
 /*
@@ -190,6 +204,8 @@ typedef int dkim_alg_t;
 #define DKIM_SIGN_RSASHA256	1	/* an RSA-signed SHA256 digest */
 #define DKIM_SIGN_ED25519SHA256	2	/* an ED25519-signed SHA256 digest */
 
+extern DKIM_NAMETABLE *dkim_table_algorithms;
+
 /*
 **  DKIM_QUERY -- query method
 */
@@ -199,6 +215,8 @@ typedef int dkim_query_t;
 #define DKIM_QUERY_UNKNOWN	(-1)	/* unknown method */
 #define DKIM_QUERY_DNS		0	/* DNS query method (per the draft) */
 #define DKIM_QUERY_FILE		1	/* text file method (for testing) */
+
+extern DKIM_NAMETABLE *dkim_table_querytypes;
 
 #define DKIM_QUERY_DEFAULT	DKIM_QUERY_DNS
 
@@ -223,6 +241,8 @@ typedef int dkim_param_t;
 #define DKIM_PARAM_COPIEDHDRS	11	/* z */
 #define DKIM_PARAM_BODYHASH	12	/* bh */
 #define DKIM_PARAM_BODYLENGTH	13	/* l */
+
+extern DKIM_NAMETABLE *dkim_table_sigparams;
 
 /*
 **  DKIM_MODE -- mode of a handle
@@ -334,6 +354,8 @@ typedef struct dkim_siginfo DKIM_SIGINFO;
 #define DKIM_SIGFLAG_NOSUBDOMAIN	0x10
 #define DKIM_SIGFLAG_KEYLOADED		0x20
 
+extern DKIM_NAMETABLE *dkim_table_keyflags;
+
 #define DKIM_SIGBH_UNTESTED		(-1)
 #define DKIM_SIGBH_MATCH		0
 #define DKIM_SIGBH_MISMATCH		1
@@ -354,6 +376,13 @@ struct dkim_hdrdiff
 	u_char *		hd_old;
 	u_char *		hd_new;
 };
+
+/*
+**  DKIM_ITER -- iteration on conversion tables
+*/
+
+struct dkim_iter_ctx; 	/* table iteration context */
+typedef struct dkim_iter_ctx DKIM_ITER_CTX;
 
 /*
 **  PROTOTYPES
@@ -1940,6 +1969,84 @@ extern const u_char *dkim_should_signhdrs[];
 
 /* list of headers that should not be signed, per RFC6376 Section 5.4 */
 extern const u_char *dkim_should_not_signhdrs[];
+
+/*
+**  DKIM_CODE_TO_NAME -- translate a mnemonic code to its name
+**
+**  Parameters:
+**  	tbl -- name table
+**  	code -- code to translate
+**
+**  Return value:
+**  	Pointer to the name matching the provided code, or NULL if not found.
+*/
+
+extern const char *dkim_code_to_name __P((DKIM_NAMETABLE *tbl,
+                                          const int code));
+
+/*
+**  DKIM_NAME_TO_CODE -- translate a name to a mnemonic code
+**
+**  Parameters:
+**  	tbl -- name table
+**  	name -- name to translate
+**
+**  Return value:
+**  	A mnemonic code matching the provided name, or -1 if not found.
+*/
+
+extern const int dkim_name_to_code __P((DKIM_NAMETABLE *tbl,
+                                        const char *name));
+
+/*
+**  DKIM_NAMETABLE_FIRST -- get the first entry of the table and start iteration
+**
+**  Parameters:
+**  	tbl -- name table
+**  	ctx -- iteration context (returned)
+**  	name -- name in the first item in the table (returned)
+**  	code -- code in the first item in the table (returned)
+**
+**  Return value:
+**  	A DKIM_STAT_OK         -- retrieve the first item successfully
+**  	A DKIM_STAT_ITER_EOT   -- the table has no item.
+**  	A DKIM_STAT_NORESOURCE -- cannot allocate memory for the
+** 	                          iteration context
+**
+*/
+extern DKIM_STAT dkim_nametable_first __P((DKIM_NAMETABLE *tbl,
+                                           DKIM_ITER_CTX **ctx,
+                                           const char **name, int *code));
+
+/*
+**  DKIM_NAMETABLE_NEXT -- get the next entry on the iteration the table
+**
+**  Parameters:
+**  	ctx -- iteration context (updated)
+**  	name -- name in the first item in the table (returned)
+**  	code -- code in the first item in the table (returned)
+**
+**  Return value:
+**  	A DKIM_STAT_OK         -- retrieve the first item successfully
+**  	A DKIM_STAT_ITER_EOT   -- the table has no item.
+**
+*/
+extern DKIM_STAT dkim_nametable_next __P((DKIM_ITER_CTX *ctx,
+                                          const char **name,
+                                          int *code));
+
+/*
+**  DKIM_ITER_CTX_FREE -- release resources associated with
+**                                  a nametable iteration context
+**
+**  Parameters:
+**  	ctx -- iteration context
+**
+**  Return value:
+**  	None.
+**
+*/
+extern DKIM_STAT dkim_iter_ctx_free __P((DKIM_ITER_CTX *ctx));
 
 
 #ifdef __cplusplus

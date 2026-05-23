@@ -23,7 +23,6 @@
 
 /* libopendkim includes */
 #include "../dkim.h"
-#include "../dkim-tables.h"
 #include "t-testdata.h"
 
 #define	DEFMSGSIZE	1024
