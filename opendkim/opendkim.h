@@ -120,6 +120,7 @@ struct signreq
 	u_char *		srq_domain;
 	u_char *		srq_selector;
 	u_char *		srq_signer;
+	dkim_alg_t		srq_signalg;
 	DKIM *			srq_dkim;
 	struct signreq *	srq_next;
 };
