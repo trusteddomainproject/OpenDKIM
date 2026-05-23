@@ -369,6 +369,57 @@ is used for the key.
 (see below) is used to select records from this table to be used to add
 signatures based on the message sender.
 
+To sign each message with both RSA and Ed25519, create two KeyTable entries
+(one per algorithm) and two SigningTable rules that both match the sending
+domain, then enable
+.I MultipleSignatures.
+For example:
+
+.nf
+# KeyTable (file or inline dataset)
+rsa-key     %:rsa2024:/etc/opendkim/keys/%.rsa.private:rsa-sha256
+ed-key      %:ed2024:/etc/opendkim/keys/%.ed25519.private:ed25519-sha256
+
+# SigningTable
+*@example.com    rsa-key
+*@example.com    ed-key
+
+# opendkim.conf
+MultipleSignatures    yes
+.fi
+
+Note that the motivation for dual-algorithm signing is as a contingency
+against a future cryptographic weakness in one algorithm; no such weakness
+in RSA has been discovered at the time of this writing.  While Ed25519
+produces smaller DNS records and shorter keys than RSA, the savings in
+the context of modern mail headers are trivial.  Signing with multiple
+algorithms requires each validating server to verify all signatures,
+increasing load on both sides, and provides no immediate security benefit
+in normal operation.  Operators should have a clear reason before enabling
+this feature; it is most useful for interoperability testing.
+
+When a message is verified by a server running this software, it will
+produce a single Authentication-Results header containing one
+.I dkim=
+entry per signature, for example:
+
+.nf
+Authentication-Results: example.com;
+  dkim=pass header.d=example.com header.s=rsa2024 header.a=rsa-sha256;
+  dkim=fail header.d=example.com header.s=ed2024 header.a=ed25519-sha256
+.fi
+
+RFC 6376 requires that each signature be evaluated independently but does
+not define what a verifier or downstream tool should conclude when results
+are mixed.  This is left to local policy.  OpenDKIM treats a message as
+passing if any signature passes; a stricter implementation may treat any
+.I dkim=fail
+entry as a failure regardless of other results.  Downstream tools that
+inspect Authentication-Results headers, including but not limited to
+SpamAssassin, may behave differently and in ways that are not easily
+predicted.  Operators should test the full mail path before deploying
+multi-algorithm signing in production.
+
 .TP
 .I LDAPAuthMechanism (string)
 Names the authentication mechanism to use when connecting to an LDAP
