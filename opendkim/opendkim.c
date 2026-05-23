@@ -11005,15 +11005,26 @@ mlfi_negotiate(SMFICTX *ctx,
 # ifdef _FFR_VBR
 	    conf->conf_vbr_purge ||
 # endif /* _FFR_VBR */
+# ifdef USE_LUA
+	    conf->conf_finalscript != NULL ||
+# endif /* USE_LUA */
 	    conf->conf_remsigs)
 		reqactions |= SMFIF_CHGHDRS;
 
 # ifdef SMFIF_QUARANTINE
+# ifdef USE_LUA
+	if (conf->conf_capture || conf->conf_finalscript != NULL)
+# else /* USE_LUA */
 	if (conf->conf_capture)
+# endif /* USE_LUA */
 		reqactions |= SMFIF_QUARANTINE;
 # endif /* SMFIF_QUARANTINE */
 
+# ifdef USE_LUA
+	if (conf->conf_redirect != NULL || conf->conf_finalscript != NULL)
+# else /* USE_LUA */
 	if (conf->conf_redirect != NULL)
+# endif /* USE_LUA */
 	{
 		reqactions |= SMFIF_ADDRCPT;
 		reqactions |= SMFIF_DELRCPT;
@@ -16900,7 +16911,11 @@ main(int argc, char **argv)
 
 		smfilter.xxfi_flags = SMFIF_ADDHDRS;
 
+#ifdef USE_LUA
+		if (curconf->conf_redirect != NULL || curconf->conf_finalscript != NULL)
+#else /* USE_LUA */
 		if (curconf->conf_redirect != NULL)
+#endif /* USE_LUA */
 		{
 			smfilter.xxfi_flags |= SMFIF_ADDRCPT;
 			smfilter.xxfi_flags |= SMFIF_DELRCPT;
@@ -16918,10 +16933,17 @@ main(int argc, char **argv)
 #ifdef _FFR_VBR
 		    curconf->conf_vbr_purge ||
 #endif /* _FFR_VBR */
+#ifdef USE_LUA
+		    curconf->conf_finalscript != NULL ||
+#endif /* USE_LUA */
 		    curconf->conf_remsigs)
 			smfilter.xxfi_flags |= SMFIF_CHGHDRS;
 #ifdef SMFIF_QUARANTINE
+#ifdef USE_LUA
+		if (curconf->conf_capture || curconf->conf_finalscript != NULL)
+#else /* USE_LUA */
 		if (curconf->conf_capture)
+#endif /* USE_LUA */
 			smfilter.xxfi_flags |= SMFIF_QUARANTINE;
 #endif /* SMFIF_QUARANTINE */
 
