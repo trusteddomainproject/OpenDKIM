@@ -1504,8 +1504,8 @@ AC_SUBST([LIBTRE_LIBS])
 # liblua
 #
 AC_ARG_WITH([lua],
-            AS_HELP_STRING([--with-lua],
-                           [location of Lua includes and library]),
+            AS_HELP_STRING([--with-lua@<:@=PKG|PATH|auto|yes|no@:>@],
+                           [Lua pkg-config name or path, or location of Lua includes and library]),
             [luapath="$withval"], [luapath="no"])
 
 LIBLUA_INCDIRS=""
@@ -1513,22 +1513,31 @@ LIBLUA_LIBDIRS=""
 LIBLUA_LIBS=""
 lua_found="no"
 
-if test \(  x"$luapath" = x"auto" -o x"$luapath" = x"yes" \) -a x"$PKG_CONFIG" != x""
+if test x"$PKG_CONFIG" != x""
 then
-  PKG_CHECK_MODULES([LIBLUA], [lua5.1], [
-      LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
-      lua_found="yes"
-    ],
-    [
-      AC_MSG_WARN([pkg-config for lua5.1 not found, trying lua...])
-      PKG_CHECK_MODULES([LIBLUA], [lua], [
-          LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
-          lua_found="yes"
-        ],
-	[AC_MSG_WARN([pkg-config for lua not found, trying manual search...])]
-      )
-    ]
-  )
+	if test x"$luapath" = x"auto" -o x"$luapath" = x"yes"
+	then
+		for luapkg in lua lua5.4 lua-5.4 lua5.3 lua-5.3 lulua5.2 lua-5.2 lua5.1 lua-5.1
+		do
+			PKG_CHECK_MODULES([LIBLUA], [$luapkg], [
+				LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
+				lua_found="yes"
+				break
+				],
+				[AC_MSG_WARN([pkg-config for $luapkg not found, trying next...])])
+		done
+		if test x"${lua_found}" = x"no"
+		then
+			AC_MSG_WARN([pkg-config for lua not found, trying manual search...])
+		fi
+	elif test x"$luapath" != x"no"
+	then
+		PKG_CHECK_MODULES([LIBLUA], [$luapath], [
+		LIBLUA_INCDIRS="$LIBLUA_CFLAGS"
+		lua_found="yes"
+		],
+		[AC_MSG_WARN([pkg-config for $luapath not found])])
+	fi
 fi
 
 if test \( x"$luapath" = x"yes" -o x"$luapath" = x"auto" \) -a x"$lua_found" = x"no"
@@ -1590,7 +1599,7 @@ then
 	fi
 fi
 
-if test x"$luapath" != x"yes" -a x"$luapath" != x"auto" -a x"$luapath" != x"no"
+if test x"$luapath" != x"yes" -a x"$luapath" != x"auto" -a x"$luapath" != x"no" -a x"$lua_found" = x"no"
 then
 	AC_MSG_CHECKING([for Lua])
 	if test -f $luapath/include/lua51/lua.h
