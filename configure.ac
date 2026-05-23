@@ -1508,12 +1508,18 @@ AC_ARG_WITH([lua],
                            [Lua pkg-config name or path, or location of Lua includes and library]),
             [luapath="$withval"], [luapath="no"])
 
-LIBLUA_INCDIRS=""
-LIBLUA_LIBDIRS=""
-LIBLUA_LIBS=""
-lua_found="no"
+if test x"$luapath" = x"yes" -a \( x"$LIBLUA_INCDIRS" != x"" -o x"$LIBLUA_DIRS" != x"" -o x"$LIBLUA_LIBS" != x"" \)
+then
+	AC_MSG_NOTICE([for lua, using LIBLUA_INCDIRS, LIBLUA_DIRS, LIBLUA_LIBS values])
+	lua_found="yes"
+else
+	LIBLUA_INCDIRS=""
+	LIBLUA_LIBDIRS=""
+	LIBLUA_LIBS=""
+	lua_found="no"
+fi
 
-if test x"$PKG_CONFIG" != x""
+if test x"$lua_found" = x"no" -a x"$PKG_CONFIG" != x""
 then
 	if test x"$luapath" = x"auto" -o x"$luapath" = x"yes"
 	then
