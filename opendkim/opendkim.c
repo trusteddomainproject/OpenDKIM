@@ -13514,6 +13514,7 @@ mlfi_eom(SMFICTX *ctx)
 	msgctx dfc;
 	DKIM *lastdkim = NULL;
 	char *authservid;
+	char authservid_hdr[MAXHOSTNAMELEN + BUFRSZ + 4];
 	char *hostname;
 	struct dkimf_config *conf;
 	DKIM_SIGINFO *sig = NULL;
@@ -13560,6 +13561,17 @@ mlfi_eom(SMFICTX *ctx)
 	if (authservid == NULL)
 		authservid = hostname;
 
+	/* build the authserv-id header value; per RFC 8601 + RFC 2045,
+	   "/" is a tspecial and not valid in an unquoted token, so quote
+	   the combined value when a job ID is appended */
+	if (conf->conf_authservidwithjobid && dfc->mctx_jobid != NULL &&
+	    dfc->mctx_jobid[0] != '\0')
+		snprintf(authservid_hdr, sizeof authservid_hdr,
+		         "\"%s/%s\"", authservid, (char *) dfc->mctx_jobid);
+	else
+		snprintf(authservid_hdr, sizeof authservid_hdr,
+		         "%s", authservid);
+
 	/* if this was totally malformed, add a header field and stop */
 	if (dfc->mctx_headeronly)
 	{
@@ -13596,7 +13608,7 @@ mlfi_eom(SMFICTX *ctx)
 
 		snprintf((char *) header, sizeof header, "%s%s; dkim=%s (%s)",
 		         cc->cctx_noleadspc ? " " : "",
-		         authservid, ar,
+		         authservid_hdr, ar,
 		         dkimf_lookup_inttostr(dfc->mctx_status,
 		                               dkimf_statusstrings));
 
@@ -14634,20 +14646,9 @@ mlfi_eom(SMFICTX *ctx)
 			memset(val, '\0', sizeof val);
 			memset(header, '\0', sizeof header);
 
-			snprintf((char *) header, sizeof header, "%s%s",
-		        	 cc->cctx_noleadspc ? " " : "",
-		        	 authservid);
-
-			if (conf->conf_authservidwithjobid &&
-			    dfc->mctx_jobid != NULL)
-			{
-				strlcat((char *) header, "/", sizeof header);
-				strlcat((char *) header,
-				        (char *) dfc->mctx_jobid,
-				        sizeof header);
-			}
-
-			strlcat((char *) header, ";", sizeof header);
+			snprintf((char *) header, sizeof header, "%s%s;",
+			         cc->cctx_noleadspc ? " " : "",
+			         authservid_hdr);
 			strlcat((char *) header, DELIMITER, sizeof header);
 
 			if (dfc->mctx_status == DKIMF_STATUS_GOOD ||
@@ -15036,13 +15037,9 @@ mlfi_eom(SMFICTX *ctx)
 				{
 					snprintf((char *) header,
 					         sizeof header,
-					         "%s%s%s%s vbr=%s header.md=%s",
+					         "%s%s; vbr=%s header.md=%s",
 					         cc->cctx_noleadspc ? " " : "",
-					         authservid,
-					         conf->conf_authservidwithjobid ? "/"
-					                                        : "",
-					         conf->conf_authservidwithjobid ? (char *) dfc->mctx_jobid
-					                                        : "",
+					         authservid_hdr,
 					         vbr_result,
 					         vbr_domain);
 
