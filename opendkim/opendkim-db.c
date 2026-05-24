@@ -2898,10 +2898,15 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 				rem--;
 			}
 
-			plen = snprintf(q, rem, "%s://%s:%d",
-			                descr->lud_scheme,
-			                descr->lud_host,
-			                descr->lud_port);
+			if (strcmp(descr->lud_scheme, "ldapi") == 0)
+				plen = snprintf(q, rem, "%s://%s",
+				                descr->lud_scheme,
+				                descr->lud_host ? descr->lud_host : "");
+			else
+				plen = snprintf(q, rem, "%s://%s:%d",
+				                descr->lud_scheme,
+				                descr->lud_host,
+				                descr->lud_port);
 
 			if (plen >= rem)
 			{
