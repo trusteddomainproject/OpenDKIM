@@ -272,7 +272,7 @@ dkim_res_nslist(void *srv, const char *nslist)
 # ifdef AF_INET6
 	struct sockaddr_in6 in6;
 # endif /* AF_INET6 */
-	struct state *res;
+	struct __res_state *res;
 	res_sockaddr_union nses[MAXNS];
 
 	assert(srv != NULL);
