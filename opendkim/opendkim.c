@@ -9351,6 +9351,15 @@ dkimf_cleanup(SMFICTX *ctx)
 		}
 #endif /* USE_LUA */
 
+#ifdef _FFR_REPUTATION
+# ifdef USE_GNUTLS
+		{
+			unsigned char digest[SHA_DIGEST_LENGTH];
+			(void) gnutls_hash_deinit(dfc->mctx_hash, digest);
+		}
+# endif /* USE_GNUTLS */
+#endif /* _FFR_REPUTATION */
+
 		free(dfc);
 		cc->cctx_msg = NULL;
 	}
