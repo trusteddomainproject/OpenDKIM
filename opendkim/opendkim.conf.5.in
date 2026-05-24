@@ -1015,14 +1015,19 @@ If not set, no expiration time is added to signatures.
 
 .TP
 .I SignHeaders (dataset)
-Specifies the set of header fields that should be included when generating
-signatures.  If the list omits any header field that is mandated by the DKIM
-specification, those fields are implicitly added.  By default, those fields
-listed in the DKIM specification as "SHOULD" be signed (RFC6376, Section 5.4)
-will be signed by the filter.  See the
-.I OmitHeaders
-configuration option for more information about the format and interpretation
-of this field.
+Specifies the comma-separated set of header fields that should be included when
+generating signatures.  If the list omits any header field that is mandated by the
+DKIM specification, those fields are implicitly added.  A set of header fields is
+listed in the DKIM specification as "Common examples" to be signed (RFC6376,
+Section 5.4.1); the default list for this parameter contains those fields (From,
+Reply-To, Subject, Date, To, Cc, Resent-Date, Resent-From, Resent-Sender,
+Resent-To, Resent-Cc, In-Reply-To, References, List-Id, List-Help,
+List-Unsubscribe, List-Subscribe, List-Post, List-Owner, List-Archive).
+Specifying a list with this parameter replaces the default entirely, unless
+one entry is "*" in which case the list is interpreted as a delta to the
+default; for example, "*,+foobar" will use the entire default list plus
+the name "foobar", while "*,-Bcc" would use the entire default list except
+for the "Bcc" entry.
 
 .TP
 .I SigningTable (dataset)
