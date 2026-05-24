@@ -888,9 +888,12 @@ then
 	               AC_MSG_ERROR([libcrypto not found]))
 
 
+	# SSL_library_init() was removed in OpenSSL 1.1.0 (it became a no-op
+	# macro).  Use SSL_CTX_new(), which is a real function in all supported
+	# OpenSSL versions (1.0.x, 1.1.x, 3.x).
 	AC_LINK_IFELSE(
 		       [AC_LANG_PROGRAM([[#include <openssl/ssl.h>]],
-					[[SSL_library_init();]])],
+					[[SSL_CTX_free(NULL);]])],
 					[od_have_ossl="yes";],
 					[od_have_ossl="no";])
 	if test x"$od_have_ossl" = x"no"
@@ -906,7 +909,7 @@ then
 		fi
 
 		LIBCRYPTO_LIBS="$LIBCRYPTO_LIBS -ldl"
-		AC_SEARCH_LIBS([SSL_library_init], [ssl], ,
+		AC_SEARCH_LIBS([SSL_CTX_new], [ssl], ,
 		               AC_MSG_ERROR([libssl not found]), [-ldl])
 	fi
 
