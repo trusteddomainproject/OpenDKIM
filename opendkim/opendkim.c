@@ -7494,6 +7494,15 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		{
 			int status;
 			char *dberr = NULL;
+			char *ignored_keyfile = NULL;
+
+			(void) config_get(data, "KeyFile", &ignored_keyfile,
+			                  sizeof ignored_keyfile);
+			if (ignored_keyfile != NULL)
+			{
+				syslog(LOG_WARNING,
+				       "KeyFile is ignored when KeyTable is set");
+			}
 
 			status = dkimf_db_open(&conf->conf_keytabledb,
 			                       conf->conf_keytable,
