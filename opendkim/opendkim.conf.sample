@@ -133,8 +133,8 @@
 ##  	default "yes"
 ##
 ##  If set, the SigningTable will be checked for missing keys in
-##  KeyTable when loading the config. This can take a longer time with 
-##  larger databases. Requires opendbx.
+##  KeyTable when loading the config. This can take a longer time with
+##  larger databases.
 
 # CheckSigningTable		yes
 
