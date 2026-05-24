@@ -1,20 +1,74 @@
-# If you are using OpenDKIM with SQL datasets it might be necessary to start OpenDKIM after the database servers.
-# For example, if using both MariaDB and PostgreSQL, change "After=" in the "[Unit]" section to:
-# After=network.target nss-lookup.target syslog.target mariadb.service postgresql.service
+# network-online.target is used (rather than network.target) because OpenDKIM
+# may bind to specific IP addresses and may connect to remote backends (LDAP,
+# SQL) at startup.  network-online.target ensures interfaces have addresses
+# before the service starts.  If boot latency is a concern and your setup only
+# uses local sockets, you can relax this to network.target.
+#
+# If you are using OpenDKIM with SQL datasets it might be necessary to start
+# OpenDKIM after the database servers.  For example, if using both MariaDB and
+# PostgreSQL, change "After=" in the "[Unit]" section to:
+# After=network-online.target nss-lookup.target syslog.target mariadb.service postgresql.service
 
 [Unit]
 Description=DomainKeys Identified Mail (DKIM) Milter
 Documentation=man:opendkim(8) man:opendkim.conf(5) man:opendkim-genkey(8) man:opendkim-genzone(8) man:opendkim-testadsp(8) man:opendkim-testkey http://www.opendkim.org/docs.html
-After=network.target nss-lookup.target syslog.target
+After=network-online.target nss-lookup.target syslog.target
+Wants=network-online.target
 
 [Service]
-Type=forking
-PIDFile=@localstatedir@/run/opendkim/opendkim.pid
+# Type=simple with -f (foreground) lets systemd track the process directly
+# without relying on a PIDFile, avoiding a race condition at startup.
+Type=simple
 EnvironmentFile=-@sysconfdir@/sysconfig/opendkim
-ExecStart=@sbindir@/opendkim $OPTIONS
+ExecStart=@sbindir@/opendkim -f $OPTIONS
 ExecReload=/bin/kill -USR1 $MAINPID
+Restart=on-abnormal
 User=opendkim
 Group=opendkim
+
+# As the file system is mounted read-only with ProtectSystem=strict, adding
+# /var/spool/postfix/opendkim by default makes it possible to use opendkim
+# with postfix without further configuration.
+ReadWritePaths=-/var/spool/postfix/opendkim
+RuntimeDirectory=opendkim
+
+# Hardening - see systemd.exec(5)
+CapabilityBoundingSet=
+LockPersonality=true
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateMounts=true
+PrivateTmp=true
+PrivateUsers=true
+ProcSubset=pid
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+ProtectSystem=strict
+RemoveIPC=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~ @privileged @resources
+
+# These lines prevent opendkim from executing any binary other than itself,
+# which is a strong mitigation against an attacker spawning a shell.
+# IMPORTANT: if you use ReportAddress or ReportCommand in opendkim.conf,
+# opendkim will popen() a mail submission binary (sendmail by default).
+# In that case you must add the binary's path, e.g.:
+#   ExecPaths=@sbindir@/opendkim /usr/lib /usr/sbin/sendmail
+# or override via: systemctl edit opendkim.service
+NoExecPaths=/
+ExecPaths=@sbindir@/opendkim /usr/lib
 
 [Install]
 WantedBy=multi-user.target
