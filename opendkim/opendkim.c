@@ -5126,11 +5126,11 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 
 	if (dfc->mctx_srtail != NULL)
 		dfc->mctx_srtail->srq_next = new;
-	else
-		dfc->mctx_srtail = new;
 
 	if (dfc->mctx_srhead == NULL)
 		dfc->mctx_srhead = new;
+
+	dfc->mctx_srtail = new;
 
 	return 0;
 }
