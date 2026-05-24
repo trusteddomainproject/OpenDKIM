@@ -16728,7 +16728,7 @@ main(int argc, char **argv)
 			/* make all the process changes */
 			if (getuid() != pw->pw_uid)
 			{
-				if (initgroups(pw->pw_name, gid) != 0)
+				if (initgroups(pw->pw_name, pw->pw_gid) != 0)
 				{
 					if (curconf->conf_dolog)
 						syslog(LOG_ERR, "initgroups(): %s", strerror(errno));
@@ -16988,7 +16988,7 @@ main(int argc, char **argv)
 		/* make all the process changes */
 		if (getuid() != pw->pw_uid)
 		{
-			if (initgroups(pw->pw_name, gid) != 0)
+			if (initgroups(pw->pw_name, pw->pw_gid) != 0)
 			{
 				if (curconf->conf_dolog)
 					syslog(LOG_ERR, "initgroups(): %s", strerror(errno));
