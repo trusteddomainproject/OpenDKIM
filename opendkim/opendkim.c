@@ -5117,6 +5117,9 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		new->srq_keydata = (void *) malloc(keydatasz + 1);
 		if (new->srq_keydata == NULL)
 		{
+			TRYFREE(new->srq_signer);
+			TRYFREE(new->srq_domain);
+			TRYFREE(new->srq_selector);
 			free(new);
 			return -1;
 		}
@@ -13138,6 +13141,8 @@ mlfi_eoh(SMFICTX *ctx)
 					       dfc->mctx_jobid,
 					       strerror(errno));
 					TRYFREE(newhdr->hdr_hdr);
+					TRYFREE(newhdr->hdr_val);
+					free(newhdr);
 					dkimf_cleanup(ctx);
 					return SMFIS_TEMPFAIL;
 				}
