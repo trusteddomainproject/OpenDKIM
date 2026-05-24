@@ -5958,6 +5958,9 @@ dkimf_config_free(struct dkimf_config *conf)
 	if (conf->conf_dontsigntodb != NULL)
 		dkimf_db_close(conf->conf_dontsigntodb);
 
+	if (conf->conf_remardb != NULL)
+		dkimf_db_close(conf->conf_remardb);
+
 #ifdef _FFR_ATPS
 	if (conf->conf_atpsdb != NULL)
 		dkimf_db_close(conf->conf_atpsdb);
