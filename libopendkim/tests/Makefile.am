@@ -17,7 +17,7 @@ endif
 
 PROF_SRCS = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c
 
-check_PROGRAMS = t-test00 t-test01 t-test02 t-test03 t-test04 \
+check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test05 t-test06 t-test07 t-test08 t-test09 t-test10 t-test11 \
 	t-test12 t-test13 t-test14 t-test15 t-test16 t-test17 t-test18 \
 	t-test19 t-test20 t-test21 t-test22 t-test23 t-test24 t-test25 \
@@ -48,14 +48,8 @@ check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
 if ALL_SYMBOLS
 check_PROGRAMS += t-test49 t-test113 t-test118
 endif
-noinst_PROGRAMS = t-setup t-cleanup
+check_PROGRAMS += t-cleanup
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
-
-testkeys: t-setup$(EXEEXT)
-	./t-setup$(EXEEXT)
-
-check_DATA = testkeys
-CLEANFILES += testkeys
 
 EXTRA_DIST = $(check_SCRIPTS)
 
