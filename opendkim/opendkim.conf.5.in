@@ -346,6 +346,11 @@ Gives the location of a PEM-formatted private key to be used for signing
 all messages.  Ignored if a
 .I KeyTable
 is defined.
+If the key is an Ed25519 key, you must also set
+.I SignatureAlgorithm
+to
+.I ed25519-sha256;
+the algorithm is not auto-detected from the key type.
 
 .TP
 .I KeyTable (dataset)
@@ -1007,6 +1012,13 @@ The default is
 .I rsa-sha256
 if it is available, otherwise it will be
 .I rsa-sha1.
+This setting must match the type of key specified by
+.I KeyFile
+or the key's entry in
+.I KeyTable.
+In particular, Ed25519 keys require this to be set to
+.I ed25519-sha256
+explicitly, as the algorithm is not auto-detected from the key type.
 
 .TP
 .I SignatureTTL (integer)
