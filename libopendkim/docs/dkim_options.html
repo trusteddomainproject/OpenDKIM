@@ -76,7 +76,7 @@ of the library's operation.
 				that are to be conisdered
 				acceptable.  The default is 1024. </td></tr>
            <tr valign="top"><td><tt>DKIM_OPTS_MUSTBESIGNED</tt></td>
-                            <td><tt>data</tt> refers to an ordered,
+                            <td><tt>data</tt> refers to an unordered,
                                 NULL-terminated array of header names which,
                                 when verifying a message, must be covered
 				by a signature for the signature to be
@@ -107,7 +107,7 @@ of the library's operation.
                                 any <tt>q=</tt> value in signatures during
                                 verifications. </td></tr>
            <tr valign="top"><td><tt>DKIM_OPTS_REQUIREDHDRS</tt></td>
-                            <td><tt>data</tt> refers to an ordered,
+                            <td><tt>data</tt> refers to an unordered,
                                 NULL-terminated array of header field names
 				that should be considered mandatory when
 				determining the validity of an input message
