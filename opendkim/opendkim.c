@@ -15969,7 +15969,7 @@ main(int argc, char **argv)
 #ifdef USE_GNUTLS
 	if (dkim_ssl_version() != GNUTLS_VERSION_NUMBER * 256)
 #else /* USE_GNUTLS */
-	if (dkim_ssl_version() != OPENSSL_VERSION_NUMBER)
+	if ((dkim_ssl_version() >> 8) != (OPENSSL_VERSION_NUMBER >> 8))
 #endif /* USE_GNUTLS */
 	{
 		fprintf(stderr,
