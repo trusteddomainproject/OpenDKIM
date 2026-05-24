@@ -284,6 +284,10 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	if (ancount == 0)
 		return DKIM_STAT_NOKEY;
 
+	if (ancount > 1)
+		dkim_error(dkim, "multiple DNS replies for '%s', using first",
+		           qname);
+
 	/*
 	**  Extract the data from the first TXT answer.
 	*/
@@ -338,9 +342,8 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 
 		if (txtfound != NULL)
 		{
-			dkim_error(dkim, "multiple DNS replies for '%s'",
-			           qname);
-			return DKIM_STAT_MULTIDNSREPLY;
+			cp += n;
+			continue;
 		}
 
 		/* remember where this one started */
