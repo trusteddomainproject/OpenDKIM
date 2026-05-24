@@ -94,6 +94,7 @@ extern int dkimf_db_rewalk __P((DKIMF_DB, char *, DKIMF_DBDATA, unsigned int,
 extern void dkimf_db_set_ldap_param __P((int, char *));
 extern int dkimf_db_strerror __P((DKIMF_DB, char *, size_t));
 extern int dkimf_db_type __P((DKIMF_DB));
+extern _Bool dkimf_db_can_walk __P((DKIMF_DB));
 extern int dkimf_db_walk __P((DKIMF_DB, _Bool, void *, size_t *,
                               DKIMF_DBDATA, unsigned int));
 
