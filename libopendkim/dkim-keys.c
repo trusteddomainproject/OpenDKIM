@@ -232,6 +232,15 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	cp = (u_char *) &ansbuf + HFIXEDSZ;
 	eom = (u_char *) &ansbuf + anslen;
 
+	/* if NXDOMAIN, return DKIM_STAT_NOKEY immediately (before parsing
+	   the question section, so a minimal NXDOMAIN response with
+	   qdcount=0 is handled correctly) */
+	if (hdr.rcode == NXDOMAIN)
+	{
+		dkim_error(dkim, "'%s' record not found", qname);
+		return DKIM_STAT_NOKEY;
+	}
+
 	/* skip over the name at the front of the answer */
 	for (qdcount = ntohs((unsigned short) hdr.qdcount);
 	     qdcount > 0;
@@ -240,7 +249,7 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		/* copy it first */
 		(void) dn_expand((unsigned char *) &ansbuf, eom, cp,
 		                 (char *) qname, sizeof qname);
- 
+
 		if ((n = dn_skipname(cp, eom)) < 0)
 		{
 			dkim_error(dkim, "'%s' reply corrupt", qname);
@@ -263,13 +272,6 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		dkim_error(dkim, "'%s' unexpected reply class/type (%d/%d)",
 		           qname, class, type);
 		return DKIM_STAT_KEYFAIL;
-	}
-
-	/* if NXDOMAIN, return DKIM_STAT_NOKEY */
-	if (hdr.rcode == NXDOMAIN)
-	{
-		dkim_error(dkim, "'%s' record not found", qname);
-		return DKIM_STAT_NOKEY;
 	}
 
 	/* if truncated, we can't do it */

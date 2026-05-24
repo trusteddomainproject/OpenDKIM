@@ -183,7 +183,30 @@ dkim_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
 	ret = res_query((char *) query, C_IN, type, buf, buflen);
 #endif /* HAVE_RES_NINIT */
 	if (ret == -1)
-		return DKIM_DNS_ERROR;
+	{
+		/* NXDOMAIN/NODATA: synthesize a minimal NXDOMAIN response so
+		   dkim-keys.c can distinguish "key doesn't exist" (NOKEY)
+		   from a DNS error (KEYFAIL/tempfail) */
+		if (h_errno == HOST_NOT_FOUND || h_errno == NO_DATA)
+		{
+			if (buflen >= HFIXEDSZ)
+			{
+				memset(buf, '\0', HFIXEDSZ);
+				hdr = (HEADER *) buf;
+				hdr->qr = 1;
+				hdr->rcode = NXDOMAIN;
+				ret = HFIXEDSZ;
+			}
+			else
+			{
+				return DKIM_DNS_ERROR;
+			}
+		}
+		else
+		{
+			return DKIM_DNS_ERROR;
+		}
+	}
 
 	rq = (struct dkim_res_qh *) malloc(sizeof *rq);
 	if (rq == NULL)
@@ -194,16 +217,8 @@ dkim_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
 		rq->rq_dnssec = DKIM_DNSSEC_SECURE;
 	else
 		rq->rq_dnssec = DKIM_DNSSEC_INSECURE;
-	if (ret == -1)
-	{
-		rq->rq_error = errno;
-		rq->rq_buflen = 0;
-	}
-	else
-	{
-		rq->rq_error = 0;
-		rq->rq_buflen = (size_t) ret;
-	}
+	rq->rq_error = 0;
+	rq->rq_buflen = (size_t) ret;
 
 	*qh = (void *) rq;
 
