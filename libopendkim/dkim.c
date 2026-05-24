@@ -8697,7 +8697,6 @@ dkim_conditional(DKIM *dkim, u_char *domain)
 }
 
 /*
-/*
 **  DKIM_GET_SIGSUBSTRING -- retrieve a minimal signature substring for
 **                           disambiguation
 **
