@@ -641,16 +641,6 @@ Selector		my-selector-name
 
 # SigningTable		filename
 
-##  SingleAuthResult { yes | no}
-##  	default "no"
-##
-##  When DomainKeys verification is enabled, multiple Authentication-Results
-##  will be added, one for DK and one for DKIM.  With this enabled, only
-##  a DKIM result will be reported unless DKIM failed but DK passed, in which
-##  case only a DK result will be reported.
-
-# SingleAuthResult	no
-
 ##  SMTPURI uri
 ##
 ##  Specifies a URI (e.g., "smtp://localhost") to which mail should be sent
