@@ -19,6 +19,7 @@ truncated at the hash character to allow for comments in the file.
 
 Other content should be the name of a parameter, followed by white space,
 followed by the value of that parameter, each on a separate line.
+Parameter names are matched case-insensitively.
 
 For parameters that are Boolean in nature, only the first byte of
 the value is processed.  For positive values, the following are accepted:
