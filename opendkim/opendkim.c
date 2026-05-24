@@ -8901,6 +8901,7 @@ dkimf_config_reload(void)
 
 			if (!allowdeprecated)
 			{
+				config_free(cfg);
 				dkimf_config_free(new);
 				err = TRUE;
 			}
