@@ -6498,9 +6498,9 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 		else
 		{
 			/* field bodies are printable ASCII, SP, HT, CR, LF */
-			if (!(hdr[c] != 9 ||  /* HT */
-			      hdr[c] != 10 || /* LF */
-			      hdr[c] != 13 || /* CR */
+			if (!(hdr[c] == 9 ||  /* HT */
+			      hdr[c] == 10 || /* LF */
+			      hdr[c] == 13 || /* CR */
 			      (hdr[c] >= 32 && hdr[c] <= 126) /* SP, print */ ))
 				return DKIM_STAT_SYNTAX;
 		}
