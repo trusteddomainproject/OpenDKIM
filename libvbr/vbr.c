@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <resolv.h>
+#include <stdio.h>
 
 #ifdef __STDC__
 # include <stdarg.h>

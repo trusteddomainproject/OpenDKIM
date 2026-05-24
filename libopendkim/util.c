@@ -23,6 +23,7 @@
 #include <netdb.h>
 #include <resolv.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 /* libopendkim includes */
 #include "dkim-internal.h"
