@@ -151,11 +151,11 @@ if ((!$ed25519) and ($bits < 1024))
 
 if ($ed25519)
 {
-	$status = system("openssl genpkey -algorithm ed25519 -outform PEM -out " . $selector . ".private > /dev/null 2>&1");
+	$status = system("openssl genpkey -algorithm ed25519 -outform PEM -out " . $selector . ".private > /dev/null");
 }
 else
 {
-	$status = system("openssl genrsa -out " . $selector . ".private " . $bits . " > /dev/null 2>&1");
+	$status = system("openssl genrsa -out " . $selector . ".private " . $bits . " > /dev/null");
 }
 if ($status != 0)
 {
@@ -190,7 +190,7 @@ if ($ed25519)
 }
 else
 {
-	$status = system("openssl rsa -in " . $selector . ".private -pubout -out " . $selector . ".public -outform PEM > /dev/null 2>&1");
+	$status = system("openssl rsa -in " . $selector . ".private -pubout -out " . $selector . ".public -outform PEM > /dev/null");
 }
 if ($status != 0)
 {
