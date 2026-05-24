@@ -1,0 +1,6 @@
+#!/bin/sh
+#
+#
+# Speed verifying test using ed25519 algorithm
+
+./t-verifyperf -s ed25519-sha256
