@@ -27,6 +27,9 @@ release, and a summary of the changes in that release.
 	Fix issue #28: RequiredHeaders should report and log the specific
 		error and reject the message, as documented.  Patch from
 		Dilyan Palauzov.
+	Fix issue #222: When the "Minimum" option is set, don't treat
+		empty body as partial. Patch from Yasuhito FUTATSUKI
+		(PR #223).
 	Fix bug #234: Make "NoHeaderB" do something.  Reported by Joseph
 		Coffland.
 	Fix bug #235: Quote "header.b" values in case they contain a slash

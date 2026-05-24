@@ -14087,29 +14087,33 @@ mlfi_eom(SMFICTX *ctx)
 				                            sig, &bodylen,
 				                            &canonlen, NULL);
 
-				if (conf->conf_sigmintype == SIGMIN_PERCENT)
+				/* In the case body is empty, we don't treat it as partial */
+				if (bodylen)
 				{
-					size_t signpct;
+					if (conf->conf_sigmintype == SIGMIN_PERCENT)
+					{
+						size_t signpct;
 
-					signpct = (100 * canonlen) / bodylen;
+						signpct = (100 * canonlen) / bodylen;
 
-					if (signpct < conf->conf_sigmin)
-						dfc->mctx_status = DKIMF_STATUS_PARTIAL;
-				}
-				else if (conf->conf_sigmintype == SIGMIN_MAXADD)
-				{
-					if (canonlen + conf->conf_sigmin < bodylen)
-						dfc->mctx_status = DKIMF_STATUS_PARTIAL;
-				}
-				else
-				{
-					size_t required;
+						if (signpct < conf->conf_sigmin)
+							dfc->mctx_status = DKIMF_STATUS_PARTIAL;
+					}
+					else if (conf->conf_sigmintype == SIGMIN_MAXADD)
+					{
+						if (canonlen + conf->conf_sigmin < bodylen)
+							dfc->mctx_status = DKIMF_STATUS_PARTIAL;
+					}
+					else
+					{
+						size_t required;
 
-					required = MIN(conf->conf_sigmin,
-					               bodylen);
+						required = MIN(conf->conf_sigmin,
+						               bodylen);
 
-					if (canonlen < required)
-						dfc->mctx_status = DKIMF_STATUS_PARTIAL;
+						if (canonlen < required)
+							dfc->mctx_status = DKIMF_STATUS_PARTIAL;
+					}
 				}
 			}
 		}
