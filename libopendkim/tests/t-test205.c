@@ -237,9 +237,9 @@ main(int argc, char **argv)
 	status = dkim_body(dkim, BODY01, strlen(BODY01));
 	assert(status == DKIM_STAT_OK);
 
-	/* dkim_eom() returns DKIM_STAT_BADSIG when any signature fails */
+	/* dkim_eom() returns the status of the best signature; Ed25519 passes */
 	status = dkim_eom(dkim, NULL);
-	assert(status == DKIM_STAT_BADSIG);
+	assert(status == DKIM_STAT_OK);
 
 	nsigs = 0;
 	assert(dkim_getsiglist(dkim, &sigs, &nsigs) == DKIM_STAT_OK);
