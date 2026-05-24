@@ -7,6 +7,7 @@
 [\-A]
 [\-b modes]
 [\-c canon]
+[\-G|\-g]
 [\-d domain[,...]]
 [\-D]
 [\-e name]
@@ -281,6 +282,18 @@ Normally
 .I opendkim
 forks and exits immediately, leaving the service running in the background.
 This flag suppresses that behaviour so that it runs in the foreground.
+.TP
+.I \-g
+Skip walking the SigningTable for any missing keys in the KeyTable.
+This overrides the config option CheckSigningTable in
+.I opendkim.conf(5).
+.TP
+.I \-G
+Force walking the SigningTable for missing keys in the KeyTable on
+config load, overriding the CheckSigningTable config file option.
+In conjunction with
+.I \-n
+option described below, you can perform the check only.
 .TP
 .I \-F time
 Specifies a fixed time to use when generating signatures.  Ignored unless

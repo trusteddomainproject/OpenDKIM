@@ -180,6 +180,11 @@ requires superuser access. A warning will be generated if
 is not also set.
 
 .TP
+.I CheckSigningTable (Boolean)
+If set to yes, it walks the SigningTable when loading the config file
+to check for missing keys in KeyTable.  The default is yes.
+
+.TP
 .I ClockDrift (integer)
 Sets the tolerance in seconds to be applied when determining whether a
 signature was either expired or generated in the future.  The default

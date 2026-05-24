@@ -137,7 +137,7 @@
 #endif /* _FFR_REPUTATION */
 
 /* macros */
-#define CMDLINEOPTS	"Ab:c:d:De:fF:k:lL:no:p:P:Qrs:S:t:T:u:vVWx:X?"
+#define CMDLINEOPTS	"Ab:c:d:De:fF:Ggk:lL:no:p:P:Qrs:S:t:T:u:vVWx:X?"
 
 #ifndef MIN
 # define MIN(x,y)	((x) < (y) ? (x) : (y))
@@ -248,6 +248,7 @@ struct dkimf_config
 	_Bool		conf_noheaderb;		/* suppress "header.b" */
 	_Bool		conf_singleauthres;	/* single Auth-Results */
 	_Bool		conf_safekeys;		/* check key permissions */
+	_Bool		conf_checksigningtable; /* check keys on dkimf_config_load */
 #ifdef _FFR_RESIGN
 	_Bool		conf_resignall;		/* resign unverified mail */
 #endif /* _FFR_RESIGN */
@@ -734,6 +735,8 @@ _Bool reload;					/* reload requested */
 _Bool no_i_whine;				/* noted ${i} is undefined */
 _Bool testmode;					/* test mode */
 _Bool allowdeprecated;				/* allow deprecated config values */
+_Bool init_checksigningtable;			/* initializing value for CheckSigningTable */
+_Bool use_cf_checksigningtable;			/* use CheckSigningTable on config file? */
 #ifdef QUERY_CACHE
 _Bool querycache;				/* local query cache */
 #endif /* QUERY_CACHE */
@@ -5895,6 +5898,7 @@ dkimf_config_new(void)
 	new->conf_atpshash = dkimf_atpshash[0].str;
 #endif /* _FFR_ATPS */
 	new->conf_selectcanonhdr = SELECTCANONHDR;
+	new->conf_checksigningtable = init_checksigningtable;
 
 	memcpy(&new->conf_handling, &defaults, sizeof new->conf_handling);
 
@@ -6215,6 +6219,12 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  sizeof conf->conf_softstart);
 #endif /* (USE_LDAP || USE_ODBX) */
 
+		if (use_cf_checksigningtable)
+		{
+			(void) config_get(data, "CheckSigningTable",
+			                  &conf->conf_checksigningtable,
+			                  sizeof conf->conf_checksigningtable);
+		}
 		(void) config_get(data, "DNSConnect",
 		                  &conf->conf_dnsconnect,
 		                  sizeof conf->conf_dnsconnect);
@@ -8339,7 +8349,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		**  missing KeyTable entries.
 		*/
 
-		if (conf->conf_signtabledb != NULL)
+		if (conf->conf_signtabledb != NULL && conf->conf_checksigningtable != FALSE)
 		{
 			_Bool first = TRUE;
 			_Bool found;
@@ -15541,6 +15551,8 @@ usage(void)
 	                "\t-e name     \textract configuration value and exit\n"
 	                "\t-f          \tdon't fork-and-exit\n"
 	                "\t-F time     \tfixed timestamp to use when signing (test mode only)\n"
+	                "\t-g          \tdo not walk SigningTable when loading config\n"
+	                "\t-G          \tforce walk SigningTable when loading config\n"
 	                "\t-k keyfile  \tlocation of secret key file\n"
 	                "\t-l          \tlog activity to system log\n"
 	                "\t-L limit    \tsignature limit requirements\n"
@@ -15633,6 +15645,8 @@ main(int argc, char **argv)
 #endif /* POPAUTH */
 	no_i_whine = TRUE;
 	conffile = NULL;
+	init_checksigningtable = TRUE;
+	use_cf_checksigningtable = TRUE;
 
 	memset(myhostname, '\0', sizeof myhostname);
 	(void) gethostname(myhostname, sizeof myhostname);
@@ -15718,6 +15732,18 @@ main(int argc, char **argv)
 				        progname);
 				return EX_USAGE;
 			}
+			break;
+
+		  case 'g':
+			use_cf_checksigningtable = FALSE;
+			init_checksigningtable = FALSE;
+			curconf->conf_checksigningtable = FALSE;
+			break;
+
+		  case 'G':
+			use_cf_checksigningtable = FALSE;
+			init_checksigningtable = TRUE;
+			curconf->conf_checksigningtable = TRUE;
 			break;
 
 		  case 'k':
