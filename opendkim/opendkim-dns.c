@@ -602,6 +602,10 @@ dkimf_ub_init(void **ub)
 		return DKIM_DNS_ERROR;
 	}
 
+	/* use system nameservers from /etc/resolv.conf if available;
+	   ignore errors and fall back to full resolver mode */
+	(void) ub_ctx_resolvconf(out->ub_ub, "/etc/resolv.conf");
+
 	/* suppress debug output */
 	(void) ub_ctx_debugout(out->ub_ub, NULL);
 
