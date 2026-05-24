@@ -971,7 +971,8 @@ dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
 
 	assert(dkim != NULL);
 	assert(ptrs != NULL);
-	assert(nptrs != 0);
+	if (nptrs == 0)
+		return 0;
 
 	/* if there are no headers named, use them all */
 	if (hdrlist == NULL)
@@ -1145,7 +1146,7 @@ dkim_canon_runheaders(DKIM *dkim)
 	end = tmpbuf + sizeof tmpbuf - 1;
 
 	n = dkim->dkim_hdrcnt * sizeof(struct dkim_header *);
-	hdrset = DKIM_MALLOC(dkim, n);
+	hdrset = DKIM_MALLOC(dkim, n > 0 ? n : 1);
 	if (hdrset == NULL)
 		return DKIM_STAT_NORESOURCE;
 
