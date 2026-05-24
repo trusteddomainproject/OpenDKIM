@@ -15416,6 +15416,9 @@ sfsistat
 mlfi_close(SMFICTX *ctx)
 {
 	connctx cc;
+#ifdef QUERY_CACHE
+	DKIM_LIB *cachestats_lib = NULL;
+#endif /* QUERY_CACHE */
 
 	dkimf_cleanup(ctx);
 
@@ -15430,6 +15433,10 @@ mlfi_close(SMFICTX *ctx)
 		    cc->cctx_config != curconf)
 			dkimf_config_free(cc->cctx_config);
 
+#ifdef QUERY_CACHE
+		cachestats_lib = cc->cctx_config->conf_libopendkim;
+#endif /* QUERY_CACHE */
+
 		pthread_mutex_unlock(&conf_lock);
 
 		free(cc);
@@ -15437,7 +15444,7 @@ mlfi_close(SMFICTX *ctx)
 	}
 
 #ifdef QUERY_CACHE
-	if (querycache)
+	if (querycache && cachestats_lib != NULL)
 	{
 		time_t now;
 
@@ -15450,7 +15457,7 @@ mlfi_close(SMFICTX *ctx)
 			u_int c_pct;
 			u_int c_keys;
 
-			dkim_getcachestats(cc->cctx_config->conf_libopendkim,
+			dkim_getcachestats(cachestats_lib,
 			                   &c_queries, &c_hits, &c_expired,
 			                   &c_keys, FALSE);
 
