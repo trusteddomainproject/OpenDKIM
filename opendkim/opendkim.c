@@ -580,6 +580,7 @@ struct lookup
 #define	DKIMF_STATUS_PARTIAL	6
 #define	DKIMF_STATUS_VERIFYERR	7
 #define	DKIMF_STATUS_UNKNOWN	8
+#define	DKIMF_STATUS_KEYFAIL	9
 
 #define SIGMIN_BYTES		0
 #define SIGMIN_PERCENT		1
@@ -676,13 +677,14 @@ struct lookup dkimf_statusstrings[] =
 {
 	{ "no error",				DKIMF_STATUS_GOOD },
 	{ "bad signature",			DKIMF_STATUS_BAD },
-	{ "key retrieval failed",		DKIMF_STATUS_NOKEY },
+	{ "key not found",			DKIMF_STATUS_NOKEY },
 	{ "key revoked",			DKIMF_STATUS_REVOKED },
 	{ "no signature",			DKIMF_STATUS_NOSIGNATURE },
 	{ "bad message/signature format",	DKIMF_STATUS_BADFORMAT },
 	{ "invalid partial signature",		DKIMF_STATUS_PARTIAL },
 	{ "verification error",			DKIMF_STATUS_VERIFYERR },
 	{ "unknown error",			DKIMF_STATUS_UNKNOWN },
+	{ "key retrieval failed",		DKIMF_STATUS_KEYFAIL },
 	{ NULL,					-1 }
 };
 
@@ -13527,6 +13529,10 @@ mlfi_eom(SMFICTX *ctx)
 			ar = "permerror";
 			break;
 
+		  case DKIMF_STATUS_KEYFAIL:
+			ar = "temperror";
+			break;
+
 		  case DKIMF_STATUS_NOSIGNATURE:
 			ar = "none";
 			break;
@@ -14557,6 +14563,7 @@ mlfi_eom(SMFICTX *ctx)
 			    dfc->mctx_status == DKIMF_STATUS_REVOKED ||
 			    dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
 			    dfc->mctx_status == DKIMF_STATUS_NOKEY ||
+			    dfc->mctx_status == DKIMF_STATUS_KEYFAIL ||
 			    dfc->mctx_status == DKIMF_STATUS_VERIFYERR)
 			{
 				dkimf_ar_all_sigs(header, sizeof header,
@@ -15249,6 +15256,11 @@ mlfi_eom(SMFICTX *ctx)
 	  case DKIMF_STATUS_NOKEY:
 		ret = dkimf_libstatus(ctx, lastdkim, "mlfi_eom()",
 		                      DKIM_STAT_NOKEY);
+		break;
+
+	  case DKIMF_STATUS_KEYFAIL:
+		ret = dkimf_libstatus(ctx, lastdkim, "mlfi_eom()",
+		                      DKIM_STAT_KEYFAIL);
 		break;
 
 	  case DKIMF_STATUS_REVOKED:
