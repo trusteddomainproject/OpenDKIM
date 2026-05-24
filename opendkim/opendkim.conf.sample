@@ -129,6 +129,15 @@
 
 # Canonicalization	simple/simple
 
+##  CheckSigningTable  { yes | no }
+##  	default "yes"
+##
+##  If set, the SigningTable will be checked for missing keys in
+##  KeyTable when loading the config. This can take a longer time with 
+##  larger databases. Requires opendbx.
+
+# CheckSigningTable		yes
+
 ##  ClockDrift n
 ##  	default 300
 ##
