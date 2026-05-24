@@ -757,6 +757,19 @@ then
 	               AC_MSG_RESULT(ok),
 	               AC_MSG_FAILURE([GnuTLS must be at least version 2.11.7]))
 
+	ed25519check='
+		#include <gnutls/gnutls.h>
+		int main()
+		{
+			int x = GNUTLS_PK_EDDSA_ED25519;
+		}'
+	AC_MSG_CHECKING([whether your GnuTLS supports ED25519])
+	AC_LINK_IFELSE([AC_LANG_SOURCE([$ed25519check])],
+	               AC_MSG_RESULT(yes)
+	               AC_DEFINE([HAVE_ED25519], 1,
+	                        [Define to 1 if your crypto library has ED25519 support]),
+	               AC_MSG_RESULT(no))
+
 	sha256check='
 		#include <gnutls/gnutls.h>
 		int main()

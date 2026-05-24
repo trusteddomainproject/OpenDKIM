@@ -5691,7 +5691,15 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 
 			return DKIM_STAT_OK;
 		}
-
+#if HAVE_ED25519
+		if (sig->sig_signalg == DKIM_SIGN_ED25519SHA256)
+		{
+			status = gnutls_pubkey_import_ecc_raw(crypto->crypto_pubkey,
+			                                      GNUTLS_ECC_CURVE_ED25519,
+			                                      &key, NULL);
+		}
+		else
+#endif
 		status = gnutls_pubkey_import(crypto->crypto_pubkey, &key,
 		                              GNUTLS_X509_FMT_DER);
 		if (status != GNUTLS_E_SUCCESS)
@@ -5712,19 +5720,27 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		                                  &crypto->crypto_digest,
 		                                  &crypto->crypto_sig);
 # else /* GNUTLS_VERSION_MAJOR == 2 */
-		hash = dkim_libfeature(dkim->dkim_libhandle,
-		                       DKIM_FEATURE_SHA256);
-		hash = (hash && sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
-		       ? GNUTLS_DIG_SHA256
-		       : GNUTLS_DIG_SHA1;
+#if HAVE_ED25519
+		if (sig->sig_signalg == DKIM_SIGN_ED25519SHA256)
+			vstat = gnutls_pubkey_verify_data2(crypto->crypto_pubkey,
+							   GNUTLS_SIGN_EDDSA_ED25519, 0,
+							   &crypto->crypto_digest,
+							   &crypto->crypto_sig);
+		else
+#endif
+		{
+			hash = dkim_libfeature(dkim->dkim_libhandle,
+					       DKIM_FEATURE_SHA256);
+			hash = (hash && sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
+			       ? GNUTLS_DIG_SHA256 : GNUTLS_DIG_SHA1;
 
-		signalg = gnutls_pk_to_sign(GNUTLS_PK_RSA, hash);
-		assert(signalg != GNUTLS_SIGN_UNKNOWN);
-
-		vstat = gnutls_pubkey_verify_hash2(crypto->crypto_pubkey,
+			signalg = gnutls_pk_to_sign(GNUTLS_PK_RSA, hash);
+			assert(signalg != GNUTLS_SIGN_UNKNOWN);
+			vstat = gnutls_pubkey_verify_hash2(crypto->crypto_pubkey,
 		                                   signalg, 0,
 		                                   &crypto->crypto_digest,
 		                                   &crypto->crypto_sig);
+		}
 # endif /* GNUTLS_VERSION_MAJOR == 2 */
 		if (vstat < 0)
 			dkim_sig_load_ssl_errors(dkim, sig, vstat);
