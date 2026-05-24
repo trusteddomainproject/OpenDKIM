@@ -801,6 +801,24 @@ which replaces consecutive zeros with "::" (e.g.  "0:0:0:0:0:0:0:1" will
 never match).  The IP address portion of an entry may optionally contain
 square brackets; both forms (with and without) will be checked.
 
+.B Note:
+IPv6 addresses cannot be specified inline in
+.I opendkim.conf
+because the colons in an IPv6 address (e.g. "fd00:368::/40") are
+indistinguishable from the "type:" prefix used to identify dataset types
+(e.g. "file:", "ldap:").  IPv6 entries must be placed in a separate file
+and referenced with the
+.I file:
+prefix, for example:
+
+.nf
+    PeerList file:/etc/opendkim/peerlist.txt
+.fi
+
+where
+.I peerlist.txt
+contains one entry per line, including any IPv6 addresses or CIDR ranges.
+
 .TP
 .I PidFile (string)
 Specifies the path to a file that should be created at process start
