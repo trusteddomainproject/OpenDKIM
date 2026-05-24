@@ -9340,6 +9340,7 @@ dkimf_cleanup(SMFICTX *ctx)
 				    cur->lg_type == LUA_TSTRING)
 					free(cur->lg_value);
 
+				free(cur->lg_name);
 				free(cur);
 
 				cur = next;
