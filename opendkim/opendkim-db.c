@@ -6580,6 +6580,20 @@ dkimf_db_mkarray_base(DKIMF_DB db, char ***a, const char **base)
 		out[nout] = NULL;
 	}
 
+	if (db->db_array != NULL)
+	{
+		int d;
+
+		if ((db->db_iflags & DKIMF_DB_IFLAG_FREEARRAY) != 0)
+		{
+			for (d = 0; db->db_array[d] != NULL; d++)
+				free(db->db_array[d]);
+		}
+		free(db->db_array);
+	}
+	db->db_array = out;
+	db->db_iflags |= DKIMF_DB_IFLAG_FREEARRAY;
+
 	*a = out;
 	return nout;
 }
