@@ -4510,9 +4510,12 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino,
 				{
 					if (err != NULL)
 					{
+						gr = getgrgid(s.st_gid);
 						snprintf(err, errlen,
-						         "%s is in group %u which has multiple users (e.g. \"%s\")",
-						         path, s.st_gid,
+						         "%s is in group \"%s\" (gid %u) which has multiple users (e.g., \"%s\")",
+						         path,
+						         gr != NULL ? gr->gr_name : "unknown",
+						         (unsigned int) s.st_gid,
 						         pw->pw_name);
 					}
 					endpwent();
@@ -4538,8 +4541,9 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino,
 					if (err != NULL)
 					{
 						snprintf(err, errlen,
-						         "%s is in group %u which has multiple users (e.g., \"%s\")",
-						         path, s.st_gid,
+						         "%s is in group \"%s\" (gid %u) which has multiple users (e.g., \"%s\")",
+						         path, gr->gr_name,
+						         (unsigned int) s.st_gid,
 						         gr->gr_mem[c]);
 					}
 					pthread_mutex_unlock(&pwdb_lock);
@@ -4595,9 +4599,12 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino,
 				{
 					if (err != NULL)
 					{
+						gr = getgrgid(s.st_gid);
 						snprintf(err, errlen,
-						         "%s is in group %u which has multiple users (e.g., \"%s\")",
-						         path, s.st_gid,
+						         "%s is in group \"%s\" (gid %u) which has multiple users (e.g., \"%s\")",
+						         path,
+						         gr != NULL ? gr->gr_name : "unknown",
+						         (unsigned int) s.st_gid,
 						         pw->pw_name);
 					}
 
@@ -4624,8 +4631,9 @@ dkimf_checkfsnode(const char *path, uid_t myuid, char *myname, ino_t *ino,
 					if (err != NULL)
 					{
 						snprintf(err, errlen,
-						         "%s is in group %u which has multiple users (e.g., \"%s\")",
-						         path, s.st_gid,
+						         "%s is in group \"%s\" (gid %u) which has multiple users (e.g., \"%s\")",
+						         path, gr->gr_name,
+						         (unsigned int) s.st_gid,
 						         gr->gr_mem[c]);
 					}
 
@@ -5010,8 +5018,11 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 			if (dolog)
 			{
 				syslog(LOG_ERR,
-				       "KeyTable entry for '%s' corrupt",
-				       keyname);
+				       "KeyTable entry for '%s' corrupt: %s field is empty or missing",
+				       keyname,
+				       (dbd[0].dbdata_buflen == 0 || dbd[0].dbdata_buflen == (size_t) -1) ? "domain" :
+				       (dbd[1].dbdata_buflen == 0 || dbd[1].dbdata_buflen == (size_t) -1) ? "selector" :
+				       "key");
 			}
 
 			return 2;
@@ -8414,7 +8425,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				    dbd[2].dbdata_buflen == 0)
 				{
 					snprintf(err, errlen,
-					         "could not find valid key record \"%s\" in KeyTable",
+					         "no KeyTable entry found for signing key \"%s\" (from SigningTable)",
 					         keyname);
 					return -1;
 				}
