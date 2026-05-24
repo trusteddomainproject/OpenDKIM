@@ -58,8 +58,8 @@ opendkim_LDADD += $(OPENLDAP_LIBS)
 endif
 if USE_UNBOUND
 opendkim_CPPFLAGS += $(LIBUNBOUND_INCDIRS)
-opendkim_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBLDNS_LIBDIRS) $(LIBEVENT_LIBDIRS)
-opendkim_LDADD += $(LIBUNBOUND_LIBS) $(LIBLDNS_LIBS) $(LIBEVENT_LIBS)
+opendkim_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBEVENT_LIBDIRS)
+opendkim_LDADD += $(LIBUNBOUND_LIBS) $(LIBEVENT_LIBS)
 endif
 if VBR
 opendkim_CPPFLAGS += -I$(srcdir)/../libvbr
@@ -135,8 +135,8 @@ opendkim_testkey_CPPFLAGS += $(SASL_CPPFLAGS)
 endif
 if USE_UNBOUND
 opendkim_testkey_CPPFLAGS += $(LIBUNBOUND_INCDIRS)
-opendkim_testkey_LDFLAGS += $(LIBUNBOUND_LIBDIRS) $(LIBLDNS_LIBDIRS)
-opendkim_testkey_LDADD += $(LIBUNBOUND_LIBS) $(LIBLDNS_LIBS)
+opendkim_testkey_LDFLAGS += $(LIBUNBOUND_LIBDIRS)
+opendkim_testkey_LDADD += $(LIBUNBOUND_LIBS)
 endif
 if RBL
 opendkim_testkey_CPPFLAGS += -I$(srcdir)/../librbl

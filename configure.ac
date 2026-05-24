@@ -1294,66 +1294,6 @@ AC_SUBST(LIBUNBOUND_INCDIRS)
 AC_SUBST(LIBUNBOUND_LIBDIRS)
 AC_SUBST(LIBUNBOUND_LIBS)
 
-# unbound also needs ldns
-AC_ARG_WITH([ldns],
-            AS_HELP_STRING([--with-ldns],
-                           [location of ldns includes and library]),
-            [ldnspath="$withval"], [ldnspath="no"])
-
-LIBLDNS_LIBS=""
-LIBLDNS_LIBDIRS=""
-
-if test x"$ldnspath" = x"yes"
-then
-	ldns_found="no"
-
-	ldnsdirs="/usr /usr/local"
-	for d in $ldnsdirs
-	do
-		unset ac_cv_search_ldns_rr_new
-		saved_LDFLAGS="$LDFLAGS"
-		saved_LIBS="$LIBS"
-		LDFLAGS="$outer_LDFLAGS -L$d/lib $LDFLAGS"
-		LIBS="$outer_LIBS"
-		AC_SEARCH_LIBS([ldns_rr_new], [ldns], ldns_found="yes")
-		LDFLAGS="$saved_LDFLAGS"
-		LIBS="$saved_LIBS"
-
-		if test x"$ldns_found" = x"yes"
-		then
-			LIBLDNS_LIBDIRS="-L$d/lib"
-			LIBLDNS_LIBS="-lldns"
-			break
-		fi
-	done
-	if test x"$LIBLDNS_LIBS" = x""
-	then
-		AC_MSG_ERROR([libldns not found])
-	fi
-elif test x"$ldnspath" != x"no"
-then
-	ldns_found="no"
-	saved_LDFLAGS="$LDFLAGS"
-	saved_LIBS="$LIBS"
-	LDFLAGS="$outer_LDFLAGS -L$d/lib $LDFLAGS"
-	LIBS="$outer_LIBS"
-	AC_SEARCH_LIBS([ldns_rr_new], [ldns], ldns_found="yes")
-	LDFLAGS="$saved_LDFLAGS"
-	LIBS="$saved_LIBS"
-
-	if test x"$ldns_found" = x"yes"
-	then
-		LIBLDNS_LIBDIRS="-L$d/lib"
-		LIBLDNS_LIBS="-lldns"
-		break
-	else
-		AC_MSG_ERROR(libldns not found in $d)
-	fi
-fi
-
-AC_SUBST(LIBLDNS_LIBDIRS)
-AC_SUBST(LIBLDNS_LIBS)
-
 # unbound may also need libevent
 AC_ARG_WITH([libevent],
             AS_HELP_STRING([--with-libevent],
