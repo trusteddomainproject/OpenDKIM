@@ -314,7 +314,8 @@ modified to have the specified new value.
 Checks to see if an existing header field was deleted.  If no parameters
 are given, the function returns true if any header field was deleted.  If
 one parameter was given, the function returns true only if the named
-header field was deleted.
+header field was deleted.  If two parameters are given, the function returns
+true only if the named header field was deleted at the specified index.
 .TP
 .I MT_HDRINSERT
 Checks to see if a header field was inserted into the message.  If no
