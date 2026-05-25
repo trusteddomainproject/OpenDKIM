@@ -24,7 +24,7 @@ end
 
 --  for each signature, ignore it if it's not from the sender's domain
 for n = 1, nsigs do
-	sig = odkim.get_signhandle(ctx, n)
+	sig = odkim.get_sighandle(ctx, n - 1)
 	sdomain = odkim.sig_getdomain(sig)
 	if fdomain ~= sdomain then
 		odkim.sig_ignore(sig)
