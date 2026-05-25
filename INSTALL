@@ -85,14 +85,11 @@ doesn't find it, you will need to specify the location with
 
 --with-libjansson
 		Location of the jansson JSON library.  Required for reputation
-		query support, unless "--with-libxml2" is also specified.
+		query support.
 
 --with-libmemcached
 		Location of the memcache library.  Enables the "memcache"
 		data set type.
-
---with-libxml2	Location of the XML parser library.  Optional for use
-		with reputation query support.
 
 --with-lua	Lua interpreter library.  Enables fine-grained policy control
 		via Lua script hooks, and also enables building of the
