@@ -268,7 +268,7 @@ main(int argc, char **argv)
 	char keyname[BUFRSZ + 1];
 	char domain[BUFRSZ + 1];
 	char selector[BUFRSZ + 1];
-	char tmpbuf[BUFRSZ + 1];
+	char tmpbuf[LARGEBUFRSZ + 1];
 	char hostname[DKIM_MAXHOSTNAMELEN + 1];
 	char keydata[LARGEBUFRSZ];
 	char derdata[LARGEBUFRSZ];

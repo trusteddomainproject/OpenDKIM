@@ -138,13 +138,14 @@ dkim_tmpfile(DKIM *dkim, int *fp, _Bool keep)
 
 	if (dkim->dkim_id != NULL)
 	{
-		snprintf(path, MAXPATHLEN, "%s/dkim.%s.XXXXXX",
-		         dkim->dkim_libhandle->dkiml_tmpdir, dkim->dkim_id);
+		snprintf(path, sizeof path, "%.*s/dkim.%.*s.XXXXXX",
+		         (int)(MAXPATHLEN / 2), dkim->dkim_libhandle->dkiml_tmpdir,
+		         (int)(MAXPATHLEN / 2 - 14), dkim->dkim_id);
 	}
 	else
 	{
-		snprintf(path, MAXPATHLEN, "%s/dkim.XXXXXX",
-		         dkim->dkim_libhandle->dkiml_tmpdir);
+		snprintf(path, sizeof path, "%.*s/dkim.XXXXXX",
+		         (int)(MAXPATHLEN - 13), dkim->dkim_libhandle->dkiml_tmpdir);
 	}
 
 	for (p = path + strlen((char *) dkim->dkim_libhandle->dkiml_tmpdir) + 1;
