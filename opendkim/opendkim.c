@@ -11886,8 +11886,8 @@ mlfi_eoh(SMFICTX *ctx)
 	    (status != 0 || user == NULL || domain == NULL ||
 	     user[0] == '\0' || domain[0] == '\0'))
 	{
-		strlcpy(addr, conf->conf_defsender, sizeof addr);
-		status = dkim_mail_parse(addr, &user, &domain);
+		dkimf_dstring_copy(addr, conf->conf_defsender);
+		status = dkim_mail_parse(dkimf_dstring_get(addr), &user, &domain);
 	}
 #endif /* _FFR_DEFAULT_SENDER */
 
