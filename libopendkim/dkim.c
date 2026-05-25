@@ -6154,13 +6154,13 @@ dkim_ohdrs(DKIM *dkim, DKIM_SIGINFO *sig, u_char **ptrs, int *pcnt)
 		if (dkim->dkim_zdecode == NULL)
 		{
 			dkim_error(dkim, "unable to allocate %d byte(s)",
-			           strlen(z));
+			           MAXHEADERS);
 			return DKIM_STAT_NORESOURCE;
 		}
 	}
 
 	/* copy it */
-	strlcpy((char *) dkim->dkim_zdecode, z, strlen(z));
+	strlcpy((char *) dkim->dkim_zdecode, z, MAXHEADERS);
 
 	/* decode */
 	for (ch = (u_char *) strtok_r(z, "|", &last);
