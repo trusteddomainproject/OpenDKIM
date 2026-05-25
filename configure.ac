@@ -803,6 +803,7 @@ then
 fi
 
 AM_CONDITIONAL([USE_GNUTLS], [test x"$gnutls_found" = x"yes"])
+AM_CONDITIONAL([HAVE_SHA1_SIGNING], [test x"$ac_cv_have_sha1_signing" = x"yes"])
 
 #
 # OpenSSL
@@ -942,6 +943,50 @@ then
 	              [
 #include <sys/types.h>
 #include <openssl/sha.h>])
+
+	ac_cv_have_sha1_signing=yes
+	AC_CACHE_CHECK([whether RSA-SHA1 signing is available],
+	               [ac_cv_have_sha1_signing],
+	  [AC_RUN_IFELSE(
+	    [AC_LANG_PROGRAM([[
+#include <openssl/evp.h>
+#include <openssl/rsa.h>
+]],[[
+	EVP_PKEY_CTX *kctx;
+	EVP_PKEY *pkey = NULL;
+	EVP_MD_CTX *mctx;
+	unsigned char sig[256];
+	size_t siglen = sizeof(sig);
+	const unsigned char data[] = "test";
+	int ret = 1;
+
+	kctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL);
+	if (!kctx) return 1;
+	if (EVP_PKEY_keygen_init(kctx) <= 0) return 1;
+	if (EVP_PKEY_CTX_set_rsa_keygen_bits(kctx, 1024) <= 0) return 1;
+	if (EVP_PKEY_keygen(kctx, &pkey) <= 0) return 1;
+	EVP_PKEY_CTX_free(kctx);
+
+	mctx = EVP_MD_CTX_new();
+	if (!mctx) return 1;
+	if (EVP_DigestSignInit(mctx, NULL, EVP_sha1(), NULL, pkey) <= 0) goto done;
+	if (EVP_DigestSignUpdate(mctx, data, sizeof(data)) <= 0) goto done;
+	if (EVP_DigestSignFinal(mctx, sig, &siglen) <= 0) goto done;
+	ret = 0;
+done:
+	EVP_MD_CTX_free(mctx);
+	EVP_PKEY_free(pkey);
+	return ret;
+]])],
+	    [ac_cv_have_sha1_signing=yes],
+	    [ac_cv_have_sha1_signing=no],
+	    [ac_cv_have_sha1_signing=yes])])
+	if test x"$ac_cv_have_sha1_signing" = x"yes"; then
+		AC_DEFINE([HAVE_SHA1_SIGNING], 1,
+		          [Define to 1 if RSA-SHA1 signing is available on this platform])
+	else
+		AC_MSG_WARN([RSA-SHA1 signing is not available; RSA-SHA1 signing will be disabled and related tests skipped])
+	fi
 
 	CFLAGS="$saved_CFLAGS"
 	CPPFLAGS="$saved_CPPFLAGS"

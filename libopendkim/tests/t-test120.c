@@ -7,6 +7,7 @@
 */
 
 #include "build-config.h"
+#include "t-sha1.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -52,6 +53,7 @@ main(int argc, char **argv)
 	unsigned char inhdr[MAXHEADER + 1];
 
 	printf("*** zero margin testing\n");
+	SKIP_IF_NO_SHA1();
 
 #ifdef USE_GNUTLS
 	(void) gnutls_global_init();

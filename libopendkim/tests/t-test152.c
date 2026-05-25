@@ -7,6 +7,7 @@
 */
 
 #include "build-config.h"
+#include "t-sha1.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -68,6 +69,7 @@ main(int argc, char **argv)
 	unsigned char hdr[MAXHEADER + 1];
 
 	printf("*** relaxed/relaxed rsa-sha1 signing with message-specifc header sign list\n");
+	SKIP_IF_NO_SHA1();
 
 #ifdef USE_GNUTLS
 	(void) gnutls_global_init();

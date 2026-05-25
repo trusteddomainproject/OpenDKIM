@@ -7,6 +7,7 @@
 */
 
 #include "build-config.h"
+#include "t-sha1.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -58,6 +59,7 @@ main(int argc, char **argv)
 	assert(lib != NULL);
 
 	printf("*** relaxed/relaxed rsa-sha1 signing with extension tags\n");
+	SKIP_IF_NO_SHA1();
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */
