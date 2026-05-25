@@ -168,6 +168,7 @@ typedef int DKIM_SIGERROR;
 #define	DKIM_SIGERROR_KEYTOOSMALL	46	/* too few key bits */
 #define DKIM_SIGERROR_CONDITIONAL	47	/* conditional sig error */
 #define DKIM_SIGERROR_CONDLOOP		48	/* conditional sig loop */
+#define DKIM_SIGERROR_UNSUPPORTED_A	49	/* a= algorithm not supported in this build */
 
 extern DKIM_NAMETABLE *dkim_table_sigerrors;
 

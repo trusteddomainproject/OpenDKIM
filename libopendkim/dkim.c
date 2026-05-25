@@ -2121,8 +2121,9 @@ dkim_siglist_setup(DKIM *dkim)
 		}
 		else
 		{
-			signalg = dkim_name_to_code(dkim_table_algorithms,
-			                            (char *) param);
+			dkim->dkim_siglist[c]->sig_signalg = signalg =
+				dkim_name_to_code(dkim_table_algorithms,
+				                  (char *) param);
 
 			if (signalg == -1)
 			{
@@ -2143,7 +2144,7 @@ dkim_siglist_setup(DKIM *dkim)
 				}
 				else
 				{
-					dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_A;
+					dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_UNSUPPORTED_A;
 					continue;
 				}
 				break;
@@ -2155,7 +2156,7 @@ dkim_siglist_setup(DKIM *dkim)
 				}
 				else
 				{
-					dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_A;
+					dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_UNSUPPORTED_A;
 					continue;
 				}
 				break;
@@ -2165,7 +2166,6 @@ dkim_siglist_setup(DKIM *dkim)
 				/* NOTREACHED */
 			}
 
-			dkim->dkim_siglist[c]->sig_signalg = signalg;
 			dkim->dkim_siglist[c]->sig_hashtype = hashtype;
 		}
 
