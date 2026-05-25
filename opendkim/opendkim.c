@@ -10740,8 +10740,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, struct dkimf_dstring *tmpstr,
 				                        &unsup_alg) == DKIM_STAT_OK)
 				{
 					dkimf_log(conf, LOG_WARNING,
-					          "%s: signature ignored: algorithm '%s' not supported in this build",
-					          JOBID(dfc->mctx_jobid),
+					          "signature ignored: algorithm '%s' not supported in this build",
 					          dkim_code_to_name(dkim_table_algorithms,
 					                            unsup_alg));
 				}
