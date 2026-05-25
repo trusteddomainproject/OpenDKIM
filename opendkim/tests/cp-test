@@ -2,7 +2,7 @@
 
 # small tool to copy a test case
 
-# XXX TODO arg 3 should be a description approprately inserted to the files
+# XXX TODO arg 3 should be a description appropriately inserted to the files
 
 if [ $# -lt 2 ]
 then

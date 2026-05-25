@@ -36,7 +36,7 @@ if mt.getreply(conn) ~= SMFIR_CONTINUE then
 	error("mt.conninfo() unexpected reply")
 end
 
--- send HELO unles it was negotiated out
+-- send HELO unless it was negotiated out
 if not mt.test_option(conn, SMFIP_NOHELO) then
 	if mt.helo(conn, "localhost") ~= nil then
 		error("mt.helo() failed")

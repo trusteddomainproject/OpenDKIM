@@ -1,7 +1,7 @@
 #!/bin/sh
 $1
 x=$?
-# keep consistant with Makefile.am
+# keep consistent with Makefile.am
 testname=${1/.\/t-}
 testname=${testname//-/_}
 lcov --capture --directory ../.. --output-file $1.info --test-name ${testname} --quiet
