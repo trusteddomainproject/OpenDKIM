@@ -5563,12 +5563,15 @@ dkimf_reportaddr(struct dkimf_config *conf)
 	if (pw == NULL)
 	{
 		snprintf(reportaddr, sizeof reportaddr,
-		         "%u@%s", uid, myhostname);
+		         "%u@%.*s", uid,
+		         (int)(sizeof reportaddr - 12), myhostname);
 	}
 	else
 	{
 		snprintf(reportaddr, sizeof reportaddr,
-		         "%s@%s", pw->pw_name, myhostname);
+		         "%.*s@%.*s",
+		         (int)((sizeof reportaddr - 2) / 2), pw->pw_name,
+		         (int)((sizeof reportaddr - 2) / 2), myhostname);
 	}
 
 	snprintf(reportcmd, sizeof reportcmd, "%s -t -f%s",
@@ -8184,7 +8187,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			pw = getpwnam(tmp);
 			if (pw == NULL)
 			{
-				snprintf(err, errlen, "%s: no such user", tmp);
+				snprintf(err, errlen, "%.*s: no such user",
+				         errlen > 15 ? (int)(errlen - 15) : 0, tmp);
 				close(fd);
 				return -1;
 			}
@@ -12888,8 +12892,8 @@ mlfi_eoh(SMFICTX *ctx)
 				
 		if (!idset)
 		{
-			snprintf((char *) identity, sizeof identity, "@%s",
-			         dfc->mctx_domain);
+			snprintf((char *) identity, sizeof identity, "@%.*s",
+			         (int)(sizeof identity - 2), dfc->mctx_domain);
 		}
 
 		if (dfc->mctx_srhead != NULL)
@@ -15528,7 +15532,7 @@ main(int argc, char **argv)
 	DKIM_STAT dkim_stat;
 	DKIM_ITER_CTX *iter_ctx;
 	int entry_code;
-	char *entry_name;
+	const char *entry_name;
 
 	/* initialize */
 	reload = FALSE;
