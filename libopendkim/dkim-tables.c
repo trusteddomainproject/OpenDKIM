@@ -194,6 +194,7 @@ static struct dkim_nametable prv_sigerrors[] =	/* signature parsing errors */
 	{ "conditional signature not satisfied", DKIM_SIGERROR_CONDITIONAL },
 	{ "too many signature indirections",	DKIM_SIGERROR_CONDLOOP },
 #endif /* _FFR_CONDITIONAL */
+	{ "algorithm not supported in this build", DKIM_SIGERROR_UNSUPPORTED_A },
 	{ NULL,					-1 },
 };
 DKIM_NAMETABLE *dkim_table_sigerrors = prv_sigerrors;

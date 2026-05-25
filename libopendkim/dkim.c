@@ -2144,7 +2144,7 @@ dkim_siglist_setup(DKIM *dkim)
 				}
 				else
 				{
-					dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_A;
+					dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_UNSUPPORTED_A;
 					continue;
 				}
 				break;
@@ -2156,7 +2156,7 @@ dkim_siglist_setup(DKIM *dkim)
 				}
 				else
 				{
-					dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_INVALID_A;
+					dkim->dkim_siglist[c]->sig_error = DKIM_SIGERROR_UNSUPPORTED_A;
 					continue;
 				}
 				break;

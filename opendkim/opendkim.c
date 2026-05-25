@@ -5503,6 +5503,7 @@ dkimf_arfdkim(msgctx dfc)
 	  case DKIM_SIGERROR_INVALID_BC:
 	  case DKIM_SIGERROR_MISSING_A:
 	  case DKIM_SIGERROR_INVALID_A:
+	  case DKIM_SIGERROR_UNSUPPORTED_A:
 	  case DKIM_SIGERROR_MISSING_H:
 	  case DKIM_SIGERROR_INVALID_L:
 	  case DKIM_SIGERROR_INVALID_Q:
@@ -10731,6 +10732,20 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, struct dkimf_dstring *tmpstr,
 			memset(comment, '\0', sizeof comment);
 
 			sigerror = dkim_sig_geterror(sigs[c]);
+
+			if (sigerror == DKIM_SIGERROR_UNSUPPORTED_A)
+			{
+				dkim_alg_t unsup_alg;
+				if (dkim_sig_getsignalg(sigs[c],
+				                        &unsup_alg) == DKIM_STAT_OK)
+				{
+					dkimf_log(conf, LOG_WARNING,
+					          "%s: signature ignored: algorithm '%s' not supported in this build",
+					          JOBID(dfc->mctx_jobid),
+					          dkim_code_to_name(dkim_table_algorithms,
+					                            unsup_alg));
+				}
+			}
 
 			if (dkim_sig_getkeysize(sigs[c],
 			                        &keybits) != DKIM_STAT_OK)
