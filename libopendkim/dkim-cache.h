@@ -19,13 +19,13 @@
 #include <db.h>
 
 /* prototypes */
-extern void dkim_cache_close __P((DB *));
-extern int dkim_cache_expire __P((DB *, int, int *));
-extern DB *dkim_cache_init __P((int *, char *));
-extern int dkim_cache_insert __P((DB *, char *, char *, int, int *));
-extern int dkim_cache_query __P((DB *, char *, int, char *, size_t *, int *));
-extern void dkim_cache_stats __P((DB *, u_int *, u_int *, u_int *, u_int *,
-                                  _Bool));
+extern void dkim_cache_close (DB *);
+extern int dkim_cache_expire (DB *, int, int *);
+extern DB *dkim_cache_init (int *, char *);
+extern int dkim_cache_insert (DB *, char *, char *, int, int *);
+extern int dkim_cache_query (DB *, char *, int, char *, size_t *, int *);
+extern void dkim_cache_stats (DB *, u_int *, u_int *, u_int *, u_int *,
+                                  _Bool);
 
 #endif /* QUERY_CACHE */
 

@@ -35,29 +35,29 @@ struct dkimf_lua_gc
 #define	DKIMF_LUA_GC_DB		1
 
 /* prototypes */
-extern int dkimf_lua_db_hook __P((const char *, size_t, const char *,
+extern int dkimf_lua_db_hook (const char *, size_t, const char *,
                                   struct dkimf_lua_script_result *,
-                                  void **, size_t *));
-extern int dkimf_lua_final_hook __P((void *, const char *, size_t,
+                                  void **, size_t *);
+extern int dkimf_lua_final_hook (void *, const char *, size_t,
                                      const char *,
                                      struct dkimf_lua_script_result *,
-                                     void **, size_t *));
-extern void dkimf_lua_gc_add __P((struct dkimf_lua_gc *g, void *, int));
-extern void dkimf_lua_gc_cleanup __P((struct dkimf_lua_gc *));
-extern void dkimf_lua_gc_remove __P((struct dkimf_lua_gc *, void *));
-extern int dkimf_lua_screen_hook __P((void *, const char *, size_t,
+                                     void **, size_t *);
+extern void dkimf_lua_gc_add (struct dkimf_lua_gc *g, void *, int);
+extern void dkimf_lua_gc_cleanup (struct dkimf_lua_gc *);
+extern void dkimf_lua_gc_remove (struct dkimf_lua_gc *, void *);
+extern int dkimf_lua_screen_hook (void *, const char *, size_t,
                                       const char *,
                                       struct dkimf_lua_script_result *,
-                                      void **, size_t *));
-extern int dkimf_lua_setup_hook __P((void *, const char *, size_t,
+                                      void **, size_t *);
+extern int dkimf_lua_setup_hook (void *, const char *, size_t,
                                      const char *,
                                      struct dkimf_lua_script_result *,
-                                     void **, size_t *));
+                                     void **, size_t *);
 #ifdef _FFR_STATSEXT
-extern int dkimf_lua_stats_hook __P((void *, const char *, size_t,
+extern int dkimf_lua_stats_hook (void *, const char *, size_t,
                                      const char *,
                                      struct dkimf_lua_script_result *,
-                                     void **, size_t *));
+                                     void **, size_t *);
 #endif /* _FFR_STATSEXT */
 
 #endif /* _OPENDKIM_LUA_H_ */

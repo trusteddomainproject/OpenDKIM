@@ -145,77 +145,77 @@ extern char *progname;
 
 /* prototypes, exported for test.c */
 #ifdef DKIMF_MILTER_PROTOTYPES
-extern sfsistat mlfi_connect __P((SMFICTX *, char *, _SOCK_ADDR *));
-extern sfsistat mlfi_envfrom __P((SMFICTX *, char **));
-extern sfsistat mlfi_envrcpt __P((SMFICTX *, char **));
-extern sfsistat mlfi_header __P((SMFICTX *, char *, char *));
-extern sfsistat mlfi_eoh __P((SMFICTX *));
-extern sfsistat mlfi_body __P((SMFICTX *, u_char *, size_t));
-extern sfsistat mlfi_eom __P((SMFICTX *));
-extern sfsistat mlfi_abort __P((SMFICTX *));
-extern sfsistat mlfi_close __P((SMFICTX *));
+extern sfsistat mlfi_connect (SMFICTX *, char *, _SOCK_ADDR *);
+extern sfsistat mlfi_envfrom (SMFICTX *, char **);
+extern sfsistat mlfi_envrcpt (SMFICTX *, char **);
+extern sfsistat mlfi_header (SMFICTX *, char *, char *);
+extern sfsistat mlfi_eoh (SMFICTX *);
+extern sfsistat mlfi_body (SMFICTX *, u_char *, size_t);
+extern sfsistat mlfi_eom (SMFICTX *);
+extern sfsistat mlfi_abort (SMFICTX *);
+extern sfsistat mlfi_close (SMFICTX *);
 #endif /* DKIMF_MILTER_PROTOTYPES */
 
-extern DKIM *dkimf_getdkim __P((void *));
-extern struct signreq *dkimf_getsrlist __P((void *));
+extern DKIM *dkimf_getdkim (void *);
+extern struct signreq *dkimf_getsrlist (void *);
 
 #ifdef USE_LDAP
-extern char *dkimf_get_ldap_param __P((int));
+extern char *dkimf_get_ldap_param (int);
 #endif /* USE_LDAP */
 
 #ifdef USE_LUA
 # ifdef DKIMF_LUA_PROTOTYPES
-extern void dkimf_import_globals __P((void *, lua_State *));
-extern int dkimf_xs_addheader __P((lua_State *));
-extern int dkimf_xs_addrcpt __P((lua_State *));
-extern int dkimf_xs_bodylength __P((lua_State *));
-extern int dkimf_xs_canonlength __P((lua_State *));
-extern int dkimf_xs_clienthost __P((lua_State *));
-extern int dkimf_xs_clientip __P((lua_State *));
-extern int dkimf_xs_dbclose __P((lua_State *));
-extern int dkimf_xs_dbhandle __P((lua_State *));
-extern int dkimf_xs_dbopen __P((lua_State *));
-extern int dkimf_xs_dbquery __P((lua_State *));
-extern int dkimf_xs_delheader __P((lua_State *));
-extern int dkimf_xs_delrcpt __P((lua_State *));
-extern int dkimf_xs_export __P((lua_State *));
-extern int dkimf_xs_fromdomain __P((lua_State *));
-extern int dkimf_xs_getenvfrom __P((lua_State *));
-extern int dkimf_xs_getheader __P((lua_State *));
-extern int dkimf_xs_getreputation __P((lua_State *));
-extern int dkimf_xs_getsigarray __P((lua_State *));
-extern int dkimf_xs_getsigcount __P((lua_State *));
-extern int dkimf_xs_getsigdomain __P((lua_State *));
-extern int dkimf_xs_getsighandle __P((lua_State *));
-extern int dkimf_xs_getsigidentity __P((lua_State *));
-extern int dkimf_xs_getsymval __P((lua_State *));
-extern int dkimf_xs_internalip __P((lua_State *));
-extern int dkimf_xs_log __P((lua_State *));
-extern int dkimf_xs_parsefield __P((lua_State *));
-extern int dkimf_xs_popauth __P((lua_State *));
-extern int dkimf_xs_quarantine __P((lua_State *));
-extern int dkimf_xs_rblcheck __P((lua_State *));
-extern int dkimf_xs_rcpt __P((lua_State *));
-extern int dkimf_xs_rcptarray __P((lua_State *));
-extern int dkimf_xs_rcptcount __P((lua_State *));
-extern int dkimf_xs_replaceheader __P((lua_State *));
-extern int dkimf_xs_resign __P((lua_State *));
-extern int dkimf_xs_requestsig __P((lua_State *));
-extern int dkimf_xs_setpartial __P((lua_State *));
-extern int dkimf_xs_setreply __P((lua_State *));
-extern int dkimf_xs_setresult __P((lua_State *));
-extern int dkimf_xs_sigbhresult __P((lua_State *));
-extern int dkimf_xs_sigignore __P((lua_State *));
-extern int dkimf_xs_signfor __P((lua_State *));
-extern int dkimf_xs_sigresult __P((lua_State *));
+extern void dkimf_import_globals (void *, lua_State *);
+extern int dkimf_xs_addheader (lua_State *);
+extern int dkimf_xs_addrcpt (lua_State *);
+extern int dkimf_xs_bodylength (lua_State *);
+extern int dkimf_xs_canonlength (lua_State *);
+extern int dkimf_xs_clienthost (lua_State *);
+extern int dkimf_xs_clientip (lua_State *);
+extern int dkimf_xs_dbclose (lua_State *);
+extern int dkimf_xs_dbhandle (lua_State *);
+extern int dkimf_xs_dbopen (lua_State *);
+extern int dkimf_xs_dbquery (lua_State *);
+extern int dkimf_xs_delheader (lua_State *);
+extern int dkimf_xs_delrcpt (lua_State *);
+extern int dkimf_xs_export (lua_State *);
+extern int dkimf_xs_fromdomain (lua_State *);
+extern int dkimf_xs_getenvfrom (lua_State *);
+extern int dkimf_xs_getheader (lua_State *);
+extern int dkimf_xs_getreputation (lua_State *);
+extern int dkimf_xs_getsigarray (lua_State *);
+extern int dkimf_xs_getsigcount (lua_State *);
+extern int dkimf_xs_getsigdomain (lua_State *);
+extern int dkimf_xs_getsighandle (lua_State *);
+extern int dkimf_xs_getsigidentity (lua_State *);
+extern int dkimf_xs_getsymval (lua_State *);
+extern int dkimf_xs_internalip (lua_State *);
+extern int dkimf_xs_log (lua_State *);
+extern int dkimf_xs_parsefield (lua_State *);
+extern int dkimf_xs_popauth (lua_State *);
+extern int dkimf_xs_quarantine (lua_State *);
+extern int dkimf_xs_rblcheck (lua_State *);
+extern int dkimf_xs_rcpt (lua_State *);
+extern int dkimf_xs_rcptarray (lua_State *);
+extern int dkimf_xs_rcptcount (lua_State *);
+extern int dkimf_xs_replaceheader (lua_State *);
+extern int dkimf_xs_resign (lua_State *);
+extern int dkimf_xs_requestsig (lua_State *);
+extern int dkimf_xs_setpartial (lua_State *);
+extern int dkimf_xs_setreply (lua_State *);
+extern int dkimf_xs_setresult (lua_State *);
+extern int dkimf_xs_sigbhresult (lua_State *);
+extern int dkimf_xs_sigignore (lua_State *);
+extern int dkimf_xs_signfor (lua_State *);
+extern int dkimf_xs_sigresult (lua_State *);
 #  ifdef _FFR_REPUTATION
-extern int dkimf_xs_spam __P((lua_State *));
+extern int dkimf_xs_spam (lua_State *);
 #  endif /* _FFR_REPUTATION */
 #  ifdef _FFR_STATSEXT
-extern int dkimf_xs_statsext __P((lua_State *));
+extern int dkimf_xs_statsext (lua_State *);
 #  endif /* _FFR_STATSEXT */
-extern int dkimf_xs_verify __P((lua_State *));
-extern int dkimf_xs_xtag __P((lua_State *));
+extern int dkimf_xs_verify (lua_State *);
+extern int dkimf_xs_xtag (lua_State *);
 # endif /* DKIMF_LUA_PROTOTYPES */
 #endif /* USE_LUA */
 

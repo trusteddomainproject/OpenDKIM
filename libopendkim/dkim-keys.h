@@ -12,9 +12,9 @@
 #include "dkim.h"
 
 /* prototypes */
-extern DKIM_STAT dkim_get_key_dns __P((DKIM *, DKIM_SIGINFO *, u_char *,
-                                       size_t));
-extern DKIM_STAT dkim_get_key_file __P((DKIM *, DKIM_SIGINFO *, u_char *,
-                                        size_t));
+extern DKIM_STAT dkim_get_key_dns (DKIM *, DKIM_SIGINFO *, u_char *,
+                                       size_t);
+extern DKIM_STAT dkim_get_key_file (DKIM *, DKIM_SIGINFO *, u_char *,
+                                        size_t);
 
 #endif /* ! _DKIM_KEYS_H_ */

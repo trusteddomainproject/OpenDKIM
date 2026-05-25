@@ -38,49 +38,49 @@ struct replace
 #endif /* _FFR_REPLACE_RULES */
 
 /* PROTOTYPES */
-extern void dkimf_base64_encode_file __P((int, FILE *, int, int, int));
-extern _Bool dkimf_checkhost __P((DKIMF_DB, char *));
-extern _Bool dkimf_checkip __P((DKIMF_DB, struct sockaddr *));
+extern void dkimf_base64_encode_file (int, FILE *, int, int, int);
+extern _Bool dkimf_checkhost (DKIMF_DB, char *);
+extern _Bool dkimf_checkip (DKIMF_DB, struct sockaddr *);
 #ifdef POPAUTH
-extern _Bool dkimf_checkpopauth __P((DKIMF_DB, struct sockaddr *));
+extern _Bool dkimf_checkpopauth (DKIMF_DB, struct sockaddr *);
 #endif /* POPAUTH */
-extern _Bool dkimf_hostlist __P((char *, char **));
-extern size_t dkimf_inet_ntoa __P((struct in_addr, char *, size_t));
+extern _Bool dkimf_hostlist (char *, char **);
+extern size_t dkimf_inet_ntoa (struct in_addr, char *, size_t);
 #ifdef POPAUTH
-extern int dkimf_initpopauth __P((void));
+extern int dkimf_initpopauth (void);
 #endif /* POPAUTH */
 #ifdef _FFR_REPLACE_RULES
-extern void dkimf_free_replist __P((struct replace *));
-extern _Bool dkimf_load_replist __P((FILE *, struct replace **));
+extern void dkimf_free_replist (struct replace *);
+extern _Bool dkimf_load_replist (FILE *, struct replace **);
 #endif /* _FFR_REPLACE_RULES */
-extern void dkimf_ipstring __P((char *, size_t, struct sockaddr_storage *));
-extern _Bool dkimf_isblank __P((char *));
-extern void dkimf_lowercase __P((u_char *));
-extern void dkimf_mkpath __P((char *, size_t, char *, char *));
-extern _Bool dkimf_mkregexp __P((char *, char *, size_t));
-extern void dkimf_optlist __P((FILE *));
-extern void dkimf_setmaxfd __P((void));
-extern int dkimf_socket_cleanup __P((char *));
-extern void dkimf_stripbrackets __P((char *));
-extern void dkimf_stripcr __P((char *));
-extern _Bool dkimf_subdomain __P((char *d1, char *d2));
-extern void dkimf_trimspaces __P((u_char *));
+extern void dkimf_ipstring (char *, size_t, struct sockaddr_storage *);
+extern _Bool dkimf_isblank (char *);
+extern void dkimf_lowercase (u_char *);
+extern void dkimf_mkpath (char *, size_t, char *, char *);
+extern _Bool dkimf_mkregexp (char *, char *, size_t);
+extern void dkimf_optlist (FILE *);
+extern void dkimf_setmaxfd (void);
+extern int dkimf_socket_cleanup (char *);
+extern void dkimf_stripbrackets (char *);
+extern void dkimf_stripcr (char *);
+extern _Bool dkimf_subdomain (char *d1, char *d2);
+extern void dkimf_trimspaces (u_char *);
 
-extern struct dkimf_dstring *dkimf_dstring_new __P((int, int));
-extern void dkimf_dstring_free __P((struct dkimf_dstring *));
-extern _Bool dkimf_dstring_copy __P((struct dkimf_dstring *, u_char *));
-extern _Bool dkimf_dstring_cat __P((struct dkimf_dstring *, u_char *));
-extern _Bool dkimf_dstring_cat1 __P((struct dkimf_dstring *, int));
-extern _Bool dkimf_dstring_catn __P((struct dkimf_dstring *, u_char *, size_t));
-extern void dkimf_dstring_chop __P((struct dkimf_dstring *, int));
-extern u_char *dkimf_dstring_get __P((struct dkimf_dstring *));
-extern int dkimf_dstring_len __P((struct dkimf_dstring *));
-extern void dkimf_dstring_blank __P((struct dkimf_dstring *));
-extern size_t dkimf_dstring_printf __P((struct dkimf_dstring *, char *, ...));
+extern struct dkimf_dstring *dkimf_dstring_new (int, int);
+extern void dkimf_dstring_free (struct dkimf_dstring *);
+extern _Bool dkimf_dstring_copy (struct dkimf_dstring *, u_char *);
+extern _Bool dkimf_dstring_cat (struct dkimf_dstring *, u_char *);
+extern _Bool dkimf_dstring_cat1 (struct dkimf_dstring *, int);
+extern _Bool dkimf_dstring_catn (struct dkimf_dstring *, u_char *, size_t);
+extern void dkimf_dstring_chop (struct dkimf_dstring *, int);
+extern u_char *dkimf_dstring_get (struct dkimf_dstring *);
+extern int dkimf_dstring_len (struct dkimf_dstring *);
+extern void dkimf_dstring_blank (struct dkimf_dstring *);
+extern size_t dkimf_dstring_printf (struct dkimf_dstring *, char *, ...);
 
 #ifdef USE_UNBOUND
-extern _Bool dkimf_timespec_past __P((struct timespec *tv));
-extern int dkimf_wait_fd __P((int fd, struct timespec *until));
+extern _Bool dkimf_timespec_past (struct timespec *tv);
+extern int dkimf_wait_fd (int fd, struct timespec *until);
 #endif /* USE_UNBOUND */
 
 #endif /* _UTIL_H_ */
