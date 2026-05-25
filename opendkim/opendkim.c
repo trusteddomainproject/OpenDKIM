@@ -11869,9 +11869,12 @@ mlfi_eoh(SMFICTX *ctx)
 			  "%s: can't determine message sender; accepting",
 			  dfc->mctx_jobid);
 
-		dfc->mctx_addheader = TRUE;
-		dfc->mctx_headeronly = TRUE;
-		dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
+		if ((conf->conf_mode & DKIMF_MODE_VERIFIER) != 0)
+		{
+			dfc->mctx_addheader = TRUE;
+			dfc->mctx_headeronly = TRUE;
+			dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
+		}
 		dkimf_dstring_free(addr);
 		return SMFIS_CONTINUE;
 	}
@@ -11921,9 +11924,12 @@ mlfi_eoh(SMFICTX *ctx)
 #endif /* _FFR_DEFAULT_SENDER */
 		}
 
-		dfc->mctx_addheader = TRUE;
-		dfc->mctx_headeronly = TRUE;
-		dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
+		if ((conf->conf_mode & DKIMF_MODE_VERIFIER) != 0)
+		{
+			dfc->mctx_addheader = TRUE;
+			dfc->mctx_headeronly = TRUE;
+			dfc->mctx_status = DKIMF_STATUS_BADFORMAT;
+		}
 		dkimf_dstring_free(addr);
 		return SMFIS_CONTINUE;
 	}
