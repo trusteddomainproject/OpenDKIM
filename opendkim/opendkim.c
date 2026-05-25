@@ -15829,6 +15829,7 @@ main(int argc, char **argv)
 				/* we can do nothing eveif dkim_stat is not
 				   DKIM_STAT_OK ... */
 			}
+			printf("\tConfigured with: %s\n", CONFIGURE_ARGS);
 			dkimf_optlist(stdout);
 			return EX_OK;
 

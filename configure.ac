@@ -2600,4 +2600,7 @@ AC_CONFIG_FILES([	Makefile
 			reputation/opendkim-rephistory.8
 			reputation/repute.pc
 ])
+AC_DEFINE_UNQUOTED([CONFIGURE_ARGS], ["$ac_configure_args"],
+                   [Arguments passed to configure])
+
 AC_OUTPUT
