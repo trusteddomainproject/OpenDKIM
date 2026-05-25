@@ -6,46 +6,52 @@ Release procedures for OpenDKIM
 1) Edit configure.ac so that the new release number is formed with the
    VERSION_RELEASE* macros.
 
-2) In the root build directory, do these things:
+2) Update RELEASE_NOTES with a summary of changes for this release.  Include
+   any bug fixes, feature additions, and acknowledgements for contributors.
+
+3) In the root build directory, build and test the release tarball:
 
 	% make distclean
-	% autoreconf
+	% autoreconf -fvi
 	% ./configure
 	% make
 	% make distcheck
 
-   This will produce an opendkim-(version).tar.gz tarball after running
-   all unit tests.
+   This will produce an opendkim-<version>.tar.gz tarball after running
+   all unit tests.  The tarball name comes from configure.ac and will be
+   in the form opendkim-X.Y.Z.tar.gz -- do not rename it.
 
-3) Commit changes made to RELEASE_NOTES to the SourceForge git repository.
-   Be sure to include any open feature requests, patches or bug fixes
-   from the SourceForge trackers.
-
-4) Prepare a release announcement by using the file "announcement" from git
-   as your template.  Change the From: to the name and address of the person
-   making the announcement.  Make sure that address has permissions to post
-   to opendkim-users and opendkim-announce.  There should be a paragraph
-   or two at the top highlighting the interesting changes and indicating
-   what the main focus of this release is (new features, bug fixes, etc.),
-   and then the full RELEASE_NOTES block for the new release.  Commit this
-   to git.
-
-5) Merge the "develop" branch to the "master" branch, as follows:
+4) Commit all changes (configure.ac version bump, RELEASE_NOTES, etc.) to
+   the develop branch, then merge to master:
 
 	% git checkout master
 	% git merge develop
-	[massage in and commit any conflicts]
-	% git push
+	% git push origin master
 
-6) Deploy all needed files to SourceForge by doing 'make push'.  This will
-   also place the release tag.
+5) Tag the release on master using the form opendkim-X.Y.Z (for a stable
+   release) or opendkim-X.Y.Z-betaN (for a pre-release).  Using a consistent
+   tag format matters: GitHub will auto-generate source archives named after
+   the tag, which produced the oddly-named "rel-opendkim-2-11-0-Beta0.tar.gz"
+   in the past.  Always upload the distcheck-produced tarball as the release
+   asset instead of relying on those auto-generated archives.
 
-7) Via the SourceForge UI, make the latest tarball the default download for
-   all operating systems.
+	% git tag -s opendkim-X.Y.Z
+	% git push origin opendkim-X.Y.Z
 
-8) Send the release announcement:
+6) Create the GitHub release and upload the tarball as an explicit asset:
 
-	% sendmail -t < announcement
+	% gh release create opendkim-X.Y.Z opendkim-X.Y.Z.tar.gz \
+	    --title "OpenDKIM X.Y.Z" \
+	    --notes-file RELEASE_NOTES \
+	    [--prerelease]   # add for beta/RC releases
 
-9) Mark any bug fixes or feature requests, etc. as closed if this release
-   contained them.
+   This ensures the downloadable asset is the distcheck-verified tarball
+   with a normal dot-separated version number, not an auto-generated archive.
+
+7) Prepare and send a release announcement using the "announcement" file in
+   the repository as a template.  The announcement should include a paragraph
+   or two highlighting the notable changes, followed by the full RELEASE_NOTES
+   block for this release.  Post to opendkim-users and opendkim-announce.
+
+8) Close any issues on GitHub that were fixed in this release, referencing
+   the release tag in closing comments where helpful.
