@@ -68,6 +68,10 @@
 # define SHA_DIGEST_LENGTH 20
 #endif /* ! SHA_DIGEST_LENGTH */
 
+#ifdef HAVE_LIBSYSTEMD
+# include <systemd/sd-daemon.h>
+#endif /* HAVE_LIBSYSTEMD */
+
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif /* HAVE_PATHS_H */
@@ -17099,6 +17103,17 @@ main(int argc, char **argv)
 
 		return EX_OSERR;
 	}
+
+#ifdef HAVE_LIBSYSTEMD
+	/*
+	**  smfi_opensocket() already bound and listened on the milter socket
+	**  and every fallible startup step has succeeded, so announce
+	**  readiness here, the last point before smfi_main() blocks.  Under
+	**  Type=notify this unblocks units ordered after us; a harmless no-op
+	**  when the daemon was not started by systemd.
+	*/
+	(void) sd_notify(0, "READY=1");
+#endif /* HAVE_LIBSYSTEMD */
 
 	/* call the milter mainline */
 	errno = 0;
