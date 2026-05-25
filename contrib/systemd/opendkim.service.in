@@ -33,6 +33,11 @@ Restart=on-abnormal
 User=opendkim
 Group=opendkim
 
+# opendkim feeds this watchdog from a dedicated thread at half the interval
+# below (i.e. every 15s).  systemd restarts the service if no keep-alive
+# arrives within WatchdogSec, catching a wholly hung process.
+WatchdogSec=30
+
 # As the file system is mounted read-only with ProtectSystem=strict, adding
 # /var/spool/postfix/opendkim by default makes it possible to use opendkim
 # with postfix without further configuration.
