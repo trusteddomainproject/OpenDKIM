@@ -963,6 +963,7 @@ then
 		fi
 	done
 fi
+milter_explicit="no"
 case "$milterpath" in
 	no)
 		if test x"$enable_filter" = x"yes"
@@ -980,6 +981,7 @@ case "$milterpath" in
 			AC_MSG_ERROR([milter includes not found at $milterpath])
 		fi
 		AC_MSG_RESULT([$milterpath])
+		milter_explicit="yes"
 		;;
 	*)
 		AC_MSG_ERROR([milter not found])
@@ -1001,52 +1003,62 @@ then
 	saved_LIBS="$LIBS"
 
 	CC="$PTHREAD_CC"
-	LIBS="$outer_LIBS $PTHREAD_LIBS $saved_LIBS"
 	CPPFLAGS="$LIBMILTER_INCDIRS $saved_CPPFLAGS"
 	CFLAGS="$PTHREAD_CFLAGS $saved_CFLAGS"
-	LDFLAGS="$outer_LDFLAGS $PTHREAD_CFLAGS $saved_LDFLAGS"
 
-	breakloop="no"
-	for d in lib lib64 lib/libmilter
-	do
-		unset ac_cv_search_smfi_register
-		LDFLAGS="$outer_LDFLAGS $PTHREAD_CFLAGS -L$milterpath/$d $saved_LDFLAGS"
-		AC_SEARCH_LIBS([smfi_register], [milter],
-		               [
-		               	LIBMILTER_LIBDIRS="-L$milterpath/$d"
-		               	LIBMILTER_LIBS="-lmilter"
-		               	breakloop="yes"
-		               ])
-
-		AC_CHECK_FUNC([smfi_insheader],
-			      AC_DEFINE([HAVE_SMFI_INSHEADER], 1,
-					[Define if libmilter has smfi_insheader()]))
-
-		AC_CHECK_FUNC([smfi_opensocket],
-			      AC_DEFINE([HAVE_SMFI_OPENSOCKET], 1,
-					[Define if libmilter has smfi_opensocket()]))
-
-		AC_CHECK_FUNC([smfi_progress],
-			      AC_DEFINE([HAVE_SMFI_PROGRESS], 1,
-					[Define if libmilter has smfi_progress()]))
-
-		AC_CHECK_FUNC([smfi_setsymlist],
-			      AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
-					[Define if libmilter has smfi_setsymlist()]))
-
-		AC_CHECK_FUNC([smfi_version],
-			      AC_DEFINE([HAVE_SMFI_VERSION], 1,
-					[Define if libmilter has smfi_version()]))
-
-		if test x"$breakloop" = x"yes"
-		then
-			break
-		fi
-	done
-	if test x"$LIBMILTER_LIBDIRS" = x""
+	if test x"$milter_explicit" = x"yes"
 	then
-		AC_MSG_ERROR([libmilter not found])
+		LIBMILTER_LIBDIRS="-L$milterpath/lib"
+		LIBMILTER_LIBS="-lmilter"
+		LDFLAGS="$outer_LDFLAGS $PTHREAD_CFLAGS $LIBMILTER_LIBDIRS $saved_LDFLAGS"
+		LIBS="$outer_LIBS $PTHREAD_LIBS $LIBMILTER_LIBS $saved_LIBS"
+	else
+		LIBS="$outer_LIBS $PTHREAD_LIBS $saved_LIBS"
+		LDFLAGS="$outer_LDFLAGS $PTHREAD_CFLAGS $saved_LDFLAGS"
+
+		breakloop="no"
+		for d in lib lib64 lib/libmilter
+		do
+			unset ac_cv_search_smfi_register
+			LDFLAGS="$outer_LDFLAGS $PTHREAD_CFLAGS -L$milterpath/$d $saved_LDFLAGS"
+			AC_SEARCH_LIBS([smfi_register], [milter],
+			               [
+			               	LIBMILTER_LIBDIRS="-L$milterpath/$d"
+			               	LIBMILTER_LIBS="-lmilter"
+			               	breakloop="yes"
+			               ])
+			if test x"$breakloop" = x"yes"
+			then
+				break
+			fi
+		done
+		if test x"$LIBMILTER_LIBDIRS" = x""
+		then
+			AC_MSG_ERROR([libmilter not found])
+		fi
+		LDFLAGS="$outer_LDFLAGS $PTHREAD_CFLAGS $LIBMILTER_LIBDIRS $saved_LDFLAGS"
+		LIBS="$outer_LIBS $PTHREAD_LIBS $LIBMILTER_LIBS $saved_LIBS"
 	fi
+
+	AC_CHECK_FUNC([smfi_insheader],
+		      AC_DEFINE([HAVE_SMFI_INSHEADER], 1,
+				[Define if libmilter has smfi_insheader()]))
+
+	AC_CHECK_FUNC([smfi_opensocket],
+		      AC_DEFINE([HAVE_SMFI_OPENSOCKET], 1,
+				[Define if libmilter has smfi_opensocket()]))
+
+	AC_CHECK_FUNC([smfi_progress],
+		      AC_DEFINE([HAVE_SMFI_PROGRESS], 1,
+				[Define if libmilter has smfi_progress()]))
+
+	AC_CHECK_FUNC([smfi_setsymlist],
+		      AC_DEFINE([HAVE_SMFI_SETSYMLIST], 1,
+				[Define if libmilter has smfi_setsymlist()]))
+
+	AC_CHECK_FUNC([smfi_version],
+		      AC_DEFINE([HAVE_SMFI_VERSION], 1,
+				[Define if libmilter has smfi_version()]))
 
 	CC="$saved_CC"
 	CPPFLAGS="$saved_CPPFLAGS"
