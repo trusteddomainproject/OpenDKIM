@@ -3884,7 +3884,7 @@ main(int argc, char **argv)
 	nowait = FALSE;
 
 #if LUA_VERSION_NUM >= 505
-	l = lua_newstate(mt_lua_alloc, NULL, 0);
+	l = lua_newstate(mt_lua_alloc, NULL, luaL_makeseed(NULL));
 #else
 	l = lua_newstate(mt_lua_alloc, NULL);
 #endif
