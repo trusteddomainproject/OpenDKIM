@@ -1938,7 +1938,8 @@ dkim_canon_closebody(DKIM *dkim)
 		/* handle unprocessed content */
 		if (dkim_dstring_len(cur->canon_buf) > 0)
 		{
-			if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_FIXCRLF) != 0)
+			if ((dkim->dkim_libhandle->dkiml_flags & DKIM_LIBFLAGS_FIXCRLF) != 0 ||
+			    cur->canon_remain != (ssize_t) -1)
 			{
 				dkim_canon_buffer(cur,
 				                  dkim_dstring_get(cur->canon_buf),
