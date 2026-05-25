@@ -1984,6 +1984,34 @@ then
 fi
 
 #
+# libsystemd, optional: lets the opendkim daemon signal readiness
+# (sd_notify READY=1, for Type=notify units) and feed the systemd
+# watchdog.  Auto-detected; only the daemon links against it.
+#
+AC_ARG_WITH([systemd],
+            AS_HELP_STRING([--with-systemd],
+                           [enable systemd sd_notify readiness/watchdog support @<:@default=auto@:>@]),
+            [systemd="$withval"], [systemd="auto"])
+
+systemd_found="no"
+if test x"$systemd" != x"no"
+then
+	PKG_CHECK_MODULES([LIBSYSTEMD], [libsystemd],
+	                  [systemd_found="yes"], [systemd_found="no"])
+
+	if test x"$systemd_found" = x"yes"
+	then
+		AC_DEFINE([HAVE_LIBSYSTEMD], 1,
+		          [Define if libsystemd (sd_notify) is available])
+	elif test x"$systemd" = x"yes"
+	then
+		AC_MSG_ERROR([systemd support requested but libsystemd not found])
+	fi
+fi
+
+AM_CONDITIONAL([USE_SYSTEMD], [test x"$systemd_found" = x"yes"])
+
+#
 # reputation requires libjansson
 # 
 

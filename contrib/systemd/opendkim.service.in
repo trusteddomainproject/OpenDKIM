@@ -15,10 +15,17 @@ Documentation=man:opendkim(8) man:opendkim.conf(5) man:opendkim-genkey(8) man:op
 After=network-online.target nss-lookup.target syslog.target
 Wants=network-online.target
 
+# Best-effort ordering so opendkim is ready before a local MTA starts
+# accepting mail.  The authoritative way to guarantee ordering is on the
+# consumer side, e.g. "After=opendkim.service" (and "Wants=opendkim.service")
+# in the MTA unit.
+Before=postfix.service sendmail.service exim.service exim4.service opensmtpd.service
+
 [Service]
-# Type=simple with -f (foreground) lets systemd track the process directly
-# without relying on a PIDFile, avoiding a race condition at startup.
-Type=simple
+# Type=notify with -f (foreground) lets systemd track the process directly
+# without relying on a PIDFile.  opendkim signals READY=1 once it has bound
+# its socket, so units ordered after it only start when it can accept mail.
+Type=notify
 EnvironmentFile=-@sysconfdir@/sysconfig/opendkim
 ExecStart=@sbindir@/opendkim -f $OPTIONS
 ExecReload=/bin/kill -USR1 $MAINPID

@@ -86,6 +86,10 @@ if REPRRD
 opendkim_CPPFLAGS += -I$(srcdir)/../reprrd
 opendkim_LDADD += ../reprrd/libreprrd.la
 endif
+if USE_SYSTEMD
+opendkim_CFLAGS += $(LIBSYSTEMD_CFLAGS)
+opendkim_LDADD += $(LIBSYSTEMD_LIBS)
+endif
 
 opendkim_CPPFLAGS += $(LIBMILTER_INCDIRS)
 endif
