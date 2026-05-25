@@ -1484,8 +1484,6 @@ AC_ARG_ENABLE([lua],
                              [enable Lua scripting support]),
               [enable_lua="$enableval"], [enable_lua="no"])
 
-LUA_CFLAGS=""
-LUA_LIBS=""
 lua_found="no"
 
 AS_IF([test x"$enable_lua" = x"yes"], [
