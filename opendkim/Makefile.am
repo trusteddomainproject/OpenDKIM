@@ -17,8 +17,7 @@ sbin_PROGRAMS += opendkim-stats
 endif
 
 dist_sbin_SCRIPTS = opendkim-genkey
-dist_doc_DATA = opendkim.conf.sample opendkim.conf.simple \
-	opendkim.conf.simple-verify README.SQL
+dist_doc_DATA = opendkim.conf.sample README.SQL
 
 if BUILD_FILTER
 sbin_PROGRAMS += opendkim
