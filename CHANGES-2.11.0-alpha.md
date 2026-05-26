@@ -228,6 +228,11 @@ fixes across multiple code paths:
 
 ## Build system and portability
 
+- **`__P()` macro removed**: The K&R C compatibility shim was present in
+  400+ function prototypes across 36 files. musl libc (Alpine Linux and
+  other minimal distros) does not define `__P()`, causing build failures
+  there. Removed all uses; purely mechanical transformation to standard
+  C prototypes. (#337, issue #140)
 - **`res_ninit()` configure detection**: On non-glibc platforms (FreeBSD,
   etc.), `resolv.h` requires prerequisite headers; the configure check
   was including only `resolv.h`, causing `res_ninit` to go undetected.
@@ -350,11 +355,6 @@ fixes across multiple code paths:
 ---
 
 ## Still open / needs-testing
-
-- **#337**: Remove `__P()` macro (musl/Alpine portability) - written by
-  thegushi as a prerequisite for musl CI coverage. Needs a build test on
-  a musl-based system (Alpine Linux). orlitzky has been asked to confirm;
-  was out of town, expects to test within a day or two.
 
 - **#151**: Transparent `strlcpy`/`strlcat` via libbsd-overlay - proposed
   by guijan, who build-tested on Alpine Linux and OpenBSD. On hold: making
