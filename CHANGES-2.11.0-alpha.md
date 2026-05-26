@@ -97,6 +97,13 @@ requests awaiting further testing or discussion.
   issue #89)
 - **`mctx_domain` NULL check**: Comparing a fixed-size array address to
   NULL always evaluates false; corrected to check for empty string. (#343)
+- **ADMD-less `Authentication-Results` headers**: Office 365 generates
+  AR headers that omit the authserv-id, jumping straight to `method=result`
+  tokens. The parser now recovers gracefully rather than hard-aborting:
+  `ares_host` is left empty and parsing continues from the result value.
+  Prevents log noise and downstream DMARC failures on O365-originated mail.
+  The same fix was applied to OpenDMARC (#329) and OpenARC (#192).
+  (#372, issue #73)
 - **`res_setservers` struct type**: `struct state` should be `struct
   __res_state`; caused compile failure on some platforms. (#283)
 - **`res_nslist` syntax errors**: Syntax errors in
