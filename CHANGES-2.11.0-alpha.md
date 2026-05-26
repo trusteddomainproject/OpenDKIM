@@ -4,7 +4,7 @@ This document summarizes the changes merged into the `develop` branch
 during the triage and stabilization effort in May 2026. Over 100 open
 pull requests were reviewed; roughly 80 were merged, closed as
 superseded, or closed with explanation. The open issue count dropped
-from ~125 to ~50.
+from ~125 to ~30.  The number of open pull requests at the time of this writing is fewer than 5.
 
 ---
 
@@ -406,4 +406,6 @@ fixes across multiple code paths:
 
 ## Community Requests (No Issue ID)
 
-* It's become apparent that there are a number of widely used cases where OpenDKIM is in use, and because of some of the options available (LDAP, Lua, SQL, etc), as well as the uniqueness of some operating systems (OpenBSD, Linuxes that use the MUSL libraries, Different OpenSSL versions, GNUTLS, etc)
+* It's become apparent that there are a number of widely used cases where OpenDKIM is in use, and because of some of the options available (LDAP, Lua, SQL, etc), as well as the uniqueness of some operating systems (OpenBSD, Linuxes that use the MUSL libraries, Different OpenSSL versions, GNUTLS, etc).  This doubles the challenge of debugging issues, because not only do we need to troubleshoot the issue, we need to duplicate the setup involved.  Suggestions on testing platforms/reproducers to keep consistent on AWS or in private infrastructure would be useful -- we want to know how YOU are using this.  If you'd like to volunteer to help as a reproducer, reach out.
+
+* As of the time of this writing, our mailing lists are still being restored and should be up shortly (you may need to resubscribe), but in the mean time, github issues are a good way to communicate.
