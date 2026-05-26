@@ -4,7 +4,7 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-verify-revoked t-verify-unspec t-verify-malformed \
 	t-verify-unsigned t-verify-unsigned-silent \
 	t-verify-syntax t-verify-ss t-verify-ss-header-fields t-verify-ss-bad \
-	t-verify-ss-ar-bad \
+	t-verify-ss-ar-bad t-verify-ss-ar-admd-less \
 	t-dontsign t-peer \
 	t-lua-verify-tests t-sign-ss-macro t-sign-ss-macro-value \
 	t-sign-ss-macro-value-file t-verify-report \
@@ -72,6 +72,8 @@ EXTRA_DIST = \
 	t-verify-ss-header-fields t-verify-ss-header-fields.conf t-verify-ss-header-fields.lua \
 	t-verify-ss-bad t-verify-ss-bad.conf t-verify-ss-bad.lua \
 	t-verify-ss-ar-bad t-verify-ss-ar-bad.conf t-verify-ss-ar-bad.lua \
+	t-verify-ss-ar-admd-less t-verify-ss-ar-admd-less.conf \
+		t-verify-ss-ar-admd-less.lua \
 	t-verify-ss-rep t-verify-ss-rep.conf t-verify-ss-rep.lua \
 	t-verify-syntax t-verify-syntax.conf t-verify-syntax.lua \
 	t-verify-double-from t-verify-double-from.conf \
