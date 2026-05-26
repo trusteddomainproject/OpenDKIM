@@ -3816,6 +3816,15 @@ dkim_eom_sign(DKIM *dkim)
 		assert(sig->sig_hashtype == DKIM_HASHTYPE_SHA1 ||
 		       sig->sig_hashtype == DKIM_HASHTYPE_SHA256);
 
+#ifndef HAVE_SHA1_SIGNING
+		if (sig->sig_hashtype == DKIM_HASHTYPE_SHA1)
+		{
+			dkim_error(dkim,
+			           "RSA-SHA1 signing not available on this platform");
+			return DKIM_STAT_SIGGEN;
+		}
+#endif /* HAVE_SHA1_SIGNING */
+
 		if (sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
 		{
 			assert(dkim_libfeature(dkim->dkim_libhandle,
@@ -5918,6 +5927,22 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 				return DKIM_STAT_OK;
 			}
 
+#ifndef HAVE_SHA1_SIGNING
+			if (sig->sig_hashtype == DKIM_HASHTYPE_SHA1)
+			{
+				dkim_error(dkim,
+				           "s=%s d=%s: RSA-SHA1 verification not available on this platform",
+				           dkim_sig_getselector(sig),
+				           dkim_sig_getdomain(sig));
+
+				BIO_CLOBBER(key);
+
+				sig->sig_error = DKIM_SIGERROR_UNSUPPORTED_A;
+
+				return DKIM_STAT_OK;
+			}
+#endif /* HAVE_SHA1_SIGNING */
+
 			crypto->crypto_keysize = EVP_PKEY_size(crypto->crypto_pkey);
 
 			crypto->crypto_in = sig->sig_sig;
@@ -5968,12 +5993,16 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			{
 				dkim_sig_load_ssl_errors(dkim, sig, 0);
 				dkim_error(dkim,
-				           "failed to set message digest type");
+				           "s=%s d=%s: signature digest algorithm not accepted by platform crypto policy",
+				           dkim_sig_getselector(sig),
+				           dkim_sig_getdomain(sig));
 
 				EVP_PKEY_CTX_free(pkey_ctx);
 				BIO_CLOBBER(key);
 
-				return DKIM_STAT_INTERNAL;
+				sig->sig_error = DKIM_SIGERROR_UNSUPPORTED_A;
+
+				return DKIM_STAT_OK;
 			}
 
 			vstat = EVP_PKEY_verify(pkey_ctx, crypto->crypto_in,
