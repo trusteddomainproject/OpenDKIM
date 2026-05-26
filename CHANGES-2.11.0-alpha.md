@@ -4,7 +4,8 @@ This document summarizes the changes merged into the `develop` branch
 during the triage and stabilization effort in May 2026. Over 100 open
 pull requests were reviewed; roughly 80 were merged, closed as
 superseded, or closed with explanation. The open issue count dropped
-from ~125 to ~35.
+from ~125 to ~35.  At the time of this writing, there are 3 open pull
+requests awaiting further testing or discussion.
 
 ---
 
