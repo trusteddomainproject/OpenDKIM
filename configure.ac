@@ -1572,47 +1572,103 @@ AC_SUBST([LIBTRE_LIBS])
 #
 # liblua
 #
-# Detection strategy: try pkg-config first (versioned names in preference
-# order), then fall back to AC_SEARCH_LIBS for systems without pkg-config.
-# The user can pass LUA_CFLAGS and LUA_LIBS on the command line to override.
+# --enable-lua: enable Lua scripting support (auto-detect location)
+# --with-lua=PATH: enable Lua and use this install prefix
+# --with-lua implies --enable-lua; either flag alone is sufficient.
+#
+# Detection: if a path is given, search flat and versioned include layouts
+# (handles BSD systems that install headers under include/lua54/ etc.).
+# Otherwise try pkg-config, then a manual search of common prefixes.
 #
 # Note: we evaluated AX_PROG_LUA from the GNU Autoconf Archive but it
 # requires a Lua interpreter to be present at configure time in order to
 # determine the version. OpenDKIM embeds Lua as a library; build systems
 # may have only the development headers and library installed (e.g.
-# liblua5.4-dev) with no interpreter. The pkg-config + AC_SEARCH_LIBS
-# approach below covers that case without the interpreter dependency.
+# liblua5.4-dev) with no interpreter. The approach below covers that case
+# without the interpreter dependency.
 #
+AC_ARG_WITH([lua],
+            AS_HELP_STRING([--with-lua=PATH],
+                           [prefix where Lua is installed (implies --enable-lua)]),
+            [luapath="$withval"], [luapath=""])
+
 AC_ARG_ENABLE([lua],
               AS_HELP_STRING([--enable-lua],
                              [enable Lua scripting support]),
               [enable_lua="$enableval"], [enable_lua="no"])
 
+if test x"$luapath" != x"" -a x"$luapath" != x"no"
+then
+	enable_lua="yes"
+fi
+
 lua_found="no"
 
 AS_IF([test x"$enable_lua" = x"yes"], [
-  AS_IF([test x"$PKG_CONFIG" != x""], [
-    for luapkg in lua lua5.4 lua-5.4 lua5.3 lua-5.3 lua5.2 lua-5.2 lua5.1 lua-5.1
+  if test x"$luapath" != x"" -a x"$luapath" != x"yes" -a x"$luapath" != x"no"
+  then
+    AC_MSG_CHECKING([for Lua headers under $luapath])
+    lua_incdir=""
+    for d in "$luapath/include" \
+             "$luapath/include/lua54" \
+             "$luapath/include/lua5.4" \
+             "$luapath/include/lua53" \
+             "$luapath/include/lua5.3" \
+             "$luapath/include/lua52" \
+             "$luapath/include/lua5.2" \
+             "$luapath/include/lua51" \
+             "$luapath/include/lua5.1"
     do
-      AS_IF([test x"$lua_found" != x"yes"], [
-        PKG_CHECK_MODULES([LUA], [$luapkg], [lua_found="yes"], [:])
-      ])
+      if test -f "$d/lua.h"
+      then
+        lua_incdir="$d"
+        break
+      fi
     done
-    AS_IF([test x"$lua_found" = x"no"],
-      [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])
-  ])
-
-  AS_IF([test x"$lua_found" != x"yes"], [
+    if test x"$lua_incdir" = x""
+    then
+      AC_MSG_RESULT([no])
+      AC_MSG_ERROR([Lua headers not found under $luapath])
+    fi
+    AC_MSG_RESULT([$lua_incdir])
+    LUA_CFLAGS="-I$lua_incdir"
+    saved_CPPFLAGS="$CPPFLAGS"
+    saved_LDFLAGS="$LDFLAGS"
+    CPPFLAGS="$outer_CPPFLAGS $LUA_CFLAGS"
+    LDFLAGS="$outer_LDFLAGS -L$luapath/lib"
     AC_SEARCH_LIBS([lua_load],
-                   [lua lua5.4 lua-5.4 lua5.3 lua-5.3 lua5.2 lua-5.2 lua5.1 lua-5.1],
-      [ lua_found="yes"
-        AS_IF([test "x$ac_cv_search_lua_load" != "xnone required"],
-          [LUA_LIBS="$ac_cv_search_lua_load"])
-      ])
-  ])
+                   [lua lua5.4 lua-5.4 lua54 lua5.3 lua-5.3 lua5.2 lua-5.2 lua5.1 lua-5.1],
+                   [lua_found="yes"
+                    AS_IF([test "x$ac_cv_search_lua_load" != "xnone required"],
+                      [LUA_LIBS="-L$luapath/lib $ac_cv_search_lua_load"],
+                      [LUA_LIBS="-L$luapath/lib"])],
+                   [AC_MSG_ERROR([Lua library not found under $luapath])])
+    CPPFLAGS="$saved_CPPFLAGS"
+    LDFLAGS="$saved_LDFLAGS"
+  else
+    AS_IF([test x"$PKG_CONFIG" != x""], [
+      for luapkg in lua lua5.4 lua-5.4 lua5.3 lua-5.3 lua5.2 lua-5.2 lua5.1 lua-5.1
+      do
+        AS_IF([test x"$lua_found" != x"yes"], [
+          PKG_CHECK_MODULES([LUA], [$luapkg], [lua_found="yes"], [:])
+        ])
+      done
+      AS_IF([test x"$lua_found" = x"no"],
+        [AC_MSG_WARN([pkg-config for Lua not found, trying manual search...])])
+    ])
 
-  AS_IF([test x"$lua_found" != x"yes"],
-    [AC_MSG_ERROR([Lua enabled but not found])])
+    AS_IF([test x"$lua_found" != x"yes"], [
+      AC_SEARCH_LIBS([lua_load],
+                     [lua lua5.4 lua-5.4 lua5.3 lua-5.3 lua5.2 lua-5.2 lua5.1 lua-5.1],
+        [ lua_found="yes"
+          AS_IF([test "x$ac_cv_search_lua_load" != "xnone required"],
+            [LUA_LIBS="$ac_cv_search_lua_load"])
+        ])
+    ])
+
+    AS_IF([test x"$lua_found" != x"yes"],
+      [AC_MSG_ERROR([Lua enabled but not found])])
+  fi
 ])
 
 AS_IF([test x"$lua_found" = x"yes"], [
