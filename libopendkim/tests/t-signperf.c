@@ -7,6 +7,7 @@
 */
 
 #include "build-config.h"
+#include "t-sha1.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -293,6 +294,11 @@ main(int argc, char **argv)
 		        "### algorithm %s not available SKIPPED\n", alg_name(signalg));
 		dkim_close(lib);
 		return 0;
+	}
+
+	if (signalg == DKIM_SIGN_RSASHA1)
+	{
+		SKIP_IF_NO_SHA1();
 	}
 
 	if (signalg == DKIM_SIGN_ED25519SHA256)

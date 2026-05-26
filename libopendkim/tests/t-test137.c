@@ -6,6 +6,7 @@
 */
 
 #include "build-config.h"
+#include "t-sha1.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -64,6 +65,7 @@ main(int argc, char **argv)
 	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
 	{
 		printf("*** simple/simple rsa-sha256 signature substrings SKIPPED\n");
+	SKIP_IF_NO_SHA1();
 		dkim_close(lib);
 		return 0;
 	}
