@@ -951,30 +951,56 @@ then
 	    [AC_LANG_PROGRAM([[
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
+#include <string.h>
 ]],[[
 	EVP_PKEY_CTX *kctx;
+	EVP_PKEY_CTX *sctx;
 	EVP_PKEY *pkey = NULL;
-	EVP_MD_CTX *mctx;
+	EVP_MD_CTX *hctx;
+	unsigned char hash[20];
+	unsigned int hashlen = sizeof(hash);
 	unsigned char sig[256];
 	size_t siglen = sizeof(sig);
 	const unsigned char data[] = "test";
 	int ret = 1;
 
+	/* Generate a 2048-bit key (matches production key sizes). */
 	kctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL);
 	if (!kctx) return 1;
-	if (EVP_PKEY_keygen_init(kctx) <= 0) return 1;
-	if (EVP_PKEY_CTX_set_rsa_keygen_bits(kctx, 1024) <= 0) return 1;
-	if (EVP_PKEY_keygen(kctx, &pkey) <= 0) return 1;
+	if (EVP_PKEY_keygen_init(kctx) <= 0) goto keydone;
+	if (EVP_PKEY_CTX_set_rsa_keygen_bits(kctx, 2048) <= 0) goto keydone;
+	if (EVP_PKEY_keygen(kctx, &pkey) <= 0) goto keydone;
+keydone:
 	EVP_PKEY_CTX_free(kctx);
+	if (!pkey) return 1;
 
-	mctx = EVP_MD_CTX_new();
-	if (!mctx) return 1;
-	if (EVP_DigestSignInit(mctx, NULL, EVP_sha1(), NULL, pkey) <= 0) goto done;
-	if (EVP_DigestSignUpdate(mctx, data, sizeof(data)) <= 0) goto done;
-	if (EVP_DigestSignFinal(mctx, sig, &siglen) <= 0) goto done;
+	/* Compute SHA1 hash of data. */
+	hctx = EVP_MD_CTX_new();
+	if (!hctx) goto done;
+	if (EVP_DigestInit_ex(hctx, EVP_sha1(), NULL) <= 0) goto done;
+	if (EVP_DigestUpdate(hctx, data, sizeof(data)) <= 0) goto done;
+	if (EVP_DigestFinal_ex(hctx, hash, &hashlen) <= 0) goto done;
+	EVP_MD_CTX_free(hctx);
+	hctx = NULL;
+
+	/*
+	 * Sign the pre-computed hash using the same EVP_PKEY_sign API
+	 * path that libopendkim uses internally.  This is intentionally
+	 * different from EVP_DigestSign so that system restrictions on
+	 * SHA1 as a signature digest (e.g., RHEL 9 evp_properties) are
+	 * detected here rather than at run time.
+	 */
+	sctx = EVP_PKEY_CTX_new(pkey, NULL);
+	if (!sctx) goto done;
+	if (EVP_PKEY_sign_init(sctx) <= 0) goto sigdone;
+	if (EVP_PKEY_CTX_set_rsa_padding(sctx, RSA_PKCS1_PADDING) <= 0) goto sigdone;
+	if (EVP_PKEY_CTX_set_signature_md(sctx, EVP_sha1()) <= 0) goto sigdone;
+	if (EVP_PKEY_sign(sctx, sig, &siglen, hash, hashlen) <= 0) goto sigdone;
 	ret = 0;
+sigdone:
+	EVP_PKEY_CTX_free(sctx);
 done:
-	EVP_MD_CTX_free(mctx);
+	if (hctx) EVP_MD_CTX_free(hctx);
 	EVP_PKEY_free(pkey);
 	return ret;
 ]])],
