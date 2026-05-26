@@ -166,6 +166,7 @@ A systematic audit of memory and resource leaks (issue #272) produced fixes acro
 - **Parallel test ordering**: Fixed `make -j check` failures due to test ordering dependencies. (#296)
 - **Test socket path**: Tests now use `./testkeys` instead of `/tmp/testkeys` (CVE-2020-35766 hardening). (#288)
 - **Multi-signing tests**: Added `t-test204` and `t-test205` covering multiple simultaneous signatures. (#326)
+- **miltertest standalone repo**: miltertest has been extracted into its own repository at https://github.com/thegushi/miltertest, with the libopendkim dependency removed (it was never used). Intended to eventually live under trusteddomainproject once stabilized. (#100)
 
 ---
 
