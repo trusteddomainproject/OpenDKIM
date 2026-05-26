@@ -351,11 +351,6 @@ fixes across multiple code paths:
 
 ## Still open / needs-testing
 
-- **#337**: Remove `__P()` macro (musl/Alpine portability) - written by
-  thegushi as a prerequisite for musl CI coverage. Needs a build test on
-  a musl-based system (Alpine Linux). orlitzky has been asked to confirm;
-  was out of town, expects to test within a day or two.
-
 - **#151**: Transparent `strlcpy`/`strlcat` via libbsd-overlay - proposed
   by guijan, who build-tested on Alpine Linux and OpenBSD. On hold: making
   libbsd (or a compatible library) a mandatory dependency on non-BSD
