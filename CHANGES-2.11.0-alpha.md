@@ -228,6 +228,11 @@ fixes across multiple code paths:
 
 ## Build system and portability
 
+- **`__P()` macro removed**: The K&R C compatibility shim was present in
+  400+ function prototypes across 36 files. musl libc (Alpine Linux and
+  other minimal distros) does not define `__P()`, causing build failures
+  there. Removed all uses; purely mechanical transformation to standard
+  C prototypes. (#337, issue #140)
 - **`res_ninit()` configure detection**: On non-glibc platforms (FreeBSD,
   etc.), `resolv.h` requires prerequisite headers; the configure check
   was including only `resolv.h`, causing `res_ninit` to go undetected.
