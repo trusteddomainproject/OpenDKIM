@@ -46,9 +46,26 @@ AC_CONFIG_MACRO_DIR([m4])
 
 #
 # Hexadecimal version, for use in generating dkim.h
-# 
+#
 HEX_VERSION=$(printf %08x $(( ((VERSION_RELEASE << 8 | VERSION_MAJOR_REV) << 8 | VERSION_MINOR_REV) << 8| VERSION_PATCH )))
 AC_SUBST([HEX_VERSION])
+
+#
+# Version string for the software header; includes git hash for development builds
+#
+AC_CHECK_PROG([GIT], [git], [git])
+AC_MSG_CHECKING([build version string])
+DKIMF_VERSION=$PACKAGE_VERSION
+if test -n "$GIT" && $GIT describe --tags --dirty >/dev/null 2>&1; then
+    _git_ver=$($GIT describe --tags --dirty)
+    _git_ver=${_git_ver#v}
+    if test "$_git_ver" != "$PACKAGE_VERSION"; then
+        DKIMF_VERSION=$_git_ver
+    fi
+fi
+AC_MSG_RESULT([$DKIMF_VERSION])
+AC_DEFINE_UNQUOTED([DKIMF_VERSION], ["$DKIMF_VERSION"],
+                   [Version string for software header, including git hash on development builds])
 
 #
 # library version, passed to libtool

@@ -10434,7 +10434,7 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "--dkimreport/%s/%s\n", hostname, dfc->mctx_jobid);
 	fprintf(out, "Content-Type: message/feedback-report\n");
 	fprintf(out, "\n");
-	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, VERSION);
+	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, DKIMF_VERSION);
 	fprintf(out, "Version: %s\n", ARF_VERSION);
 	fprintf(out, "Original-Envelope-Id: %s\n", dfc->mctx_jobid);
 	fprintf(out, "Original-Mail-From: %s\n", dfc->mctx_envfrom);
@@ -15223,7 +15223,7 @@ mlfi_eom(SMFICTX *ctx)
 
 		snprintf(xfhdr, DKIM_MAXHEADER, "%s%s v%s %s %s",
 		         cc->cctx_noleadspc ? " " : "",
-		         DKIMF_PRODUCT, VERSION, hostname,
+		         DKIMF_PRODUCT, DKIMF_VERSION, hostname,
 		         dfc->mctx_jobid != NULL ? dfc->mctx_jobid
 		                                 : (u_char *) JOBIDUNKNOWN);
 
@@ -15767,7 +15767,7 @@ main(int argc, char **argv)
 			}
 
 			printf("%s: %s v%s\n", progname, DKIMF_PRODUCT,
-			       VERSION);
+			       DKIMF_VERSION);
 #ifdef USE_GNUTLS
 			printf("\tCompiled with GnuTLS %s\n", GNUTLS_VERSION);
 #else /* USE_GNUTLS */
@@ -17095,7 +17095,7 @@ main(int argc, char **argv)
 		_Bool noargs = strlen(argstr) == 0;
 
 		dkimf_log(curconf, LOG_INFO, "%s v%s starting%s%s%s", DKIMF_PRODUCT,
-		          VERSION,
+		          DKIMF_VERSION,
 		          noargs ? "" : " (",
 		          argstr,
 		          noargs ? "" : ")");
@@ -17131,7 +17131,7 @@ main(int argc, char **argv)
 
 	dkimf_log(curconf, LOG_INFO,
 		  "%s v%s terminating with status %d, errno = %d",
-		  DKIMF_PRODUCT, VERSION, status, errno);
+		  DKIMF_PRODUCT, DKIMF_VERSION, status, errno);
 
 #ifdef POPAUTH
 	if (popdb != NULL)
