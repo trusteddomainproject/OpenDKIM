@@ -1847,7 +1847,11 @@ dkimf_db_open(DKIMF_DB *db, char *name, u_int flags, pthread_mutex_t *lock,
 	new->db_flags = (flags | gflags);
 	new->db_type = DKIMF_DB_TYPE_UNKNOWN;
 
-	p = strchr(name, ':');
+	/* a leading '[' means a bracketed IPv6 address, not a type: prefix */
+	if (name[0] == '[')
+		p = NULL;
+	else
+		p = strchr(name, ':');
 	comma = strchr(name, ',');
 
 	/* catch a CSL that contains colons not in the first entry */
