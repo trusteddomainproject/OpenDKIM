@@ -944,7 +944,6 @@ then
 #include <sys/types.h>
 #include <openssl/sha.h>])
 
-	ac_cv_have_sha1_signing=yes
 	AC_CACHE_CHECK([whether RSA-SHA1 signing is available],
 	               [ac_cv_have_sha1_signing],
 	  [AC_RUN_IFELSE(
