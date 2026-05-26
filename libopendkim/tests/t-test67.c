@@ -103,12 +103,12 @@ main(int argc, char **argv)
 	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
 	{
 		printf("*** relaxed/simple rsa-sha1/rsa-256 verifying SKIPPED\n");
-	SKIP_IF_NO_SHA1();
 		dkim_close(lib);
 		return 0;
 	}
 
 	printf("*** relaxed/simple rsa-sha1/rsa-256 verifying\n");
+	SKIP_IF_NO_SHA1();
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */

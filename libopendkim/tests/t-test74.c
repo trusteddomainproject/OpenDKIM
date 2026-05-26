@@ -110,12 +110,12 @@ main(int argc, char **argv)
 	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
 	{
 		printf("*** simple/simple rsa-sha256 verifying with key callback and key reuse SKIPPED\n");
-	SKIP_IF_NO_SHA1();
 		dkim_close(lib);
 		return 0;
 	}
 
 	printf("*** simple/simple rsa-sha256 verifying with key callback and key reuse\n");
+	SKIP_IF_NO_SHA1();
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */

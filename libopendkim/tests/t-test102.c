@@ -57,6 +57,7 @@ main(int argc, char **argv)
 	unsigned char hdr[MAXHEADER + 1];
 
 	printf("*** relaxed/simple rsa-sha1 verifying with \"must be signed\" list\n");
+	SKIP_IF_NO_SHA1();
 
 #ifdef USE_GNUTLS
 	(void) gnutls_global_init();

@@ -190,12 +190,12 @@ main(int argc, char **argv)
 	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
 	{
 		printf("*** simple/simple rsa-sha256 verifying with extra signature spaces and reportinfo (failure) SKIPPED\n");
-	SKIP_IF_NO_SHA1();
 		dkim_close(lib);
 		return 0;
 	}
 
 	printf("*** simple/simple rsa-sha256 verifying with extra signature spaces and reportinfo (failure)\n");
+	SKIP_IF_NO_SHA1();
 
 	/* DNS stubs for the reporting data lookup */
 	dkim_dns_set_query_service(lib, NULL);

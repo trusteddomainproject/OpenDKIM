@@ -59,6 +59,7 @@ main(int argc, char **argv)
 	unsigned char buf[10240];
 
 	printf("*** simple/simple rsa-sha1 verifying with chunking, FIXCRLF, and \"b=...;\"\n");
+	SKIP_IF_NO_SHA1();
 
 #ifdef USE_GNUTLS
 	(void) gnutls_global_init();

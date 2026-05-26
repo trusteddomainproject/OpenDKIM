@@ -65,12 +65,12 @@ main(int argc, char **argv)
 	if (!dkim_libfeature(lib, DKIM_FEATURE_SHA256))
 	{
 		printf("*** simple/simple rsa-sha256 signature substrings SKIPPED\n");
-	SKIP_IF_NO_SHA1();
 		dkim_close(lib);
 		return 0;
 	}
 
 	printf("*** simple/simple rsa-sha256 verifying signature substrings\n");
+	SKIP_IF_NO_SHA1();
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */
