@@ -62,6 +62,8 @@
 #else /* USE_GNUTLS */
 # include <openssl/sha.h>
 # include <openssl/err.h>
+# include <openssl/pem.h>
+# include <openssl/evp.h>
 #endif /* USE_GNUTLS */
 
 #ifndef SHA_DIGEST_LENGTH
@@ -8273,6 +8275,53 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		close(fd);
 		s33krit[s.st_size] = '\0';
 		conf->conf_seckey = s33krit;
+
+		/* auto-detect signing algorithm from key type if not set */
+		if (conf->conf_signalgstr == NULL)
+		{
+#ifdef USE_GNUTLS
+			gnutls_privkey_t pk;
+			unsigned int bits = 0;
+
+			if (gnutls_privkey_init(&pk) == GNUTLS_E_SUCCESS)
+			{
+				gnutls_datum_t d;
+
+				d.data = (unsigned char *) conf->conf_seckey;
+				d.size = strlen(conf->conf_seckey);
+
+				if (gnutls_privkey_import_x509_raw(pk, &d,
+				    GNUTLS_X509_FMT_PEM, NULL, 0) == GNUTLS_E_SUCCESS)
+				{
+					if (gnutls_privkey_get_pk_algorithm(pk,
+					    &bits) == GNUTLS_PK_EDDSA_ED25519)
+						conf->conf_signalg =
+						    DKIM_SIGN_ED25519SHA256;
+				}
+
+				gnutls_privkey_deinit(pk);
+			}
+#else /* USE_GNUTLS */
+			BIO *keybio;
+			EVP_PKEY *pkey = NULL;
+
+			keybio = BIO_new_mem_buf(conf->conf_seckey, -1);
+			if (keybio != NULL)
+			{
+				pkey = PEM_read_bio_PrivateKey(keybio, NULL,
+				                              NULL, NULL);
+				BIO_free(keybio);
+			}
+
+			if (pkey != NULL)
+			{
+				if (EVP_PKEY_base_id(pkey) == EVP_PKEY_ED25519)
+					conf->conf_signalg =
+					    DKIM_SIGN_ED25519SHA256;
+				EVP_PKEY_free(pkey);
+			}
+#endif /* USE_GNUTLS */
+		}
 	}
 
 	/* confirm signing mode parameters */
