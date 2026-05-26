@@ -12,6 +12,10 @@ KeyFile			/var/db/dkim/@DOMAIN@.private
 
 Socket                  inet:8891@localhost
 
+# To use a local socket instead, specify a path. The default path
+# (that the included service scripts use) is below.
+#Socket                 local:@RUNSTATEDIR@/opendkim/opendkim.sock
+
 ReportAddress           postmaster@@DOMAIN@
 SendReports             yes
 
