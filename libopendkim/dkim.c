@@ -3816,6 +3816,14 @@ dkim_eom_sign(DKIM *dkim)
 		assert(sig->sig_hashtype == DKIM_HASHTYPE_SHA1 ||
 		       sig->sig_hashtype == DKIM_HASHTYPE_SHA256);
 
+		if (sig->sig_hashtype == DKIM_HASHTYPE_SHA1 &&
+		    !dkim->dkim_libhandle->dkiml_sha1_available)
+		{
+			dkim_error(dkim,
+			           "RSA-SHA1 signing not available on this platform");
+			return DKIM_STAT_SIGGEN;
+		}
+
 		if (sig->sig_hashtype == DKIM_HASHTYPE_SHA256)
 		{
 			assert(dkim_libfeature(dkim->dkim_libhandle,
@@ -3970,12 +3978,13 @@ dkim_eom_sign(DKIM *dkim)
 		if (EVP_PKEY_CTX_set_signature_md(pkey_ctx, md) <= 0)
 		{
 			dkim_load_ssl_errors(dkim, 0);
-			dkim_error(dkim, "failed to set message digest type");
+			dkim_error(dkim,
+			           "signature digest algorithm not accepted by platform crypto policy");
 
 			EVP_PKEY_CTX_free(pkey_ctx);
 			BIO_CLOBBER(crypto->crypto_keydata);
 
-			return DKIM_STAT_INTERNAL;
+			return DKIM_STAT_SIGGEN;
 		}
 
 		status = EVP_PKEY_sign(pkey_ctx, crypto->crypto_out,
@@ -4473,6 +4482,65 @@ dkim_close_openssl(void)
 
 /* ========================= PUBLIC SECTION ========================== */
 
+#ifndef USE_GNUTLS
+/*
+**  DKIM_PROBE_SHA1_SIGNING -- test whether RSA-SHA1 signing is permitted
+**  by the current platform crypto policy
+**
+**  Parameters:
+**  	None.
+**
+**  Return value:
+**  	TRUE if RSA-SHA1 signing works, FALSE if not.
+*/
+
+static _Bool
+dkim_probe_sha1_signing(void)
+{
+	_Bool result = FALSE;
+	EVP_PKEY_CTX *kctx = NULL;
+	EVP_PKEY_CTX *sctx = NULL;
+	EVP_PKEY *pkey = NULL;
+
+	ERR_clear_error();
+
+	if (EVP_sha1() == NULL)
+		return FALSE;
+
+	kctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL);
+	if (kctx == NULL)
+		goto cleanup;
+	if (EVP_PKEY_keygen_init(kctx) <= 0)
+		goto cleanup;
+	if (EVP_PKEY_CTX_set_rsa_keygen_bits(kctx, 512) <= 0)
+		goto cleanup;
+	if (EVP_PKEY_keygen(kctx, &pkey) <= 0)
+		goto cleanup;
+
+	sctx = EVP_PKEY_CTX_new(pkey, NULL);
+	if (sctx == NULL)
+		goto cleanup;
+	if (EVP_PKEY_sign_init(sctx) <= 0)
+		goto cleanup;
+	if (EVP_PKEY_CTX_set_rsa_padding(sctx, RSA_PKCS1_PADDING) <= 0)
+		goto cleanup;
+	if (EVP_PKEY_CTX_set_signature_md(sctx, EVP_sha1()) <= 0)
+		goto cleanup;
+
+	result = TRUE;
+
+  cleanup:
+	ERR_clear_error();
+	if (sctx != NULL)
+		EVP_PKEY_CTX_free(sctx);
+	if (pkey != NULL)
+		EVP_PKEY_free(pkey);
+	if (kctx != NULL)
+		EVP_PKEY_CTX_free(kctx);
+	return result;
+}
+#endif /* ! USE_GNUTLS */
+
 /*
 **  DKIM_INIT -- initialize a DKIM library context
 **
@@ -4511,6 +4579,11 @@ dkim_init(void *(*caller_mallocf)(void *closure, size_t nbytes),
 
 	libhandle->dkiml_signre = FALSE;
 	libhandle->dkiml_skipre = FALSE;
+#ifndef USE_GNUTLS
+	libhandle->dkiml_sha1_available = dkim_probe_sha1_signing();
+#else
+	libhandle->dkiml_sha1_available = TRUE;
+#endif /* ! USE_GNUTLS */
 	libhandle->dkiml_malloc = caller_mallocf;
 	libhandle->dkiml_free = caller_freef;
 	strlcpy((char *) libhandle->dkiml_tmpdir, (char *) td, 
@@ -5918,6 +5991,21 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 				return DKIM_STAT_OK;
 			}
 
+			if (sig->sig_hashtype == DKIM_HASHTYPE_SHA1 &&
+			    !dkim->dkim_libhandle->dkiml_sha1_available)
+			{
+				dkim_error(dkim,
+				           "s=%s d=%s: RSA-SHA1 verification not available on this platform",
+				           dkim_sig_getselector(sig),
+				           dkim_sig_getdomain(sig));
+
+				BIO_CLOBBER(key);
+
+				sig->sig_error = DKIM_SIGERROR_UNSUPPORTED_A;
+
+				return DKIM_STAT_OK;
+			}
+
 			crypto->crypto_keysize = EVP_PKEY_size(crypto->crypto_pkey);
 
 			crypto->crypto_in = sig->sig_sig;
@@ -5968,12 +6056,16 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 			{
 				dkim_sig_load_ssl_errors(dkim, sig, 0);
 				dkim_error(dkim,
-				           "failed to set message digest type");
+				           "s=%s d=%s: signature digest algorithm not accepted by platform crypto policy",
+				           dkim_sig_getselector(sig),
+				           dkim_sig_getdomain(sig));
 
 				EVP_PKEY_CTX_free(pkey_ctx);
 				BIO_CLOBBER(key);
 
-				return DKIM_STAT_INTERNAL;
+				sig->sig_error = DKIM_SIGERROR_UNSUPPORTED_A;
+
+				return DKIM_STAT_OK;
 			}
 
 			vstat = EVP_PKEY_verify(pkey_ctx, crypto->crypto_in,
