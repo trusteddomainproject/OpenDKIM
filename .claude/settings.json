@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.lua.org)",
+      "WebSearch",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}

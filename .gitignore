@@ -48,3 +48,4 @@ core
 build-aux
 opendkim-[0-9].[0-9].[0-9]
 .vscode
+.claude
