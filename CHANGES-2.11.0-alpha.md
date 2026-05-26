@@ -102,7 +102,7 @@ requests awaiting further testing or discussion.
   tokens. The parser now recovers gracefully rather than hard-aborting:
   `ares_host` is left empty and parsing continues from the result value.
   Prevents log noise and downstream DMARC failures on O365-originated mail.
-  The same fix was applied to OpenDMARC (#329) and OpenARC (#192).
+  The same fix has been submitted to OpenDMARC (#329) and OpenARC (#192).
   (#372, issue #73)
 - **`res_setservers` struct type**: `struct state` should be `struct
   __res_state`; caused compile failure on some platforms. (#283)
