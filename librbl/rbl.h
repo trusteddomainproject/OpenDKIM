@@ -59,10 +59,10 @@ typedef struct rbl_handle RBL;
 **  	Strange radar returns at Indianapolis ARTCC.
 */
 
-extern RBL * rbl_init __P((void *(*caller_mallocf)(void *closure,
+extern RBL * rbl_init (void *(*caller_mallocf)(void *closure,
                                                    size_t nbytes),
                            void (*caller_freef)(void *closure, void *p),
-                           void *closure));
+                           void *closure);
 
 /*
 **  RBL_CLOSE -- shut down a RBL instance
@@ -74,7 +74,7 @@ extern RBL * rbl_init __P((void *(*caller_mallocf)(void *closure,
 **  	None.
 */
 
-extern void rbl_close __P((RBL *));
+extern void rbl_close (RBL *);
 
 /*
 **  RBL_GETERROR -- return any stored error string from within the RBL
@@ -87,7 +87,7 @@ extern void rbl_close __P((RBL *));
 **  	A pointer to the stored string, or NULL if none was stored.
 */
 
-extern const u_char *rbl_geterror __P((RBL *));
+extern const u_char *rbl_geterror (RBL *);
 
 /*
 **  RBL_SETDOMAIN -- declare the RBL's domain (the query root)
@@ -100,7 +100,7 @@ extern const u_char *rbl_geterror __P((RBL *));
 **  	None (yet).
 */
 
-extern void rbl_setdomain __P((RBL *, u_char *));
+extern void rbl_setdomain (RBL *, u_char *);
 
 /*
 **  RBL_QUERY_START -- initiate a query to the RBL for entries
@@ -115,7 +115,7 @@ extern void rbl_setdomain __P((RBL *, u_char *));
 ** 	RBL_STAT_* -- as defined
 */
 
-extern RBL_STAT rbl_query_start __P((RBL *, u_char *, void **));
+extern RBL_STAT rbl_query_start (RBL *, u_char *, void **);
 
 /*
 **  RBL_QUERY_CHECK -- check for a reply from an active query
@@ -130,8 +130,8 @@ extern RBL_STAT rbl_query_start __P((RBL *, u_char *, void **));
 ** 	RBL_STAT_* -- as defined
 */
 
-extern RBL_STAT rbl_query_check __P((RBL *, void *, struct timeval *,
-                                     uint32_t *));
+extern RBL_STAT rbl_query_check (RBL *, void *, struct timeval *,
+                                     uint32_t *);
 
 /*
 **  RBL_QUERY_CANCEL -- cancel an open query to the RBL
@@ -144,7 +144,7 @@ extern RBL_STAT rbl_query_check __P((RBL *, void *, struct timeval *,
 ** 	RBL_STAT_* -- as defined
 */
 
-extern RBL_STAT rbl_query_cancel __P((RBL *, void *));
+extern RBL_STAT rbl_query_cancel (RBL *, void *);
 
 /*
 **  RBL_SETTIMEOUT -- set the DNS timeout
@@ -157,7 +157,7 @@ extern RBL_STAT rbl_query_cancel __P((RBL *, void *));
 **  	None.
 */
 
-extern void rbl_settimeout __P((RBL *, u_int));
+extern void rbl_settimeout (RBL *, u_int);
 
 /*
 **  RBL_SETCALLBACKINT -- set the DNS callback interval
@@ -170,7 +170,7 @@ extern void rbl_settimeout __P((RBL *, u_int));
 **  	None.
 */
 
-extern void rbl_setcallbackint __P((RBL *, u_int));
+extern void rbl_setcallbackint (RBL *, u_int);
 
 /*
 **  RBL_SETCALLBACKCTX -- set the DNS callback context
@@ -183,7 +183,7 @@ extern void rbl_setcallbackint __P((RBL *, u_int));
 **  	None.
 */
 
-extern void rbl_setcallbackctx __P((RBL *, void *));
+extern void rbl_setcallbackctx (RBL *, void *);
 
 /*
 **  RBL_SETDNSCALLBACK -- set the DNS wait callback
@@ -196,8 +196,8 @@ extern void rbl_setcallbackctx __P((RBL *, void *));
 **  	None.
 */
 
-extern void rbl_setdnscallback __P((RBL *rbl,
-                                    void (*func)(const void *context)));
+extern void rbl_setdnscallback (RBL *rbl,
+                                    void (*func)(const void *context));
 
 /*
 **  RBL_DNS_SET_QUERY_SERVICE -- stores a handle representing the DNS
@@ -212,7 +212,7 @@ extern void rbl_setdnscallback __P((RBL *rbl,
 **  	Previously stored handle, or NULL if none.
 */
 
-extern void *rbl_dns_set_query_service __P((RBL *, void *));
+extern void *rbl_dns_set_query_service (RBL *, void *);
 
 /*
 **  RBL_DNS_SET_QUERY_START -- stores a pointer to a query start function
@@ -236,11 +236,11 @@ extern void *rbl_dns_set_query_service __P((RBL *, void *));
 **  		void **qh -- returned query handle
 */
 
-extern void rbl_dns_set_query_start __P((RBL *,
+extern void rbl_dns_set_query_start (RBL *,
                                          int (*)(void *, int,
                                                  unsigned char *,
                                                  unsigned char *,
-                                                 size_t, void **)));
+                                                 size_t, void **));
 
 /*
 **  RBL_DNS_SET_QUERY_CANCEL -- stores a pointer to a query cancel function
@@ -259,8 +259,8 @@ extern void rbl_dns_set_query_start __P((RBL *,
 **  		void *qh -- query handle to be canceled
 */
 
-extern void rbl_dns_set_query_cancel __P((RBL *,
-                                          int (*)(void *, void *)));
+extern void rbl_dns_set_query_cancel (RBL *,
+                                          int (*)(void *, void *));
 
 /*
 **  RBL_DNS_SET_QUERY_WAITREPLY -- stores a pointer to wait for a DNS reply
@@ -283,11 +283,11 @@ extern void rbl_dns_set_query_cancel __P((RBL *,
 **  		int *dnssec -- DNSSEC status returned
 */
 
-extern void rbl_dns_set_query_waitreply __P((RBL *,
+extern void rbl_dns_set_query_waitreply (RBL *,
                                              int (*)(void *, void *,
                                                      struct timeval *,
                                                      size_t *, int *,
-                                                     int *)));
+                                                     int *));
 
 /*
 **  RBL_DNS_SET_NSLIST -- set function that updates resolver nameserver list
@@ -307,8 +307,8 @@ extern void rbl_dns_set_query_waitreply __P((RBL *,
 **  			string
 */
 
-extern void rbl_dns_set_nslist __P((RBL *,
-                                    int (*)(void *, const char *)));
+extern void rbl_dns_set_nslist (RBL *,
+                                    int (*)(void *, const char *));
 
 /*
 **  RBL_DNS_SET_CLOSE -- shuts down the resolver
@@ -326,8 +326,8 @@ extern void rbl_dns_set_nslist __P((RBL *,
 **  		void *srv -- DNS service handle
 */
 
-extern void rbl_dns_set_close __P((RBL *,
-                                   void (*)(void *)));
+extern void rbl_dns_set_close (RBL *,
+                                   void (*)(void *));
 
 /*
 **  RBL_DNS_SET_INIT -- initializes the resolver
@@ -345,8 +345,8 @@ extern void rbl_dns_set_close __P((RBL *,
 **  		void **srv -- DNS service handle (updated)
 */
 
-extern void rbl_dns_set_init __P((RBL *,
-                                  int (*)(void **)));
+extern void rbl_dns_set_init (RBL *,
+                                  int (*)(void **));
 
 /*
 **  RBL_DNS_SET_CONFIG -- configures the resolver
@@ -365,8 +365,8 @@ extern void rbl_dns_set_init __P((RBL *,
 **  		const char *config -- arbitrary resolver configuration data
 */
 
-extern void rbl_dns_set_config __P((RBL *,
-                                    int (*)(void *, const char *)));
+extern void rbl_dns_set_config (RBL *,
+                                    int (*)(void *, const char *));
 
 /*
 **  RBL_DNS_SET_TRUSTANCHOR -- provides trust anchor data to the resolver
@@ -385,8 +385,8 @@ extern void rbl_dns_set_config __P((RBL *,
 **  		const char *trust -- arbitrary trust anchor data
 */
 
-extern void rbl_dns_set_trustanchor __P((RBL *,
-                                         int (*)(void *, const char *)));
+extern void rbl_dns_set_trustanchor (RBL *,
+                                         int (*)(void *, const char *));
 
 /*
 **  RBL_DNS_NSLIST -- requests update to a nameserver list
@@ -399,7 +399,7 @@ extern void rbl_dns_set_trustanchor __P((RBL *,
 **  	An RBL_STAT_* constant.
 */
 
-extern RBL_STAT rbl_dns_nslist __P((RBL *, const char *));
+extern RBL_STAT rbl_dns_nslist (RBL *, const char *);
 
 /*
 **  RBL_DNS_CONFIG -- requests a change to resolver configuration
@@ -412,7 +412,7 @@ extern RBL_STAT rbl_dns_nslist __P((RBL *, const char *));
 **  	An RBL_STAT_* constant.
 */
 
-extern RBL_STAT rbl_dns_config __P((RBL *, const char *));
+extern RBL_STAT rbl_dns_config (RBL *, const char *);
 
 /*
 **  RBL_DNS_TRUSTANCHOR -- requests a change to resolver trust anchor data
@@ -425,7 +425,7 @@ extern RBL_STAT rbl_dns_config __P((RBL *, const char *));
 **  	An RBL_STAT_* constant.
 */
 
-extern RBL_STAT rbl_dns_trustanchor __P((RBL *, const char *));
+extern RBL_STAT rbl_dns_trustanchor (RBL *, const char *);
 
 /*
 **  RBL_DNS_INIT -- force nameserver (re)initialization
@@ -437,6 +437,6 @@ extern RBL_STAT rbl_dns_trustanchor __P((RBL *, const char *));
 **  	An RBL_STAT_* constant.
 */
 
-extern RBL_STAT rbl_dns_init __P((RBL *));
+extern RBL_STAT rbl_dns_init (RBL *);
 
 #endif /* _RBL_H_ */

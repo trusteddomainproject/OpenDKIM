@@ -16,7 +16,7 @@
 #define	DKIM_REPORT_PREFIX	"_report._domainkey"
 
 /* prototypes */
-extern DKIM_STAT dkim_repinfo __P((DKIM *, DKIM_SIGINFO *,
-                                   struct timeval *, unsigned char *, size_t));
+extern DKIM_STAT dkim_repinfo (DKIM *, DKIM_SIGINFO *,
+                                   struct timeval *, unsigned char *, size_t);
 
 #endif /* ! _DKIM_REPORT_H_ */

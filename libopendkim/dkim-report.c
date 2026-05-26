@@ -25,7 +25,7 @@
 #include "util.h"
 
 /* prototypes */
-extern void dkim_error __P((DKIM *, const char *, ...));
+extern void dkim_error (DKIM *, const char *, ...);
 
 /* local definitions needed for DNS queries */
 #define MAXPACKET		8192

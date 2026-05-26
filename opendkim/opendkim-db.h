@@ -53,15 +53,6 @@
 
 #define DKIMF_LDAP_PARAM_MAX		10
 
-#ifdef __STDC__
-# ifndef __P
-#  define __P(x)  x
-# endif /* ! __P */
-#else /* __STDC__ */
-# ifndef __P
-#  define __P(x)  ()
-# endif /* ! __P */
-#endif /* __STDC__ */
 
 /* types */
 struct dkimf_db;
@@ -79,23 +70,23 @@ typedef struct dkimf_db_data * DKIMF_DBDATA;
 #define	DKIMF_DB_DATA_OPTIONAL	0x02		/* data is optional */
 
 /* prototypes */
-extern int dkimf_db_chown __P((DKIMF_DB, uid_t uid));
-extern int dkimf_db_close __P((DKIMF_DB));
-extern int dkimf_db_delete __P((DKIMF_DB, void *, size_t));
-extern void dkimf_db_flags __P((unsigned int));
-extern int dkimf_db_get __P((DKIMF_DB, void *, size_t,
-                             DKIMF_DBDATA, unsigned int, _Bool *));
-extern int dkimf_db_mkarray __P((DKIMF_DB, char ***, const char **));
-extern int dkimf_db_open __P((DKIMF_DB *, char *, u_int flags,
-                              pthread_mutex_t *, char **));
-extern int dkimf_db_put __P((DKIMF_DB, void *, size_t, void *, size_t));
-extern int dkimf_db_rewalk __P((DKIMF_DB, char *, DKIMF_DBDATA, unsigned int,
-                                void **));
-extern void dkimf_db_set_ldap_param __P((int, char *));
-extern int dkimf_db_strerror __P((DKIMF_DB, char *, size_t));
-extern int dkimf_db_type __P((DKIMF_DB));
-extern _Bool dkimf_db_can_walk __P((DKIMF_DB));
-extern int dkimf_db_walk __P((DKIMF_DB, _Bool, void *, size_t *,
-                              DKIMF_DBDATA, unsigned int));
+extern int dkimf_db_chown (DKIMF_DB, uid_t uid);
+extern int dkimf_db_close (DKIMF_DB);
+extern int dkimf_db_delete (DKIMF_DB, void *, size_t);
+extern void dkimf_db_flags (unsigned int);
+extern int dkimf_db_get (DKIMF_DB, void *, size_t,
+                             DKIMF_DBDATA, unsigned int, _Bool *);
+extern int dkimf_db_mkarray (DKIMF_DB, char ***, const char **);
+extern int dkimf_db_open (DKIMF_DB *, char *, u_int flags,
+                              pthread_mutex_t *, char **);
+extern int dkimf_db_put (DKIMF_DB, void *, size_t, void *, size_t);
+extern int dkimf_db_rewalk (DKIMF_DB, char *, DKIMF_DBDATA, unsigned int,
+                                void **);
+extern void dkimf_db_set_ldap_param (int, char *);
+extern int dkimf_db_strerror (DKIMF_DB, char *, size_t);
+extern int dkimf_db_type (DKIMF_DB);
+extern _Bool dkimf_db_can_walk (DKIMF_DB);
+extern int dkimf_db_walk (DKIMF_DB, _Bool, void *, size_t *,
+                              DKIMF_DBDATA, unsigned int);
 
 #endif /* _OPENDKIM_DB_H_ */

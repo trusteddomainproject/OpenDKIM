@@ -12,15 +12,6 @@
 /* system includes */
 #include <sys/types.h>
 
-#ifdef __STDC__
-# ifndef __P
-#  define __P(x)  x
-# endif /* ! __P */
-#else /* __STDC__ */
-# ifndef __P
-#  define __P(x)  ()
-# endif /* ! __P */
-#endif /* __STDC__ */
 
 /* strings */
 #define	VBR_ALL			"all"
@@ -64,10 +55,10 @@ typedef struct vbr_handle VBR;
 **  	Strange radar returns at Indianapolis ARTCC.
 */
 
-extern VBR * vbr_init __P((void *(*caller_mallocf)(void *closure,
+extern VBR * vbr_init (void *(*caller_mallocf)(void *closure,
                                                    size_t nbytes),
                            void (*caller_freef)(void *closure, void *p),
-                           void *closure));
+                           void *closure);
 
 /*
 **  VBR_OPTIONS -- set VBR options
@@ -80,7 +71,7 @@ extern VBR * vbr_init __P((void *(*caller_mallocf)(void *closure,
 **  	None.
 */
 
-extern void vbr_options __P((VBR *, unsigned int));
+extern void vbr_options (VBR *, unsigned int);
 
 /*
 **  VBR_CLOSE -- shut down a VBR instance
@@ -92,7 +83,7 @@ extern void vbr_options __P((VBR *, unsigned int));
 **  	None.
 */
 
-extern void vbr_close __P((VBR *));
+extern void vbr_close (VBR *);
 
 /*
 **  VBR_GETERROR -- return any stored error string from within the VBR
@@ -105,7 +96,7 @@ extern void vbr_close __P((VBR *));
 **  	A pointer to the stored string, or NULL if none was stored.
 */
 
-extern const u_char *vbr_geterror __P((VBR *));
+extern const u_char *vbr_geterror (VBR *);
 
 /*
 **  VBR_GETHEADER -- generate and store the VBR-Info header
@@ -120,7 +111,7 @@ extern const u_char *vbr_geterror __P((VBR *));
 **  	STAT_NORESOURCE -- "hdr" was too short
 */
 
-extern VBR_STAT vbr_getheader __P((VBR *, unsigned char *, size_t));
+extern VBR_STAT vbr_getheader (VBR *, unsigned char *, size_t);
 
 /*
 **  VBR_SETCERT -- store the VBR certifiers of this message
@@ -133,7 +124,7 @@ extern VBR_STAT vbr_getheader __P((VBR *, unsigned char *, size_t));
 **  	None (yet).
 */
 
-extern void vbr_setcert __P((VBR *, u_char *));
+extern void vbr_setcert (VBR *, u_char *);
 
 /*
 **  VBR_SETTYPE -- store the VBR type of this message
@@ -146,7 +137,7 @@ extern void vbr_setcert __P((VBR *, u_char *));
 **  	None (yet).
 */
 
-extern void vbr_settype __P((VBR *, u_char *));
+extern void vbr_settype (VBR *, u_char *);
 
 /*
 **  VBR_SETDOMAIN -- declare the sender's domain
@@ -159,7 +150,7 @@ extern void vbr_settype __P((VBR *, u_char *));
 **  	None (yet).
 */
 
-extern void vbr_setdomain __P((VBR *, u_char *));
+extern void vbr_setdomain (VBR *, u_char *);
 
 /*
 **  VBR_TRUSTEDCERTS -- set list of trusted certifiers
@@ -172,7 +163,7 @@ extern void vbr_setdomain __P((VBR *, u_char *));
 **  	None (yet).
 */
 
-extern void vbr_trustedcerts __P((VBR *, u_char **));
+extern void vbr_trustedcerts (VBR *, u_char **);
 
 /*
 **  VBR_QUERY -- query the vouching servers for results
@@ -195,7 +186,7 @@ extern void vbr_trustedcerts __P((VBR *, u_char **));
 **  	- there's no attempt to validate the values found
 */
 
-extern VBR_STAT vbr_query __P((VBR *, u_char **, u_char **));
+extern VBR_STAT vbr_query (VBR *, u_char **, u_char **);
 
 /*
 **  VBR_SETTIMEOUT -- set the DNS timeout
@@ -208,7 +199,7 @@ extern VBR_STAT vbr_query __P((VBR *, u_char **, u_char **));
 **  	A VBR_STAT_* constant.
 */
 
-extern VBR_STAT vbr_settimeout __P((VBR *, u_int));
+extern VBR_STAT vbr_settimeout (VBR *, u_int);
 
 /*
 **  VBR_SETCALLBACKINT -- set the DNS callback interval
@@ -221,7 +212,7 @@ extern VBR_STAT vbr_settimeout __P((VBR *, u_int));
 **  	A VBR_STAT_* constant.
 */
 
-extern VBR_STAT vbr_setcallbackint __P((VBR *, u_int));
+extern VBR_STAT vbr_setcallbackint (VBR *, u_int);
 
 /*
 **  VBR_SETCALLBACKCTX -- set the DNS callback context
@@ -234,7 +225,7 @@ extern VBR_STAT vbr_setcallbackint __P((VBR *, u_int));
 **  	A VBR_STAT_* constant.
 */
 
-extern VBR_STAT vbr_setcallbackctx __P((VBR *, void *));
+extern VBR_STAT vbr_setcallbackctx (VBR *, void *);
 
 /*
 **  VBR_SETDNSCALLBACK -- set the DNS wait callback
@@ -247,8 +238,8 @@ extern VBR_STAT vbr_setcallbackctx __P((VBR *, void *));
 **  	A VBR_STAT_* constant.
 */
 
-extern VBR_STAT vbr_setdnscallback __P((VBR *vbr,
-                                        void (*func)(const void *context)));
+extern VBR_STAT vbr_setdnscallback (VBR *vbr,
+                                        void (*func)(const void *context));
 
 /*
 **  VBR_DNS_SET_QUERY_SERVICE -- stores a handle representing the DNS
@@ -263,7 +254,7 @@ extern VBR_STAT vbr_setdnscallback __P((VBR *vbr,
 **  	Previously stored handle, or NULL if none.
 */
 
-extern void *vbr_dns_set_query_service __P((VBR *, void *));
+extern void *vbr_dns_set_query_service (VBR *, void *);
 
 /*
 **  VBR_DNS_SET_QUERY_START -- stores a pointer to a query start function
@@ -287,10 +278,10 @@ extern void *vbr_dns_set_query_service __P((VBR *, void *));
 **  		void **qh -- returned query handle
 */
 
-extern void vbr_dns_set_query_start __P((VBR *, int (*)(void *, int,
+extern void vbr_dns_set_query_start (VBR *, int (*)(void *, int,
                                                         unsigned char *,
                                                         unsigned char *,
-                                                        size_t, void **)));
+                                                        size_t, void **));
 
 /*
 **  VBR_DNS_SET_QUERY_CANCEL -- stores a pointer to a query cancel function
@@ -309,7 +300,7 @@ extern void vbr_dns_set_query_start __P((VBR *, int (*)(void *, int,
 **  		void *qh -- query handle to be canceled
 */
 
-extern void vbr_dns_set_query_cancel __P((VBR *, int (*)(void *, void *)));
+extern void vbr_dns_set_query_cancel (VBR *, int (*)(void *, void *));
 
 /*
 **  VBR_DNS_SET_QUERY_WAITREPLY -- stores a pointer to wait for a DNS reply
@@ -332,10 +323,10 @@ extern void vbr_dns_set_query_cancel __P((VBR *, int (*)(void *, void *)));
 **  		int *dnssec -- DNSSEC status returned
 */
 
-extern void vbr_dns_set_query_waitreply __P((VBR *, int (*)(void *, void *,
+extern void vbr_dns_set_query_waitreply (VBR *, int (*)(void *, void *,
                                                             struct timeval *,
                                                             size_t *, int *,
-                                                            int *)));
+                                                            int *));
 
 /*
 **  VBR_DNS_SET_NSLIST -- set function that updates resolver nameserver list
@@ -355,8 +346,8 @@ extern void vbr_dns_set_query_waitreply __P((VBR *, int (*)(void *, void *,
 **  			string
 */
 
-extern void vbr_dns_set_nslist __P((VBR *,
-                                    int (*)(void *, const char *)));
+extern void vbr_dns_set_nslist (VBR *,
+                                    int (*)(void *, const char *));
 
 /*
 **  VBR_DNS_SET_CLOSE -- shuts down the resolver
@@ -374,8 +365,8 @@ extern void vbr_dns_set_nslist __P((VBR *,
 **  		void *srv -- DNS service handle
 */
 
-extern void vbr_dns_set_close __P((VBR *,
-                                   void (*)(void *)));
+extern void vbr_dns_set_close (VBR *,
+                                   void (*)(void *));
 
 /*
 **  VBR_DNS_SET_INIT -- initializes the resolver
@@ -393,8 +384,8 @@ extern void vbr_dns_set_close __P((VBR *,
 **  		void **srv -- DNS service handle (updated)
 */
 
-extern void vbr_dns_set_init __P((VBR *,
-                                  int (*)(void **)));
+extern void vbr_dns_set_init (VBR *,
+                                  int (*)(void **));
 
 /*
 **  VBR_DNS_SET_CONFIG -- configures the resolver
@@ -413,8 +404,8 @@ extern void vbr_dns_set_init __P((VBR *,
 **  		const char *config -- arbitrary resolver configuration data
 */
 
-extern void vbr_dns_set_config __P((VBR *,
-                                    int (*)(void *, const char *)));
+extern void vbr_dns_set_config (VBR *,
+                                    int (*)(void *, const char *));
 
 /*
 **  VBR_DNS_SET_TRUSTANCHOR -- provides trust anchor data to the resolver
@@ -433,8 +424,8 @@ extern void vbr_dns_set_config __P((VBR *,
 **  		const char *trust -- arbitrary trust anchor data
 */
 
-extern void vbr_dns_set_trustanchor __P((VBR *,
-                                         int (*)(void *, const char *)));
+extern void vbr_dns_set_trustanchor (VBR *,
+                                         int (*)(void *, const char *));
 
 /*
 **  VBR_DNS_NSLIST -- requests update to a nameserver list
@@ -447,7 +438,7 @@ extern void vbr_dns_set_trustanchor __P((VBR *,
 **  	An VBR_STAT_* constant.
 */
 
-extern VBR_STAT vbr_dns_nslist __P((VBR *, const char *));
+extern VBR_STAT vbr_dns_nslist (VBR *, const char *);
 
 /*
 **  VBR_DNS_CONFIG -- requests a change to resolver configuration
@@ -460,7 +451,7 @@ extern VBR_STAT vbr_dns_nslist __P((VBR *, const char *));
 **  	An VBR_STAT_* constant.
 */
 
-extern VBR_STAT vbr_dns_config __P((VBR *, const char *));
+extern VBR_STAT vbr_dns_config (VBR *, const char *);
 
 /*
 **  VBR_DNS_TRUSTANCHOR -- requests a change to resolver trust anchor data
@@ -473,7 +464,7 @@ extern VBR_STAT vbr_dns_config __P((VBR *, const char *));
 **  	An VBR_STAT_* constant.
 */
 
-extern VBR_STAT vbr_dns_trustanchor __P((VBR *, const char *));
+extern VBR_STAT vbr_dns_trustanchor (VBR *, const char *);
 
 /*
 **  VBR_DNS_INIT -- force nameserver (re)initialization
@@ -485,6 +476,6 @@ extern VBR_STAT vbr_dns_trustanchor __P((VBR *, const char *));
 **  	An VBR_STAT_* constant.
 */
 
-extern VBR_STAT vbr_dns_init __P((VBR *));
+extern VBR_STAT vbr_dns_init (VBR *);
 
 #endif /* _VBR_H_ */

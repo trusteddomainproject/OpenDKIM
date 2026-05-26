@@ -13,15 +13,6 @@
 /* system includes */
 #include <sys/types.h>
 
-#ifdef __STDC__
-# ifndef __P
-#  define __P(x)  x
-# endif /* ! __P */
-#else /* __STDC__ */
-# ifndef __P
-#  define __P(x)  ()
-# endif /* ! __P */
-#endif /* __STDC__ */
 
 #define	ARF_VERSION		"0.1"
 
@@ -50,7 +41,7 @@
 #define	ARF_OPTIONS_DKIM_EXPIRED "x"
 
 /* prototypes */
-extern char *arf_dkim_failure_string __P((int));
-extern char *arf_type_string __P((int));
+extern char *arf_dkim_failure_string (int);
+extern char *arf_type_string (int);
 
 #endif /* _DKIM_ARF_H_ */

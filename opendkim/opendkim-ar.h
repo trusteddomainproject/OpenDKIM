@@ -98,6 +98,6 @@ struct authres
 **  	0 on success, -1 on failure.
 */
 
-extern int ares_parse __P((u_char *hdr, struct authres *ar));
+extern int ares_parse (u_char *hdr, struct authres *ar);
 
 #endif /* _OPENDKIM_AR_H_ */

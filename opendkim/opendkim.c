@@ -696,49 +696,49 @@ struct lookup dkimf_statusstrings[] =
 
 /* PROTOTYPES */
 #ifdef LEAK_TRACKING
-void dkimf_debug_free __P((void *, char *, int));
-void *dkim_debug_malloc __P((size_t, char *, int));
-void *dkim_debug_realloc __P((void *, size_t, char *, int));
+void dkimf_debug_free (void *, char *, int);
+void *dkim_debug_malloc (size_t, char *, int);
+void *dkim_debug_realloc (void *, size_t, char *, int);
 
 # define free(x)	dkimf_debug_free((x), __FILE__, __LINE__)
 # define malloc(x)	dkimf_debug_malloc((x), __FILE__, __LINE__)
 # define realloc(x,y)	dkimf_debug_realloc((x), (y), __FILE__, __LINE__)
 #endif /* LEAK_TRACKING */
 
-sfsistat mlfi_abort __P((SMFICTX *));
-sfsistat mlfi_body __P((SMFICTX *, u_char *, size_t));
-sfsistat mlfi_close __P((SMFICTX *));
-sfsistat mlfi_connect __P((SMFICTX *, char *, _SOCK_ADDR *));
-sfsistat mlfi_envfrom __P((SMFICTX *, char **));
-sfsistat mlfi_envrcpt __P((SMFICTX *, char **));
-sfsistat mlfi_eoh __P((SMFICTX *));
-sfsistat mlfi_eom __P((SMFICTX *));
-sfsistat mlfi_header __P((SMFICTX *, char *, char *));
-sfsistat mlfi_negotiate __P((SMFICTX *, unsigned long, unsigned long,
+sfsistat mlfi_abort (SMFICTX *);
+sfsistat mlfi_body (SMFICTX *, u_char *, size_t);
+sfsistat mlfi_close (SMFICTX *);
+sfsistat mlfi_connect (SMFICTX *, char *, _SOCK_ADDR *);
+sfsistat mlfi_envfrom (SMFICTX *, char **);
+sfsistat mlfi_envrcpt (SMFICTX *, char **);
+sfsistat mlfi_eoh (SMFICTX *);
+sfsistat mlfi_eom (SMFICTX *);
+sfsistat mlfi_header (SMFICTX *, char *, char *);
+sfsistat mlfi_negotiate (SMFICTX *, unsigned long, unsigned long,
                                         unsigned long, unsigned long,
                                         unsigned long *, unsigned long *,
-                                        unsigned long *, unsigned long *));
+                                        unsigned long *, unsigned long *);
 
-static int dkimf_add_signrequest __P((struct msgctx *, DKIMF_DB,
-                                      char *, char *, ssize_t));
-sfsistat dkimf_addheader __P((SMFICTX *, char *, char *));
-sfsistat dkimf_addrcpt __P((SMFICTX *, char *));
-static int dkimf_apply_signtable __P((struct msgctx *, DKIMF_DB, DKIMF_DB,
+static int dkimf_add_signrequest (struct msgctx *, DKIMF_DB,
+                                      char *, char *, ssize_t);
+sfsistat dkimf_addheader (SMFICTX *, char *, char *);
+sfsistat dkimf_addrcpt (SMFICTX *, char *);
+static int dkimf_apply_signtable (struct msgctx *, DKIMF_DB, DKIMF_DB,
                                       unsigned char *, unsigned char *, char *,
-                                      size_t, _Bool));
-sfsistat dkimf_chgheader __P((SMFICTX *, char *, int, char *));
-static void dkimf_cleanup __P((SMFICTX *));
-static void dkimf_config_reload __P((void));
-sfsistat dkimf_delrcpt __P((SMFICTX *, char *));
-static Header dkimf_findheader __P((msgctx, char *, int));
-void *dkimf_getpriv __P((SMFICTX *));
-char *dkimf_getsymval __P((SMFICTX *, char *));
-sfsistat dkimf_insheader __P((SMFICTX *, int, char *, char *));
-sfsistat dkimf_quarantine __P((SMFICTX *, char *));
-void dkimf_sendprogress __P((const void *));
-sfsistat dkimf_setpriv __P((SMFICTX *, void *));
-sfsistat dkimf_setreply __P((SMFICTX *, char *, char *, char *));
-static void dkimf_sigreport __P((connctx, struct dkimf_config *, char *));
+                                      size_t, _Bool);
+sfsistat dkimf_chgheader (SMFICTX *, char *, int, char *);
+static void dkimf_cleanup (SMFICTX *);
+static void dkimf_config_reload (void);
+sfsistat dkimf_delrcpt (SMFICTX *, char *);
+static Header dkimf_findheader (msgctx, char *, int);
+void *dkimf_getpriv (SMFICTX *);
+char *dkimf_getsymval (SMFICTX *, char *);
+sfsistat dkimf_insheader (SMFICTX *, int, char *, char *);
+sfsistat dkimf_quarantine (SMFICTX *, char *);
+void dkimf_sendprogress (const void *);
+sfsistat dkimf_setpriv (SMFICTX *, void *);
+sfsistat dkimf_setreply (SMFICTX *, char *, char *, char *);
+static void dkimf_sigreport (connctx, struct dkimf_config *, char *);
 static void dkimf_log(struct dkimf_config *conf, int priority, const char *format, ...);
 
 /* GLOBALS */
