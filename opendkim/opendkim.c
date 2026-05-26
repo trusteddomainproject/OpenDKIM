@@ -62,6 +62,8 @@
 #else /* USE_GNUTLS */
 # include <openssl/sha.h>
 # include <openssl/err.h>
+# include <openssl/pem.h>
+# include <openssl/evp.h>
 #endif /* USE_GNUTLS */
 
 #ifndef SHA_DIGEST_LENGTH
@@ -5563,12 +5565,15 @@ dkimf_reportaddr(struct dkimf_config *conf)
 	if (pw == NULL)
 	{
 		snprintf(reportaddr, sizeof reportaddr,
-		         "%u@%s", uid, myhostname);
+		         "%u@%.*s", uid,
+		         (int)(sizeof reportaddr - 12), myhostname);
 	}
 	else
 	{
 		snprintf(reportaddr, sizeof reportaddr,
-		         "%s@%s", pw->pw_name, myhostname);
+		         "%.*s@%.*s",
+		         (int)((sizeof reportaddr - 2) / 2), pw->pw_name,
+		         (int)((sizeof reportaddr - 2) / 2), myhostname);
 	}
 
 	snprintf(reportcmd, sizeof reportcmd, "%s -t -f%s",
@@ -8184,7 +8189,8 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			pw = getpwnam(tmp);
 			if (pw == NULL)
 			{
-				snprintf(err, errlen, "%s: no such user", tmp);
+				snprintf(err, errlen, "%.*s: no such user",
+				         errlen > 15 ? (int)(errlen - 15) : 0, tmp);
 				close(fd);
 				return -1;
 			}
@@ -8269,6 +8275,53 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		close(fd);
 		s33krit[s.st_size] = '\0';
 		conf->conf_seckey = s33krit;
+
+		/* auto-detect signing algorithm from key type if not set */
+		if (conf->conf_signalgstr == NULL)
+		{
+#ifdef USE_GNUTLS
+			gnutls_privkey_t pk;
+			unsigned int bits = 0;
+
+			if (gnutls_privkey_init(&pk) == GNUTLS_E_SUCCESS)
+			{
+				gnutls_datum_t d;
+
+				d.data = (unsigned char *) conf->conf_seckey;
+				d.size = strlen(conf->conf_seckey);
+
+				if (gnutls_privkey_import_x509_raw(pk, &d,
+				    GNUTLS_X509_FMT_PEM, NULL, 0) == GNUTLS_E_SUCCESS)
+				{
+					if (gnutls_privkey_get_pk_algorithm(pk,
+					    &bits) == GNUTLS_PK_EDDSA_ED25519)
+						conf->conf_signalg =
+						    DKIM_SIGN_ED25519SHA256;
+				}
+
+				gnutls_privkey_deinit(pk);
+			}
+#else /* USE_GNUTLS */
+			BIO *keybio;
+			EVP_PKEY *pkey = NULL;
+
+			keybio = BIO_new_mem_buf(conf->conf_seckey, -1);
+			if (keybio != NULL)
+			{
+				pkey = PEM_read_bio_PrivateKey(keybio, NULL,
+				                              NULL, NULL);
+				BIO_free(keybio);
+			}
+
+			if (pkey != NULL)
+			{
+				if (EVP_PKEY_base_id(pkey) == EVP_PKEY_ED25519)
+					conf->conf_signalg =
+					    DKIM_SIGN_ED25519SHA256;
+				EVP_PKEY_free(pkey);
+			}
+#endif /* USE_GNUTLS */
+		}
 	}
 
 	/* confirm signing mode parameters */
@@ -10430,7 +10483,7 @@ dkimf_sigreport(connctx cc, struct dkimf_config *conf, char *hostname)
 	fprintf(out, "--dkimreport/%s/%s\n", hostname, dfc->mctx_jobid);
 	fprintf(out, "Content-Type: message/feedback-report\n");
 	fprintf(out, "\n");
-	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, VERSION);
+	fprintf(out, "User-Agent: %s/%s\n", DKIMF_PRODUCTNS, DKIMF_VERSION);
 	fprintf(out, "Version: %s\n", ARF_VERSION);
 	fprintf(out, "Original-Envelope-Id: %s\n", dfc->mctx_jobid);
 	fprintf(out, "Original-Mail-From: %s\n", dfc->mctx_envfrom);
@@ -10847,7 +10900,7 @@ dkimf_ar_all_sigs(char *hdr, size_t hdrlen, struct dkimf_dstring *tmpstr,
  				                     " (%u-bit key%s%s)",
  				                     keybits,
  				                     dnssec == NULL ? ""
- 				                                    : "; ",
+ 				                                    : ", ",
  				                     dnssec == NULL ? ""
  				                                    : dnssec);
  			}
@@ -12339,8 +12392,9 @@ mlfi_eoh(SMFICTX *ctx)
 
 				if (domainok)
 				{
-					strlcpy((char *) dfc->mctx_domain, p,
-					        sizeof dfc->mctx_domain);
+					/* p points into mctx_domain; use memmove */
+					memmove(dfc->mctx_domain, p,
+					        strlen(p) + 1);
 					break;
 				}
 			}
@@ -12778,14 +12832,18 @@ mlfi_eoh(SMFICTX *ctx)
 		char *msg = NULL;
 
 		/* exactly one From: */
-		if (dkimf_findheader(dfc, "From", 0) == NULL ||
-		    dkimf_findheader(dfc, "From", 1) != NULL)
-			msg = "message does not have exactly one From field";
+		if (dkimf_findheader(dfc, "From", 0) == NULL)
+			msg = "message has no From field";
+
+		if (dkimf_findheader(dfc, "From", 1) != NULL)
+			msg = "message has multiple From fields";
 
 		/* exactly one Date: */
-		if (dkimf_findheader(dfc, "Date", 0) == NULL ||
-		    dkimf_findheader(dfc, "Date", 1) != NULL)
-			msg = "message does not have exactly one Date field";
+		if (dkimf_findheader(dfc, "Date", 0) == NULL)
+			msg = "message has no Date field";
+
+		if (dkimf_findheader(dfc, "Date", 1) != NULL)
+			msg = "message has multiple Date fields";
 
 		/* no more than one Reply-To: */
 		if (dkimf_findheader(dfc, "Reply-To", 1) != NULL)
@@ -12883,8 +12941,8 @@ mlfi_eoh(SMFICTX *ctx)
 				
 		if (!idset)
 		{
-			snprintf((char *) identity, sizeof identity, "@%s",
-			         dfc->mctx_domain);
+			snprintf((char *) identity, sizeof identity, "@%.*s",
+			         (int)(sizeof identity - 2), dfc->mctx_domain);
 		}
 
 		if (dfc->mctx_srhead != NULL)
@@ -15212,11 +15270,23 @@ mlfi_eom(SMFICTX *ctx)
 
 		memset(xfhdr, '\0', sizeof xfhdr);
 
-		snprintf(xfhdr, DKIM_MAXHEADER, "%s%s v%s %s %s",
-		         cc->cctx_noleadspc ? " " : "",
-		         DKIMF_PRODUCT, VERSION, hostname,
-		         dfc->mctx_jobid != NULL ? dfc->mctx_jobid
-		                                 : (u_char *) JOBIDUNKNOWN);
+		if (strcasecmp(hostname, myhostname) == 0)
+		{
+			snprintf(xfhdr, DKIM_MAXHEADER, "%s%s v%s %s %s",
+			         cc->cctx_noleadspc ? " " : "",
+			         DKIMF_PRODUCT, DKIMF_VERSION, hostname,
+			         dfc->mctx_jobid != NULL ? dfc->mctx_jobid
+			                                 : (u_char *) JOBIDUNKNOWN);
+		}
+		else
+		{
+			snprintf(xfhdr, DKIM_MAXHEADER, "%s%s v%s %s via %s %s",
+			         cc->cctx_noleadspc ? " " : "",
+			         DKIMF_PRODUCT, DKIMF_VERSION, hostname,
+			         myhostname,
+			         dfc->mctx_jobid != NULL ? dfc->mctx_jobid
+			                                 : (u_char *) JOBIDUNKNOWN);
+		}
 
 		if (dkimf_insheader(ctx, 0, SWHEADERNAME, xfhdr) != MI_SUCCESS)
 		{
@@ -15523,7 +15593,7 @@ main(int argc, char **argv)
 	DKIM_STAT dkim_stat;
 	DKIM_ITER_CTX *iter_ctx;
 	int entry_code;
-	char *entry_name;
+	const char *entry_name;
 
 	/* initialize */
 	reload = FALSE;
@@ -15758,7 +15828,7 @@ main(int argc, char **argv)
 			}
 
 			printf("%s: %s v%s\n", progname, DKIMF_PRODUCT,
-			       VERSION);
+			       DKIMF_VERSION);
 #ifdef USE_GNUTLS
 			printf("\tCompiled with GnuTLS %s\n", GNUTLS_VERSION);
 #else /* USE_GNUTLS */
@@ -15820,6 +15890,7 @@ main(int argc, char **argv)
 				/* we can do nothing eveif dkim_stat is not
 				   DKIM_STAT_OK ... */
 			}
+			printf("\tConfigured with: %s\n", CONFIGURE_ARGS);
 			dkimf_optlist(stdout);
 			return EX_OK;
 
@@ -17085,7 +17156,7 @@ main(int argc, char **argv)
 		_Bool noargs = strlen(argstr) == 0;
 
 		dkimf_log(curconf, LOG_INFO, "%s v%s starting%s%s%s", DKIMF_PRODUCT,
-		          VERSION,
+		          DKIMF_VERSION,
 		          noargs ? "" : " (",
 		          argstr,
 		          noargs ? "" : ")");
@@ -17121,7 +17192,7 @@ main(int argc, char **argv)
 
 	dkimf_log(curconf, LOG_INFO,
 		  "%s v%s terminating with status %d, errno = %d",
-		  DKIMF_PRODUCT, VERSION, status, errno);
+		  DKIMF_PRODUCT, DKIMF_VERSION, status, errno);
 
 #ifdef POPAUTH
 	if (popdb != NULL)

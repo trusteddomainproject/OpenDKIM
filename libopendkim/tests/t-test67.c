@@ -7,6 +7,7 @@
 */
 
 #include "build-config.h"
+#include "t-sha1.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -107,6 +108,7 @@ main(int argc, char **argv)
 	}
 
 	printf("*** relaxed/simple rsa-sha1/rsa-256 verifying\n");
+	SKIP_IF_NO_SHA1();
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */

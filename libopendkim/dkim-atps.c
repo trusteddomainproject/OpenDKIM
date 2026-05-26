@@ -36,6 +36,7 @@
 #else /* USE_GNUTLS */
 /* openssl includes */
 # include <openssl/sha.h>
+# include <openssl/evp.h>
 #endif /* USE_GNUTLS */
 
 /* prototypes */
@@ -112,11 +113,6 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 	u_char *eom;
 #ifdef USE_GNUTLS
 	gnutls_hash_hd_t ctx;
-#else /* USE_GNUTLS */
-        SHA_CTX ctx;
-# ifdef HAVE_SHA256
-	SHA256_CTX ctx2;
-# endif /* HAVE_SHA256 */
 #endif /* USE_GNUTLS */
 	struct timeval to;
 	HEADER hdr;
@@ -197,16 +193,14 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 		switch (hash)
 		{
 		  case DKIM_HASHTYPE_SHA1:
-			SHA1_Init(&ctx);
-			SHA1_Update(&ctx, sdomain, strlen(sdomain));
-			SHA1_Final(digest, &ctx);
+			(void) EVP_Digest(sdomain, strlen(sdomain), digest,
+			                  NULL, EVP_sha1(), NULL);
 			break;
 
 #  ifdef HAVE_SHA256
 		  case DKIM_HASHTYPE_SHA256:
-			SHA256_Init(&ctx2);
-			SHA256_Update(&ctx2, sdomain, strlen(sdomain));
-			SHA256_Final(digest, &ctx2);
+			(void) EVP_Digest(sdomain, strlen(sdomain), digest,
+			                  NULL, EVP_sha256(), NULL);
 			break;
 #  endif /* HAVE_SHA256 */
 
@@ -375,7 +369,7 @@ dkim_atps_check(DKIM *dkim, DKIM_SIGINFO *sig, struct timeval *timeout,
 			cp += n;
 			continue;
 		}
-		else if (type == T_RRSIG)
+		else if ((type == T_RRSIG) || (type == T_DNAME))
 		{
 			/* get payload length */
 			if (cp + INT16SZ > eom)

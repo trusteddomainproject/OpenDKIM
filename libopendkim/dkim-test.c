@@ -27,6 +27,7 @@
 # include <openssl/bio.h>
 # include <openssl/rsa.h>
 # include <openssl/evp.h>
+# include <openssl/x509.h>
 #endif /* USE_GNUTLS */
 
 /* libopendkim includes */

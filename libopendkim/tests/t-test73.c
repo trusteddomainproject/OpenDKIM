@@ -7,6 +7,7 @@
 */
 
 #include "build-config.h"
+#include "t-sha1.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -194,6 +195,7 @@ main(int argc, char **argv)
 	}
 
 	printf("*** simple/simple rsa-sha256 verifying with extra signature spaces and reportinfo (failure)\n");
+	SKIP_IF_NO_SHA1();
 
 	/* DNS stubs for the reporting data lookup */
 	dkim_dns_set_query_service(lib, NULL);

@@ -7,6 +7,7 @@
 */
 
 #include "build-config.h"
+#include "t-sha1.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -62,6 +63,7 @@ main(int argc, char **argv)
 	if (!dkim_libfeature(lib, DKIM_FEATURE_CONDITIONAL))
 	{
 		printf("*** conditional signature generation SKIPPED\n");
+	SKIP_IF_NO_SHA1();
 		dkim_close(lib);
 		return 0;
 	}

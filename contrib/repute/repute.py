@@ -57,11 +57,10 @@ class DKIM(object):
                 res2 = res2[1][0]
                 reputons['rate'] = res2[0]
 
-            defer.returnValue(
-                {
-                    "application": "email-id",
-                    "reputons": [ reputons ]
-                })
+            return {
+                "application": "email-id",
+                "reputons": [ reputons ]
+            }
 
 
         @defer.inlineCallbacks
@@ -83,7 +82,7 @@ class DKIM(object):
                 ret = dict(itertools.izip(fields, rows[0]))
             else:
                 ret = 0
-            defer.returnValue(ret)
+            return ret
 
         @defer.inlineCallbacks
         def reporter_GET(self, request, params, reporter):
@@ -108,7 +107,7 @@ class DKIM(object):
                 request.setHeader('Last-modified', rows[0][3].strftime("%A, %d, %B %Y %H:%M GMT"))
             else:
                 ret = False
-            defer.returnValue(ret)
+            return ret
 
 DKIM_APIDef = {
     "metadata": {"versions": [1]},

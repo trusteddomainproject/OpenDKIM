@@ -7,6 +7,7 @@
 */
 
 #include "build-config.h"
+#include "t-sha1.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -114,6 +115,7 @@ main(int argc, char **argv)
 	}
 
 	printf("*** simple/simple rsa-sha256 verifying with key callback and key reuse\n");
+	SKIP_IF_NO_SHA1();
 
 #ifdef TEST_KEEP_FILES
 	/* set flags */

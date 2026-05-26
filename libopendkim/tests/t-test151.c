@@ -7,6 +7,7 @@
 */
 
 #include "build-config.h"
+#include "t-sha1.h"
 
 /* system includes */
 #include <sys/types.h>
@@ -71,6 +72,7 @@ main(int argc, char **argv)
 	if (!dkim_libfeature(lib, DKIM_FEATURE_RESIGN))
 	{
 		printf("*** relaxed/simple rsa-sha1 dual signing with shared body SKIPPED\n");
+	SKIP_IF_NO_SHA1();
 		dkim_close(lib);
 		return 0;
 	}

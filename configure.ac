@@ -46,9 +46,26 @@ AC_CONFIG_MACRO_DIR([m4])
 
 #
 # Hexadecimal version, for use in generating dkim.h
-# 
+#
 HEX_VERSION=$(printf %08x $(( ((VERSION_RELEASE << 8 | VERSION_MAJOR_REV) << 8 | VERSION_MINOR_REV) << 8| VERSION_PATCH )))
 AC_SUBST([HEX_VERSION])
+
+#
+# Version string for the software header; includes git hash for development builds
+#
+AC_CHECK_PROG([GIT], [git], [git])
+AC_MSG_CHECKING([build version string])
+DKIMF_VERSION=$PACKAGE_VERSION
+if test -n "$GIT" && $GIT describe --tags --dirty >/dev/null 2>&1; then
+    _git_ver=$($GIT describe --tags --dirty)
+    _git_ver=${_git_ver#v}
+    if test "$_git_ver" != "$PACKAGE_VERSION"; then
+        DKIMF_VERSION=$_git_ver
+    fi
+fi
+AC_MSG_RESULT([$DKIMF_VERSION])
+AC_DEFINE_UNQUOTED([DKIMF_VERSION], ["$DKIMF_VERSION"],
+                   [Version string for software header, including git hash on development builds])
 
 #
 # library version, passed to libtool
@@ -116,10 +133,26 @@ AC_SEARCH_LIBS(getaddrinfo, resolv,
 # it, it conflicts with AC_LANG_CALL's redeclaration. Hmm. I guess the
 # only thing for it is to include resolv.h, don't redeclare res_ninit(),
 # and use the proper type signature when calling it.
+
+# Before using resolv.h, we need to check headers required for it.
+AC_HEADER_RESOLV
+
 m4_rename([AC_LANG_CALL], [saved_AC_LANG_CALL])
-m4_define([AC_LANG_CALL], [AC_LANG_PROGRAM([#include <resolv.h>],
+m4_define([AC_LANG_CALL], [AC_LANG_PROGRAM([#ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h>
+#endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+#include <resolv.h>],
                                            [return res_ninit(NULL);])])
-AC_SEARCH_LIBS(res_ninit, resolv,
+AC_SEARCH_LIBS(res_ninit, resolv bind,
                AC_DEFINE(HAVE_RES_NINIT, 1,
                          [Define to 1 if you have the `res_ninit()' function.]))
 m4_rename_force([saved_AC_LANG_CALL], [AC_LANG_CALL])
@@ -129,8 +162,6 @@ AC_SEARCH_LIBS(res_setservers, resolv bind,
 AC_SEARCH_LIBS(getopt_long, iberty,
                AC_DEFINE(HAVE_GETOPT_LONG, 1,
                          [Define to 1 if you have the `getopt_long()' function.]))
-
-AC_HEADER_RESOLV
 
 #
 # Check for types
@@ -789,6 +820,7 @@ then
 fi
 
 AM_CONDITIONAL([USE_GNUTLS], [test x"$gnutls_found" = x"yes"])
+AM_CONDITIONAL([HAVE_SHA1_SIGNING], [test x"$ac_cv_have_sha1_signing" = x"yes"])
 
 #
 # OpenSSL
@@ -928,6 +960,75 @@ then
 	              [
 #include <sys/types.h>
 #include <openssl/sha.h>])
+
+	AC_CACHE_CHECK([whether RSA-SHA1 signing is available],
+	               [ac_cv_have_sha1_signing],
+	  [AC_RUN_IFELSE(
+	    [AC_LANG_PROGRAM([[
+#include <openssl/evp.h>
+#include <openssl/rsa.h>
+#include <string.h>
+]],[[
+	EVP_PKEY_CTX *kctx;
+	EVP_PKEY_CTX *sctx;
+	EVP_PKEY *pkey = NULL;
+	EVP_MD_CTX *hctx;
+	unsigned char hash[20];
+	unsigned int hashlen = sizeof(hash);
+	unsigned char sig[256];
+	size_t siglen = sizeof(sig);
+	const unsigned char data[] = "test";
+	int ret = 1;
+
+	/* Generate a 2048-bit key (matches production key sizes). */
+	kctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL);
+	if (!kctx) return 1;
+	if (EVP_PKEY_keygen_init(kctx) <= 0) goto keydone;
+	if (EVP_PKEY_CTX_set_rsa_keygen_bits(kctx, 2048) <= 0) goto keydone;
+	if (EVP_PKEY_keygen(kctx, &pkey) <= 0) goto keydone;
+keydone:
+	EVP_PKEY_CTX_free(kctx);
+	if (!pkey) return 1;
+
+	/* Compute SHA1 hash of data. */
+	hctx = EVP_MD_CTX_new();
+	if (!hctx) goto done;
+	if (EVP_DigestInit_ex(hctx, EVP_sha1(), NULL) <= 0) goto done;
+	if (EVP_DigestUpdate(hctx, data, sizeof(data)) <= 0) goto done;
+	if (EVP_DigestFinal_ex(hctx, hash, &hashlen) <= 0) goto done;
+	EVP_MD_CTX_free(hctx);
+	hctx = NULL;
+
+	/*
+	 * Sign the pre-computed hash using the same EVP_PKEY_sign API
+	 * path that libopendkim uses internally.  This is intentionally
+	 * different from EVP_DigestSign so that system restrictions on
+	 * SHA1 as a signature digest (e.g., RHEL 9 evp_properties) are
+	 * detected here rather than at run time.
+	 */
+	sctx = EVP_PKEY_CTX_new(pkey, NULL);
+	if (!sctx) goto done;
+	if (EVP_PKEY_sign_init(sctx) <= 0) goto sigdone;
+	if (EVP_PKEY_CTX_set_rsa_padding(sctx, RSA_PKCS1_PADDING) <= 0) goto sigdone;
+	if (EVP_PKEY_CTX_set_signature_md(sctx, EVP_sha1()) <= 0) goto sigdone;
+	if (EVP_PKEY_sign(sctx, sig, &siglen, hash, hashlen) <= 0) goto sigdone;
+	ret = 0;
+sigdone:
+	EVP_PKEY_CTX_free(sctx);
+done:
+	if (hctx) EVP_MD_CTX_free(hctx);
+	EVP_PKEY_free(pkey);
+	return ret;
+]])],
+	    [ac_cv_have_sha1_signing=yes],
+	    [ac_cv_have_sha1_signing=no],
+	    [ac_cv_have_sha1_signing=yes])])
+	if test x"$ac_cv_have_sha1_signing" = x"yes"; then
+		AC_DEFINE([HAVE_SHA1_SIGNING], 1,
+		          [Define to 1 if RSA-SHA1 signing is available on this platform])
+	else
+		AC_MSG_WARN([RSA-SHA1 signing is not available; RSA-SHA1 signing will be disabled and related tests skipped])
+	fi
 
 	CFLAGS="$saved_CFLAGS"
 	CPPFLAGS="$saved_CPPFLAGS"
@@ -2600,4 +2701,7 @@ AC_CONFIG_FILES([	Makefile
 			reputation/opendkim-rephistory.8
 			reputation/repute.pc
 ])
+AC_DEFINE_UNQUOTED([CONFIGURE_ARGS], ["$ac_configure_args"],
+                   [Arguments passed to configure])
+
 AC_OUTPUT

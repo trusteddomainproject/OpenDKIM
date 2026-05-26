@@ -60,7 +60,7 @@ CLEANFILES = t-cleanup
 
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS) t-cleanup
 
-EXTRA_DIST = $(check_SCRIPTS)
+EXTRA_DIST = $(check_SCRIPTS) t-sha1.h
 
 t_setup_SOURCES = t-setup.c t-testdata.h
 t_cleanup_SOURCES = t-cleanup.c t-testdata.h
