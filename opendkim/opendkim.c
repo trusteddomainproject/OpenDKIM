@@ -5692,12 +5692,12 @@ dkimf_getsrlist(void *vp)
 static void
 dkimf_sighandler(int sig)
 {
-	if (sig == SIGINT || sig == SIGTERM || sig == SIGHUP)
+	if (sig == SIGINT || sig == SIGTERM)
 	{
 		diesig = sig;
 		die = TRUE;
 	}
-	else if (sig == SIGUSR1 && !die)
+	else if ((sig == SIGHUP || sig == SIGUSR1) && !die)
 	{
 		if (conffile != NULL)
 			reload = TRUE;
