@@ -8,7 +8,7 @@ Canonicalization	relaxed/simple
 
 Domain			@DOMAIN@
 Selector		default
-KeyFile			/var/db/dkim/@DOMAIN@.private
+KeyFile			@LOCALSTATEDIR@/dkim/@DOMAIN@.private
 
 Socket                  inet:8891@localhost
 
