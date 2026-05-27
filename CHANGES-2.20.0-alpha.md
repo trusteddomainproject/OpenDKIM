@@ -168,7 +168,7 @@ A systematic audit of memory and resource leaks (issue #272) produced fixes acro
 - **Parallel test ordering (complete fix)**: The #296 fix improved ordering but left `t-setup` and `t-cleanup` in `TESTS`, which automake still does not guarantee will run first and last under `-j`. Replaced with the idiomatic automake approach: `t-setup` output (`testkeys`) is declared as `check_DATA`, which automake guarantees is built before any `check_PROGRAMS` test runs. `t-cleanup` is removed entirely; `CLEANFILES` handles teardown. Confirmed working with `make --shuffle` and high parallelism. Closes #110. (#375)
 - **Test socket path**: Tests now use `./testkeys` instead of `/tmp/testkeys` (CVE-2020-35766 hardening). (#288)
 - **Multi-signing tests**: Added `t-test204` and `t-test205` covering multiple simultaneous signatures. (#326)
-- **miltertest standalone repo**: miltertest has been extracted into its own repository at https://github.com/thegushi/miltertest, with the libopendkim dependency removed (it was never used). Intended to eventually live under trusteddomainproject once stabilized. (#100)
+- **miltertest standalone repo**: miltertest has been extracted into its own repository at https://github.com/trusteddomainproject/miltertools, with the libopendkim dependency removed (it was never used). (#100)
 
 ---
 
