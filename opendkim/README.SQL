@@ -14,6 +14,23 @@ single query.  The KeyTable is a common example of this.  Configuring these
 for SQL or LDAP backends can be tricky.  This document explains them in some
 detail and provides a few example configurations.
 
+SPECIAL CHARACTERS IN DSN FIELDS
+=================================
+
+If your database username, password, hostname, port, or database name contains
+any of the characters that the DSN parser uses as delimiters (':', '/', '@',
+'+', '?', or '='), you must encode them using the escape sequence =XY where XY
+is the two-digit uppercase hexadecimal value of the character.  For example, a
+password of "p@ss=word" would be written as "p=40ss=3Dword" in the DSN.
+
+Common encodings:
+  :  =3A
+  /  =2F
+  @  =40
+  +  =2B
+  ?  =3F
+  =  =3D
+
 The SigningTable lookup will use a signing pattern based on the message sender
 to perform a lookup and must return an arbitrary "label", which can be any
 string or number you wish to use.
