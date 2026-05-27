@@ -17,7 +17,7 @@ endif
 
 PROF_SRCS = base64.c dkim-cache.c dkim-canon.c dkim-keys.c dkim-mailparse.c dkim-policy.c dkim-rep.c dkim-strl.c dkim-tables.c dkim-test.c dkim-ub.c dkim-util.c dkim.c util.c
 
-check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
+check_PROGRAMS = t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test05 t-test06 t-test07 t-test08 t-test09 t-test10 t-test11 \
 	t-test12 t-test13 t-test14 t-test15 t-test16 t-test17 t-test18 \
 	t-test19 t-test20 t-test21 t-test22 t-test23 t-test24 t-test25 \
@@ -53,17 +53,22 @@ if ALL_SYMBOLS
 check_PROGRAMS += t-test49 t-test113 t-test118
 endif
 
-# t-cleanup can't be in check_PROGRAMS. It has to run last, after scripts.
-# Put it in EXTRA_PROGRAMS so automake will still build it on demand.
-EXTRA_PROGRAMS = t-cleanup
-CLEANFILES = t-cleanup
+check_DATA = testkeys
+CLEANFILES = $(check_DATA)
 
-TESTS = $(check_PROGRAMS) $(check_SCRIPTS) t-cleanup
+# The path "./testkeys" is hard-coded in t-testdata.h
+testkeys: t-setup$(EXEEXT)
+	./t-setup$(EXEEXT)
+
+# t-setup needs to run first, before check_PROGRAMS. Put it in
+# EXTRA_PROGRAMS so automake will still build it on demand.
+EXTRA_PROGRAMS = t-setup
+
+TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
 
 EXTRA_DIST = $(check_SCRIPTS) t-sha1.h
 
 t_setup_SOURCES = t-setup.c t-testdata.h
-t_cleanup_SOURCES = t-cleanup.c t-testdata.h
 t_signperf_SOURCES = t-signperf.c t-testdata.h
 t_verifyperf_SOURCES = t-verifyperf.c t-testdata.h
 t_test00_SOURCES = t-test00.c t-testdata.h
