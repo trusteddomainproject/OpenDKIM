@@ -100,6 +100,7 @@ A systematic audit of memory and resource leaks (issue #272) produced fixes acro
 
 ## Build system and portability
 
+- **`HEX_VERSION` substitution in dist**: The `sed` regex in `Makefile.am`'s `dist-hook` matched only `[0-9]` hex digits, so `make distcheck` substituted the version incorrectly when the hex version contained A-F. Fixed to match the full hex digit set. (#376)
 - **`__P()` macro removed**: The K&R C compatibility shim was present in 400+ function prototypes across 36 files. musl libc (Alpine Linux and other minimal distros) does not define `__P()`, causing build failures there. Removed all uses; purely mechanical transformation to standard C prototypes. (#337, issue #140)
 - **`res_ninit()` configure detection**: On non-glibc platforms (FreeBSD, etc.), `resolv.h` requires prerequisite headers; the configure check was including only `resolv.h`, causing `res_ninit` to go undetected. Fixed by moving `AC_HEADER_RESOLV` before the check and adding the prerequisite headers to the test program. (#362, #297, issue #203)
 - **Lua detection rewrite**: Overhauled `configure.ac` Lua detection to use pkg-config where available, with manual fallback. Supports Lua 5.1-5.5, respects `LUA_CFLAGS`/`LUA_LIBS` environment variables, drops the stale `lua5.1` pkg-config name. **Note:** the configure flag was renamed from `--with-lua` to `--enable-lua` for autoconf compliance; update any build scripts accordingly. `--with-lua=PATH` is also accepted as a prefix for non-standard installs (e.g. BSD systems with versioned header layouts) and implies `--enable-lua`. (#264, #266, #327, #373, issues #111)
@@ -164,6 +165,7 @@ A systematic audit of memory and resource leaks (issue #272) produced fixes acro
 - **GitHub Actions**: Added Linux CI workflow (Ubuntu, OpenSSL 3, Lua 5.4) running on push and PR to `develop`. (#332)
 - **`workflow_dispatch`**: Added manual trigger button in Actions UI. (#355)
 - **Parallel test ordering**: Fixed `make -j check` failures due to test ordering dependencies. (#296)
+- **Parallel test ordering (complete fix)**: The #296 fix improved ordering but left `t-setup` and `t-cleanup` in `TESTS`, which automake still does not guarantee will run first and last under `-j`. Replaced with the idiomatic automake approach: `t-setup` output (`testkeys`) is declared as `check_DATA`, which automake guarantees is built before any `check_PROGRAMS` test runs. `t-cleanup` is removed entirely; `CLEANFILES` handles teardown. Confirmed working with `make --shuffle` and high parallelism. Closes #110. (#375)
 - **Test socket path**: Tests now use `./testkeys` instead of `/tmp/testkeys` (CVE-2020-35766 hardening). (#288)
 - **Multi-signing tests**: Added `t-test204` and `t-test205` covering multiple simultaneous signatures. (#326)
 - **miltertest standalone repo**: miltertest has been extracted into its own repository at https://github.com/thegushi/miltertest, with the libopendkim dependency removed (it was never used). Intended to eventually live under trusteddomainproject once stabilized. (#100)
@@ -178,8 +180,6 @@ A systematic audit of memory and resource leaks (issue #272) produced fixes acro
 - **#149**: libunbound UDP socket accumulation under sustained load - reported by multiple RHEL 9 / AlmaLinux 9 users (conathan, KIC-8462852, sfsumn, juresaht2); pattern is sockets growing unboundedly, requiring twice-daily restarts. Reproducer running on AWS EC2 AlmaLinux 9 with real friends-and-family mail traffic; no accumulation seen after 3+ hours. May be volume- or configuration-dependent.
 
 - **#354**: Remove or modernize REPUTE/reprrd PHP contrib code - the PHP files in `contrib/repute/` and `reprrd/` use the `mysql_*` extension removed in PHP 7.0 (2015) and are not functional on any modern PHP version. Pending release announcement to surface any remaining users before removal.
-
-- **#110**: `make -j check` failures under parallel test execution - a fix for test ordering dependencies landed in #296, but intermittent parallel failures have not been independently confirmed resolved. Needs a run of `make -j check` over several iterations.
 
 - **#265**: Lua 5.5 compatibility - C API changes (`lua_newstate` seed parameter, `lua_pop` placement, writer function signature) were fixed in #267/#268/#328. Needs a build and smoke test against Lua 5.5.
 
