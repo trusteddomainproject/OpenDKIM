@@ -58,6 +58,7 @@ EXTRA_DIST =  opendkim/opendkim.conf.simple.in \
 # files. The example is taken from the autoconf documentation and can
 # be found in the "Installation Directory Variables" section.
 edit = sed -e 's|@DOMAIN[@]|$(DOMAIN)|g' \
+           -e 's|@LOCALSTATEDIR[@]|$(localstatedir)|g' \
            -e 's|@RUNSTATEDIR[@]|$(runstatedir)|g'
 
 # This rule includes EVERY source/intermediate file as a dependency of
