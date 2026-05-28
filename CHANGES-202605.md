@@ -45,6 +45,7 @@ This document summarizes the changes merged into the `develop` branch during the
 - **`opendkim.c` NULL pointer comparison**: Fixed companion issue in `dkimf_add_signrequest`. (#244)
 - **SignHeaders/SkipHeaders regex buffer**: Fixed-size `BUFRSZ` limit on the regex buffer caused truncation with long header lists. Now dynamically sized. (#341, issue #120)
 - **Minimum signing percentage with empty body**: `Minimum` percentage checks incorrectly handled messages with an empty body. (#223, issue #222)
+- **`reputation.c` strtoul/strtof endptr checks**: `strtoul` and `strtof` always set their endptr argument to a non-NULL value; the existing `p != NULL` guards were redundant and masked the case where no conversion occurred at all. Three sites fixed in `dkimf_rep_check`: the limit parse, the modifier parse (missing no-conversion check could silently zero the limit on a bare operator like `"*"`), and the ratio parse. Also removes a pointless `p = NULL` initialization before `strtof`. Reported via futatuki/OpenDKIM PR #2 (Jared Mauch). (#383)
 - **Lua `del_header` index**: `odkim.del_header()` used an incorrect header index (off-by-one), deleting the wrong header. (#191)
 - **`KeepAuthResults` deleting wrong headers**: Could delete the wrong `Authentication-Results` header when multiple were present. (issue #148)
 - **`AuthservID` with job ID producing invalid header**: Quoting fix for job-ID-appended authserv-ids. (#308, issue #103)
