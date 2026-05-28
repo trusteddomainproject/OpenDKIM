@@ -19,6 +19,7 @@
 #include <string.h>
 #include <assert.h>
 #include <errno.h>
+#include <pthread.h>
 
 /* libopendkim includes */
 #include "dkim.h"
@@ -43,6 +44,20 @@ struct dkim_res_qh
 	size_t		rq_buflen;
 };
 
+#ifdef HAVE_RES_NINIT
+/*
+**  Wrapper around __res_state that serializes concurrent access.
+**  res_nquery() is not thread-safe on a shared __res_state: glibc keeps
+**  UDP sockets open in EXT(statp).nssocks[] between queries, and concurrent
+**  threads race on that array, orphaning file descriptors.
+*/
+struct dkim_res_svc
+{
+	struct __res_state	rs_state;
+	pthread_mutex_t		rs_lock;
+};
+#endif /* HAVE_RES_NINIT */
+
 /*
 **  DKIM_RES_INIT -- initialize the resolver
 **
@@ -57,24 +72,26 @@ int
 dkim_res_init(void **srv)
 {
 #ifdef HAVE_RES_NINIT
-	struct __res_state *res;
+	struct dkim_res_svc *svc;
 
-	res = malloc(sizeof(struct __res_state));
-	if (res == NULL)
+	svc = malloc(sizeof(struct dkim_res_svc));
+	if (svc == NULL)
 		return -1;
 
-	memset(res, '\0', sizeof(struct __res_state));
+	memset(&svc->rs_state, '\0', sizeof(svc->rs_state));
 
-	if (res_ninit(res) != 0)
+	if (res_ninit(&svc->rs_state) != 0)
 	{
-		free(res);
+		free(svc);
 		return -1;
 	}
 #ifdef RES_USE_DNSSEC
-	res->options |= RES_USE_DNSSEC;
+	svc->rs_state.options |= RES_USE_DNSSEC;
 #endif
 
-	*srv = res;
+	pthread_mutex_init(&svc->rs_lock, NULL);
+
+	*srv = svc;
 
 	return 0;
 #else /* HAVE_RES_NINIT */
@@ -107,14 +124,15 @@ void
 dkim_res_close(void *srv)
 {
 #ifdef HAVE_RES_NINIT
-	struct __res_state *res;
+	struct dkim_res_svc *svc;
 
-	res = srv;
+	svc = srv;
 
-	if (res != NULL)
+	if (svc != NULL)
 	{
-		res_nclose(res);
-		free(res);
+		res_nclose(&svc->rs_state);
+		pthread_mutex_destroy(&svc->rs_lock);
+		free(svc);
 	}
 #endif /* HAVE_RES_NINIT */
 }
@@ -172,13 +190,16 @@ dkim_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
 	int ret;
 	struct dkim_res_qh *rq;
 #ifdef HAVE_RES_NINIT
-	struct __res_state *statp;
+	struct dkim_res_svc *svc;
 #endif /* HAVE_RES_NINIT */
 	HEADER *hdr;
 
 #ifdef HAVE_RES_NINIT
-	statp = srv;
-	ret = res_nquery(statp, (char *) query, C_IN, type, buf, buflen);
+	svc = srv;
+	pthread_mutex_lock(&svc->rs_lock);
+	ret = res_nquery(&svc->rs_state, (char *) query, C_IN, type, buf,
+	                 buflen);
+	pthread_mutex_unlock(&svc->rs_lock);
 #else /* HAVE_RES_NINIT */
 	ret = res_query((char *) query, C_IN, type, buf, buflen);
 #endif /* HAVE_RES_NINIT */
@@ -287,7 +308,7 @@ dkim_res_nslist(void *srv, const char *nslist)
 # ifdef AF_INET6
 	struct sockaddr_in6 in6;
 # endif /* AF_INET6 */
-	struct __res_state *res;
+	struct dkim_res_svc *svc;
 	union res_sockaddr_union nses[MAXNS];
 
 	assert(srv != NULL);
@@ -336,8 +357,8 @@ dkim_res_nslist(void *srv, const char *nslist)
 		}
 	}
 
-	res = srv;
-	res_setservers(res, nses, nscount);
+	svc = srv;
+	res_setservers(&svc->rs_state, nses, nscount);
 
 	free(tmp);
 #endif /* HAVE_RES_SETSERVERS */
