@@ -5736,6 +5736,58 @@ dkimf_reloader(/* UNUSED */ void *vp)
 	return NULL;
 }
 
+#ifdef HAVE_LIBSYSTEMD
+/*
+**  DKIMF_WATCHDOG -- systemd watchdog keep-alive thread
+**
+**  Runs in its own thread so the watchdog is fed independently of the milter
+**  worker threads.  A request that blocks on slow DNS, an oversized header
+**  set, or anything else therefore cannot starve the keep-alive and trip a
+**  spurious restart; only an actual hang of the whole process (this thread
+**  included) lets the timer expire.
+**
+**  Parameters:
+**  	vp -- void pointer required by thread API but not used
+**
+**  Return value:
+**  	NULL.
+*/
+
+static void *
+dkimf_watchdog(/* UNUSED */ void *vp)
+{
+	uint64_t usec = 0;
+	unsigned int interval;
+
+	(void) pthread_detach(pthread_self());
+
+	/*
+	**  Nothing to do unless the unit set WatchdogSec=; sd_watchdog_enabled()
+	**  returns <= 0 otherwise and the thread simply exits.  It also yields
+	**  the interval used below.
+	*/
+	if (sd_watchdog_enabled(0, &usec) <= 0)
+		return NULL;
+
+	/*
+	**  Feed the watchdog at half the configured interval, as systemd
+	**  recommends, with a one-second floor so a tiny WatchdogSec cannot spin
+	**  this thread.  usec is the full interval in microseconds.
+	*/
+	interval = (unsigned int) (usec / 2 / 1000000ULL);
+	if (interval < 1)
+		interval = 1;
+
+	while (!die)
+	{
+		(void) sd_notify(0, "WATCHDOG=1");
+		(void) sleep(interval);
+	}
+
+	return NULL;
+}
+#endif /* HAVE_LIBSYSTEMD */
+
 /*
 **  DKIMF_KILLCHILD -- kill child process
 **
@@ -17176,6 +17228,37 @@ main(int argc, char **argv)
 	}
 
 #ifdef HAVE_LIBSYSTEMD
+	/*
+	**  Start the watchdog keep-alive thread, but only when the unit set
+	**  WatchdogSec=.  If it did and the thread cannot be created, refuse to
+	**  start: running unsupervised would let systemd kill us at every
+	**  interval in a silent restart loop, so failing loudly here lets the
+	**  start limiter surface the problem instead.  With no watchdog
+	**  configured the thread is simply not spawned.
+	*/
+	{
+		uint64_t wdog_usec = 0;
+
+		if (sd_watchdog_enabled(0, &wdog_usec) > 0)
+		{
+			pthread_t wt;
+
+			status = pthread_create(&wt, NULL, dkimf_watchdog,
+			                        NULL);
+			if (status != 0)
+			{
+				dkimf_log(curconf, LOG_ERR,
+				          "pthread_create() for watchdog: %s",
+				          strerror(status));
+
+				if (!autorestart && pidfile != NULL)
+					(void) unlink(pidfile);
+
+				return EX_OSERR;
+			}
+		}
+	}
+
 	/*
 	**  smfi_opensocket() already bound and listened on the milter socket
 	**  and every fallible startup step has succeeded, so announce
