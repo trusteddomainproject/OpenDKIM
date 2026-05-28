@@ -191,6 +191,8 @@ A systematic audit of memory and resource leaks (issue #272) produced fixes acro
 
 - **#107**: Auto-detect `SignatureAlgorithm` from key type - implemented in #370. Needs a test with an ed25519 `KeyFile` and no explicit `SignatureAlgorithm` config option to confirm the algorithm is automatically selected and signing succeeds.
 
+- **#385**: LibreSSL build fix - `OPENSSL_thread_stop()` is absent from LibreSSL despite it advertising an OpenSSL 1.1-compatible version number. The fix has been applied, but we have no LibreSSL CI coverage to prevent regressions. If you build OpenDKIM against LibreSSL (portable or system-provided, e.g. on OpenBSD), please give this a try and report results. Longer term, a self-hosted OpenBSD runner or a dedicated LibreSSL build job in CI is on the roadmap.
+
 ---
 
 ## Community Requests (No Issue ID)
