@@ -2168,6 +2168,26 @@ fi
 
 AM_CONDITIONAL([USE_SYSTEMD], [test x"$systemd_found" = x"yes"])
 
+# Set substitution variables consumed by contrib/systemd/opendkim.service.in.
+# When libsystemd is available the unit uses Type=notify with a watchdog;
+# otherwise it degrades to Type=simple so the daemon still starts cleanly
+# on build hosts that lack libsystemd-dev.
+if test x"$systemd_found" = x"yes"
+then
+	SD_SERVICE_TYPE="notify"
+	SD_WATCHDOG_SEC="WatchdogSec=30"
+else
+	SD_SERVICE_TYPE="simple"
+	SD_WATCHDOG_SEC=""
+	if test x"$systemd" = x"auto"
+	then
+		AC_MSG_WARN([libsystemd not found -- installed unit will use Type=simple (no sd_notify or watchdog)])
+		AC_MSG_WARN([Install libsystemd-dev / systemd-devel, or pass --with-systemd=yes to treat this as an error])
+	fi
+fi
+AC_SUBST([SD_SERVICE_TYPE])
+AC_SUBST([SD_WATCHDOG_SEC])
+
 #
 # reputation requires libjansson
 # 

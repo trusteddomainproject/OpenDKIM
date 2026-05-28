@@ -22,10 +22,10 @@ Wants=network-online.target
 Before=postfix.service sendmail.service exim.service exim4.service opensmtpd.service
 
 [Service]
-# Type=notify with -f (foreground) lets systemd track the process directly
-# without relying on a PIDFile.  opendkim signals READY=1 once it has bound
-# its socket, so units ordered after it only start when it can accept mail.
-Type=notify
+# Type is set at build time: notify (libsystemd available) so that units
+# ordered after opendkim only start once it can accept mail; or simple if
+# libsystemd was absent at build time (pass --with-systemd=yes to require it).
+Type=@SD_SERVICE_TYPE@
 EnvironmentFile=-@sysconfdir@/sysconfig/opendkim
 ExecStart=@sbindir@/opendkim -f $OPTIONS
 ExecReload=/bin/kill -USR1 $MAINPID
@@ -33,10 +33,10 @@ Restart=on-abnormal
 User=opendkim
 Group=opendkim
 
-# opendkim feeds this watchdog from a dedicated thread at half the interval
-# below (i.e. every 15s).  systemd restarts the service if no keep-alive
-# arrives within WatchdogSec, catching a wholly hung process.
-WatchdogSec=30
+# When WatchdogSec= is set (requires libsystemd at build time), a dedicated
+# thread pings the watchdog at half the interval; systemd restarts the service
+# if no keep-alive arrives, catching a wholly hung process.
+@SD_WATCHDOG_SEC@
 
 # As the file system is mounted read-only with ProtectSystem=strict, adding
 # /var/spool/postfix/opendkim by default makes it possible to use opendkim
