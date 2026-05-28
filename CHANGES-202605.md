@@ -132,6 +132,7 @@ A systematic audit of memory and resource leaks (issue #272) produced fixes acro
 
 ## systemd / deployment
 
+- **`Type=notify` hang without libsystemd**: When libsystemd is absent at build time, `--with-systemd=auto` silently degrades to no `sd_notify` support, but the installed unit still declared `Type=notify`, causing `systemctl start` to hang until the timeout expired waiting for a `READY=1` that never arrives. Fixed by deriving `SD_SERVICE_TYPE` and `WatchdogSec` from what configure actually found and substituting them into `opendkim.service.in`, so the installed unit always matches the binary. A configure warning is now emitted on auto-degradation. Also adds a dedicated watchdog keep-alive thread (feeds `WATCHDOG=1` at half the configured `WatchdogSec` interval) — without it, `WatchdogSec=30` in the existing unit would cause spurious restarts 30 seconds after start. (#389, Edmund Lodewijks)
 - **`network-online.target`**: Service unit now waits for `network-online.target` instead of `network.target`, ensuring interfaces have addresses before opendkim starts. (#315, issue #141)
 - **`Type=notify`**: With the new `sd_notify()` support, the service unit switches from `Type=simple` to `Type=notify`, eliminating the startup race condition. (#316, #352)
 - **Hardening directives**: Added `CapabilityBoundingSet`, `ProtectSystem=strict`, `PrivateUsers`, `RestrictAddressFamilies`, `SystemCallFilter`, `NoExecPaths`/`ExecPaths`, and others. (#316)
