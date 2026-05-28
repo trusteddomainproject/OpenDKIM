@@ -37,15 +37,6 @@
 # define MAX(x,y)		((x) > (y) ? (x) : (y))
 #endif /* ! MAX */
 
-#ifdef __STDC__
-# ifndef __P
-#  define __P(x)  x
-# endif /* ! __P */
-#else /* __STDC__ */
-# ifndef __P
-#  define __P(x)  ()
-# endif /* ! __P */
-#endif /* __STDC__ */
 
 /* limits, macros, etc. */
 #define	BUFRSZ			1024	/* base temp buffer size */
@@ -170,8 +161,8 @@ extern DKIM_NAMETABLE *dkim_table_mandatory;
 #endif /* _FFR_CONDITIONAL */
 
 /* prototypes */
-extern DKIM_STAT dkim_process_set __P((DKIM *, dkim_set_t, u_char *, size_t,
-                                       void *, _Bool, const char *));
-extern DKIM_STAT dkim_siglist_setup __P((DKIM *));
+extern DKIM_STAT dkim_process_set (DKIM *, dkim_set_t, u_char *, size_t,
+                                       void *, _Bool, const char *);
+extern DKIM_STAT dkim_siglist_setup (DKIM *);
 
 #endif /* ! _DKIM_INTERNAL_H_ */

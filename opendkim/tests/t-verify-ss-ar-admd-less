@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# verify test with ADMD-less Authentication-Results header (e.g. Office 365)
+# should parse without error and produce a dkim=pass result
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-verify-ss-ar-admd-less.lua

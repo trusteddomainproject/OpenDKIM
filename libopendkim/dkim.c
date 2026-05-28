@@ -103,7 +103,7 @@
 #endif /* USE_STRL_H */
 
 /* prototypes */
-void dkim_error __P((DKIM *, const char *, ...));
+void dkim_error (DKIM *, const char *, ...);
 
 /* macros */
 #define	DKIM_STATE_INIT		0

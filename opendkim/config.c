@@ -47,7 +47,7 @@
 #endif /* ! TRUE */
 
 /* prototypes */
-static void config_attach __P((struct config *, struct config **));
+static void config_attach (struct config *, struct config **);
 
 /* errors */
 #define	CONF_UNKNOWN	(-1)		/* unknown status */

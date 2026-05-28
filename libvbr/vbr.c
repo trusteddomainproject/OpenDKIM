@@ -109,7 +109,7 @@ struct vbr_handle
 };
 
 /* prototypes */
-static void vbr_error __P((VBR *, const char *, ...));
+static void vbr_error (VBR *, const char *, ...);
 
 /* ========================= PRIVATE SECTION ========================= */
 

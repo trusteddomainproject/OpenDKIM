@@ -346,11 +346,13 @@ Gives the location of a PEM-formatted private key to be used for signing
 all messages.  Ignored if a
 .I KeyTable
 is defined.
-If the key is an Ed25519 key, you must also set
+If the key is an Ed25519 key,
 .I SignatureAlgorithm
-to
-.I ed25519-sha256;
-the algorithm is not auto-detected from the key type.
+is automatically set to
+.I ed25519-sha256.
+An explicit
+.I SignatureAlgorithm
+setting is not required.
 
 .TP
 .I KeyTable (dataset)
