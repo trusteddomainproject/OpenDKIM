@@ -179,7 +179,6 @@ dkimf_unbound_cb(void *mydata, int err, struct ub_result *result)
 		return;
 	}
 
-	ubdata->ubd_done = FALSE;
 	ubdata->ubd_stat = DKIM_STAT_NOKEY;
 	ubdata->ubd_rcode = result->rcode;
 	memcpy(ubdata->ubd_buf, result->answer_packet,
@@ -192,22 +191,14 @@ dkimf_unbound_cb(void *mydata, int err, struct ub_result *result)
 	*/
 
 	if (result->secure)
-	{
 		ubdata->ubd_result = DKIM_DNSSEC_SECURE;
-	}
 	else if (result->bogus)
-	{
-		/* result was bogus */
 		ubdata->ubd_result = DKIM_DNSSEC_BOGUS;
-		ub_resolve_free(result);
-		return;
-	}
 	else
-	{ 
 		ubdata->ubd_result = DKIM_DNSSEC_INSECURE;
-	}
 
-	if (result->havedata && !result->nxdomain && result->rcode == NOERROR)
+	if (!result->bogus && result->havedata && !result->nxdomain &&
+	    result->rcode == NOERROR)
 		ubdata->ubd_stat = DKIM_STAT_OK;
 
 	ub_resolve_free(result);
