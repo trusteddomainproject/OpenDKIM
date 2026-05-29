@@ -34,7 +34,7 @@ so the complete set of options is available here, and thus use of the
 configuration file is encouraged.  In some future release, the
 set of available command line options is likely to get trimmed.
 
-See the 
+See the
 .I opendkim(8)
 man page for details about how and when the configuration file contents
 are reloaded.
@@ -260,7 +260,7 @@ Specifies a set of domains, mail from which should be ignored entirely
 by the filter.  This is similar to the
 .I PeerList
 setting except that it bases its decision on the sender of the message
-as identified from the header fields or other message data, not the 
+as identified from the header fields or other message data, not the
 identity of the SMTP client sending the message.
 
 .TP
@@ -439,30 +439,30 @@ Names the authentication mechanism to use when connecting to an LDAP
 server.  The default is the empty string, meaning "simple" authentication
 should be done.
 
-.TP 
+.TP
 .I LDAPAuthName (string)
 Specifies the authenticating name to use when using SASL to authenticate to
 an LDAP server.  Requires SASL support be installed on the local system.
 There is no default.
 
-.TP 
+.TP
 .I LDAPAuthRealm (string)
 Specifies the authentication realm to use when using SASL to authenticate to
 an LDAP server.  Requires SASL support be installed on the local system.
 There is no default.
 
-.TP 
+.TP
 .I LDAPAuthUser (string)
 Specifies the authenticating user to use when using SASL to authenticate to an
 LDAP server.  Requires SASL support be installed on the local system.
 There is no default.
 
-.TP 
+.TP
 .I LDAPBindPassword (string)
 Specifies the password to use when conducting an LDAP "bind" operation.
 There is no default.
 
-.TP 
+.TP
 .I LDAPBindUser (string)
 Specifies the user ID to use when conducting an LDAP "bind" operation.
 There is no default.
@@ -492,7 +492,7 @@ the connection.  If not specified, the LDAP library default is used.
 Sets the time in seconds after which an LDAP operation should be abandoned.
 The default is 5.
 
-.TP 
+.TP
 .I LDAPUseTLS (Boolean)
 Indicates whether or not a TLS connection should be established when
 contacting an LDAP server.  The default is "False".
@@ -947,7 +947,7 @@ should be signed (if set) versus only verified mail being signed (if not set).
 Checks each message recipient against the specified dataset for a matching
 record.  The full address is checked in each case, then the hostname, then
 each domain preceded by ".".  If there is a match, the value returned is
-presumed to be the name of a key in the 
+presumed to be the name of a key in the
 .I KeyTable
 (if defined) to be used to re-sign the message in addition to verifying it.
 If there is a match without a
@@ -1057,9 +1057,10 @@ If not set, no expiration time is added to signatures.
 
 .TP
 .I SignHeaders (dataset)
-Specifies the comma-separated set of header fields that should be included when
-generating signatures.  If the list omits any header field that is mandated by the
-DKIM specification, those fields are implicitly added.  A set of header fields is
+Specifies the comma-separated set of header fields that should be included
+when generating signatures.  If the list omits any header field that is
+mandated by the DKIM specification, those fields are implicitly added.
+A set of header fields is
 listed in the DKIM specification as "Common examples" to be signed (RFC6376,
 Section 5.4.1); the default list for this parameter contains those fields (From,
 Reply-To, Subject, Date, To, Cc, Resent-Date, Resent-From, Resent-Sender,
@@ -1143,7 +1144,7 @@ listening on all interfaces.  A literal IP address must be enclosed in
 square brackets.  This option is mandatory either in the configuration file or
 on the command line.
 
-.TP 
+.TP
 .I SoftStart (Boolean)
 If set, the inability to connect and authenticate to an LDAP or SQL server will
 not prevent the filter from starting, and reconnections will be attempted for
@@ -1340,7 +1341,7 @@ prior to sending them.
 
 .TP
 .I VBR-TrustedCertifiers (string)
-A colon or comma sparated list of trusted certifiers to accept when 
+A colon or comma sparated list of trusted certifiers to accept when
 verifying VBR-Info header field.
 @VBR_MANNOTICE@
 
@@ -1375,9 +1376,9 @@ a reply from the filter, which in turn is still waiting for a DNS reply.
 
 Features that involve specification of IPv4 addresses or CIDR blocks
 will use the
-.I inet_addr(3) 
+.I inet_addr(3)
 function to parse that information.  Users should be familiar with the
-way that function handles the non-trivial cases (for example, "192.0.2/24"    
+way that function handles the non-trivial cases (for example, "192.0.2/24"
 and "192.0.2.0/24" are not the same thing).
 .SH FILES
 .TP
