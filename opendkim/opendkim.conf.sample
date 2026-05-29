@@ -421,10 +421,19 @@ KeyFile			/var/db/dkim/example.private
 ##
 ##  Specifies a set of header fields that should be included in all signature
 ##  header lists (the "h=" tag) once more than the number of times they were
-##  actually present in the signed message.  See opendkim.conf(5) for more
-##  information.
+##  actually present in the signed message.  The purpose is to prevent
+##  injection of additional instances of those fields after signing; a
+##  verifier that finds more copies than the signer recorded will fail
+##  verification.  Listing a field name once more than it appears in the
+##  message is sufficient regardless of how many copies an attacker might
+##  later add.  This is useful even for header fields that RFC5322 restricts
+##  to a single occurrence (such as From), because not all mail-handling
+##  software enforces those restrictions.  See RFC6376, Section 5.4 and
+##  opendkim.conf(5) for more information.
+##
+##  Oversigning From is a common and recommended practice:
 
-# OverSignHeaders	header1,header2,...
+# OversignHeaders	From
 
 ##  PeerList dataset
 ##  	default (none)
