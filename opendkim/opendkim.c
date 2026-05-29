@@ -257,6 +257,7 @@ struct dkimf_config
 	_Bool		conf_noheaderb;		/* suppress "header.b" */
 	_Bool		conf_singleauthres;	/* single Auth-Results */
 	_Bool		conf_safekeys;		/* check key permissions */
+	_Bool		conf_weakkey_warned;	/* already warned about weak key */
 	_Bool		conf_checksigningtable; /* check keys on dkimf_config_load */
 #ifdef _FFR_RESIGN
 	_Bool		conf_resignall;		/* resign unverified mail */
@@ -5026,6 +5027,73 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 			return 2;
 		}
 
+		if (!curconf->conf_weakkey_warned)
+		{
+#ifdef USE_GNUTLS
+			gnutls_privkey_t pk;
+
+			if (gnutls_privkey_init(&pk) == GNUTLS_E_SUCCESS)
+			{
+				gnutls_datum_t d;
+				unsigned int bits = 0;
+
+				d.data = (unsigned char *) dbd[2].dbdata_buffer;
+				d.size = keydatasz;
+
+				if (gnutls_privkey_import_x509_raw(pk, &d,
+				    GNUTLS_X509_FMT_PEM, NULL,
+				    0) == GNUTLS_E_SUCCESS &&
+				    gnutls_privkey_get_pk_algorithm(pk,
+				    &bits) == GNUTLS_PK_RSA &&
+				    bits < 2048)
+				{
+					dkimf_log(curconf, LOG_WARNING,
+					          "%s: %u-bit RSA signing key"
+					          " is below the 2048-bit"
+					          " minimum recommended by"
+					          " RFC 8301; major mail"
+					          " providers may reject"
+					          " signatures",
+					          keyname, bits);
+					curconf->conf_weakkey_warned = TRUE;
+				}
+
+				gnutls_privkey_deinit(pk);
+			}
+#else /* USE_GNUTLS */
+			BIO *keybio;
+			EVP_PKEY *pkey = NULL;
+
+			keybio = BIO_new_mem_buf(dbd[2].dbdata_buffer,
+			                         keydatasz);
+			if (keybio != NULL)
+			{
+				pkey = PEM_read_bio_PrivateKey(keybio, NULL,
+				                               NULL, NULL);
+				BIO_free(keybio);
+			}
+
+			if (pkey != NULL)
+			{
+				if (EVP_PKEY_base_id(pkey) == EVP_PKEY_RSA &&
+				    EVP_PKEY_bits(pkey) < 2048)
+				{
+					dkimf_log(curconf, LOG_WARNING,
+					          "%s: %d-bit RSA signing key"
+					          " is below the 2048-bit"
+					          " minimum recommended by"
+					          " RFC 8301; major mail"
+					          " providers may reject"
+					          " signatures",
+					          keyname,
+					          EVP_PKEY_bits(pkey));
+					curconf->conf_weakkey_warned = TRUE;
+				}
+				EVP_PKEY_free(pkey);
+			}
+#endif /* USE_GNUTLS */
+		}
+
 		if (insecure)
 		{
 			if (dolog)
@@ -8345,10 +8413,29 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				if (gnutls_privkey_import_x509_raw(pk, &d,
 				    GNUTLS_X509_FMT_PEM, NULL, 0) == GNUTLS_E_SUCCESS)
 				{
-					if (gnutls_privkey_get_pk_algorithm(pk,
-					    &bits) == GNUTLS_PK_EDDSA_ED25519)
+					int algo;
+
+					algo = gnutls_privkey_get_pk_algorithm(
+					           pk, &bits);
+					if (algo == GNUTLS_PK_EDDSA_ED25519)
 						conf->conf_signalg =
 						    DKIM_SIGN_ED25519SHA256;
+					else if (algo == GNUTLS_PK_RSA &&
+					         bits < 2048 &&
+					         !conf->conf_weakkey_warned)
+					{
+						dkimf_log(conf, LOG_WARNING,
+						          "%s: %u-bit RSA signing"
+						          " key is below the"
+						          " 2048-bit minimum"
+						          " recommended by"
+						          " RFC 8301; major mail"
+						          " providers may reject"
+						          " signatures",
+						          conf->conf_keyfile,
+						          bits);
+						conf->conf_weakkey_warned = TRUE;
+					}
 				}
 
 				gnutls_privkey_deinit(pk);
@@ -8370,6 +8457,21 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 				if (EVP_PKEY_base_id(pkey) == EVP_PKEY_ED25519)
 					conf->conf_signalg =
 					    DKIM_SIGN_ED25519SHA256;
+				else if (EVP_PKEY_base_id(pkey) == EVP_PKEY_RSA &&
+				         EVP_PKEY_bits(pkey) < 2048 &&
+				         !conf->conf_weakkey_warned)
+				{
+					dkimf_log(conf, LOG_WARNING,
+					          "%s: %d-bit RSA signing key"
+					          " is below the 2048-bit"
+					          " minimum recommended by"
+					          " RFC 8301; major mail"
+					          " providers may reject"
+					          " signatures",
+					          conf->conf_keyfile,
+					          EVP_PKEY_bits(pkey));
+					conf->conf_weakkey_warned = TRUE;
+				}
 				EVP_PKEY_free(pkey);
 			}
 #endif /* USE_GNUTLS */
