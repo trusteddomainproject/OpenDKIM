@@ -14,7 +14,7 @@ with an indiciation that a user believes the input message is spam or
 otherwise abusive.  This feedback is important input toward developing
 DKIM-based domain reputation systems.
 
-The tool is intended to be used directly from within shell-based mail readers 
+The tool is intended to be used directly from within shell-based mail readers
 such as
 .I alpine(1)
 or

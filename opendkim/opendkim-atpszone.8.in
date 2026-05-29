@@ -111,7 +111,7 @@ as the default record TTL time.  The default is 86400.
 .I \-u domain
 Produce output suitable for use as input to
 .B nsupdate(8)
-to add ATPS records to the named 
+to add ATPS records to the named
 .I domain.
 .TP
 .I \-v

@@ -7,7 +7,7 @@
 [\-C] [\-d domain] [\-K] [\-k keypath] [\-s selector] [\-t path]
 .SH DESCRIPTION
 .B opendkim-testmsg
-signs or verifies an input message.  This is similar to the test mode for 
+signs or verifies an input message.  This is similar to the test mode for
 .I opendkim(8)
 except that it does not use the same configuration system or milter interface.
 Rather, it is a direct access to the DKIM library with those functions

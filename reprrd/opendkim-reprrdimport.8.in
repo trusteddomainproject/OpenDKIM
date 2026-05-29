@@ -10,7 +10,7 @@
 collates data accumulated by the OpenDKIM statistics feature and stores them
 into RRD tables for forecasting analysis.
 
-See 
+See
 .B rrdtool(1)
 for information about RRD tables.
 .SH OPTIONS
@@ -50,7 +50,7 @@ can also refer to a file from which domain names should be read.
 Prints a usage message and exits.
 .TP
 .I --interval=n
-Retrieves records for the previous 
+Retrieves records for the previous
 .I n
 days.  The default is 1.  A value of 0 retrieves data for all dates.
 .TP

@@ -35,7 +35,7 @@
 [\-X]
 .SH DESCRIPTION
 .B opendkim
-implements the 
+implements the
 .B DKIM
 standard for signing and verifying e-mail messages on a per-domain basis.
 
@@ -121,9 +121,7 @@ the name of the table, the name of the column to consider as the key, and the
 name(s) of the column(s) to be considered as the values (separated by
 commas).  For example (all in one line):
 
-mysql:://dbuser:dbpass@3306+dbhost/odkim/table=macros
-.br
-         ?keycol=host?datacol=v1,v2
+mysql:://dbuser:dbpass@3306+dbhost/odkim/table=macros?keycol=host?datacol=v1,v2
 
 defines a MySQL database listening at port 3306 on host "dbhost"; the userid
 "dbuser" and password "dbpass" should be used to access the database; the
@@ -131,8 +129,9 @@ database name is "odkim", and the data are in columns "host" (the keys)
 and "v1" and "v2" (the values) inside table "macros".  This example would
 thus return two values when a match is found.
 
-The key may also include a "filter" value which will be included in all generated
-SQL as an AND clause after the WHERE clause that declares the search criteria.
+The key may also include a "filter" value which will be included in all
+generated SQL as an AND clause after the WHERE clause that declares the
+search criteria.
 For example, given the above DSN specification with an additional "filter" value
 of "ID > 1000", the generated SQL for a query for "foo" would look like so:
 
@@ -209,9 +208,7 @@ is the name of the Erlang module where the function to be called resides,
 is the name of the Erlang function to be called. For example, (all in one
 line):
 
-erlang:mynode@myhost,myothernode@myotherhost:
-.br
-       chocolate:dkim:lookup
+erlang:mynode@myhost,myothernode@myotherhost:chocolate:dkim:lookup
 
 will join the distributed Erlang setup connecting to either "mynode@myhost"
 or "myothernode@myotherhost" (connections to nodes are tried in order) using
@@ -461,14 +458,15 @@ The default is to read a configuration file from
 if one exists, or otherwise to apply defaults to all values.
 .TP
 .I \-X
-Tolerates configuration file items that have been internally marked as "deprecated".
-Normally when a configuration file item is removed from the package, it is flagged
-in this way for at least one full release cycle.  The presence of a deprecated
-configuration file item typically causes the filter to return an error and refuse to
-start.  Setting this flag will allow the filter to start and a warning is logged.
-In some future release when the item is removed completely, a different error
-results, and it will not be possible to start the filter.  Use of this flag is
-NOT RECOMMENDED; it could effectively hide a major configuration change with serious
+Tolerates configuration file items that have been internally marked as
+"deprecated".  Normally when a configuration file item is removed from the
+package, it is flagged in this way for at least one full release cycle.
+The presence of a deprecated configuration file item typically causes the
+filter to return an error and refuse to start.  Setting this flag will
+allow the filter to start and a warning is logged.  In some future release
+when the item is removed completely, a different error results, and it will
+not be possible to start the filter.  Use of this flag is NOT RECOMMENDED;
+it could effectively hide a major configuration change with serious
 security implications.
 .SH OPERATION
 A message will be verified unless it conforms to the signing criteria,

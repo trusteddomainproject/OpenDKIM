@@ -6,7 +6,7 @@
 The OpenDKIM filter has hooks to run user-provided scripts for making policy
 decisions regarding signatures to add on outbound messages or verification and
 acceptance of messages inbound.  The hooks take the form of multiple Lua
-scripts which, if defined, are run at important points during processing of 
+scripts which, if defined, are run at important points during processing of
 a message.
 
 For a full description of the Lua language, consult Lua programming references
@@ -110,7 +110,7 @@ have a name associated with it.
 .TP
 .B odkim.get_clientip(ctx)
 Returns the IP address of the client on the other end of the SMTP connection
-sending the current message as a string.  Both IPv4 and IPv6 addresses are 
+sending the current message as a string.  Both IPv4 and IPv6 addresses are
 supported.
 .TP
 .B odkim.get_dbhandle(ctx, db)
@@ -524,7 +524,7 @@ the signature handled specified by
 .I sig,
 previously returned by a call to
 .B odkim.get_sighandle().
-Valid values are the DKIM_SIGBH_* constants defined in the 
+Valid values are the DKIM_SIGBH_* constants defined in the
 .B libopendkim
 header file
 .I dkim.h.
