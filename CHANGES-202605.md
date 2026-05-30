@@ -6,6 +6,10 @@ This document summarizes the changes merged into the `develop` branch during the
 
 ## Security
 
+- **OversignHeaders defaults to `From`**: The sample configuration now ships with `OversignHeaders = From` enabled by default. RFC 5322 requires exactly one `From` header, but that restriction is not universally enforced; an attacker who can modify a message in transit can prepend a malicious `From` header that some MUAs display instead of the signed one, while DKIM verification passes on the original. Oversigning `From` causes verification to fail whenever a second `From` header is present. See RFC 6376 §8.15. (#393, issue #131)
+- **SignHeaders extended to cover MIME structure headers**: The sample configuration now extends the default signing set with `Content-Type`, `MIME-Version`, and `Content-Transfer-Encoding` (via `*,+Content-Type,+MIME-Version,+Content-Transfer-Encoding`). Leaving these headers unsigned allows an attacker to change the MIME structure of a message — for example converting `text/plain` to `text/html`, or wrapping the body in a `multipart` container to inject new content — without invalidating the DKIM signature. (#393, issue #131)
+- **README security advisory**: Added a `SECURITY NOTES` section to the top-level README documenting both mitigations above for users running older releases (2.10.3, 2015; or 2.11.0-Beta2, 2018) who cannot immediately upgrade. (#393)
+
 - **CVE-2020-35766**: Insecure use of predictable path `/tmp/testkeys` in key generation tools. (#260, #288)
 - **CVE-2022-48521**: `Authentication-Results` headers were deleted in forward order, leaving a window where a crafted message could preserve a forged header. Fixed to delete in reverse. (#287)
 - **SubDomains overlapping buffer**: `strlcpy()` was called with overlapping source and destination when updating `mctx_domain` during the subdomain walk. Undefined behavior; manifests as corrupted `d=` tags (invalid signatures) on FreeBSD. Replaced with `memmove()`. (#356)
