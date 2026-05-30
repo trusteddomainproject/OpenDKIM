@@ -5051,9 +5051,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 					          "%s: %u-bit RSA signing key"
 					          " is below the 2048-bit"
 					          " minimum recommended by"
-					          " RFC 8301; major mail"
-					          " providers may reject"
-					          " signatures",
+					          " RFC 8301",
 					          keyname, bits);
 					curconf->conf_weakkey_warned = TRUE;
 				}
@@ -5082,9 +5080,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 					          "%s: %d-bit RSA signing key"
 					          " is below the 2048-bit"
 					          " minimum recommended by"
-					          " RFC 8301; major mail"
-					          " providers may reject"
-					          " signatures",
+					          " RFC 8301",
 					          keyname,
 					          EVP_PKEY_bits(pkey));
 					curconf->conf_weakkey_warned = TRUE;
@@ -8429,9 +8425,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 						          " key is below the"
 						          " 2048-bit minimum"
 						          " recommended by"
-						          " RFC 8301; major mail"
-						          " providers may reject"
-						          " signatures",
+						          " RFC 8301",
 						          conf->conf_keyfile,
 						          bits);
 						conf->conf_weakkey_warned = TRUE;
@@ -8465,9 +8459,7 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 					          "%s: %d-bit RSA signing key"
 					          " is below the 2048-bit"
 					          " minimum recommended by"
-					          " RFC 8301; major mail"
-					          " providers may reject"
-					          " signatures",
+					          " RFC 8301",
 					          conf->conf_keyfile,
 					          EVP_PKEY_bits(pkey));
 					conf->conf_weakkey_warned = TRUE;
