@@ -417,7 +417,7 @@ KeyFile			/var/db/dkim/example.private
 # On-SignatureError
 
 ##  OversignHeaders dataset
-##  	default (From)
+##  	default (none)
 ##
 ##  Specifies a set of header fields that should be included in all signature
 ##  header lists (the "h=" tag) once more than the number of times they were
