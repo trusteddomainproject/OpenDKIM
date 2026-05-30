@@ -687,10 +687,10 @@ signed; the default list for this parameter contains those fields
 DKIM-Signature).  To omit no headers, simply use the string "." (or any
 string that will match no header field names).
 Specifying a list with this parameter replaces the default entirely, unless
-one entry is "*" in which case the list is interpreted as a delta to the
-default; for example, "*,+foobar" will use the entire default list plus
-the name "foobar", while "*,-Bcc" would use the entire default list except
-for the "Bcc" entry.
+one entry is "*", which stands for the default set itself and causes the
+remaining entries to be interpreted as a delta to that default; for example,
+"*,+foobar" will use the entire default list plus the name "foobar", while
+"*,-Bcc" would use the entire default list except for the "Bcc" entry.
 
 .TP
 .I On-BadSignature (string)
@@ -1083,10 +1083,10 @@ Resent-Sender, Resent-To, Resent-Cc, In-Reply-To, References, List-Id,
 List-Help, List-Unsubscribe, List-Subscribe, List-Post, List-Owner,
 List-Archive).
 Specifying a list with this parameter replaces the default entirely, unless
-one entry is "*" in which case the list is interpreted as a delta to the
-default; for example, "*,+foobar" will use the entire default list plus
-the name "foobar", while "*,-Bcc" would use the entire default list except
-for the "Bcc" entry.
+one entry is "*", which stands for the default set itself and causes the
+remaining entries to be interpreted as a delta to that default; for example,
+"*,+foobar" will use the entire default list plus the name "foobar", while
+"*,-Bcc" would use the entire default list except for the "Bcc" entry.
 .PP
 The RFC 6376 default set does not include MIME structure headers.
 The recommended configuration extends the default with
