@@ -417,7 +417,7 @@ KeyFile			/var/db/dkim/example.private
 # On-SignatureError
 
 ##  OversignHeaders dataset
-##  	default (none)
+##  	default (From)
 ##
 ##  Specifies a set of header fields that should be included in all signature
 ##  header lists (the "h=" tag) once more than the number of times they were
@@ -431,9 +431,12 @@ KeyFile			/var/db/dkim/example.private
 ##  software enforces those restrictions.  See RFC6376, Section 5.4 and
 ##  opendkim.conf(5) for more information.
 ##
-##  Oversigning From is a common and recommended practice:
+##  Oversigning From prevents an attacker who controls an intermediate MTA
+##  from prepending a malicious From header that some MUAs will display
+##  instead of the signed one, undermining DMARC authentication.  From is
+##  oversigned by default; additional headers may be added as needed.
 
-# OversignHeaders	From
+OversignHeaders		From
 
 ##  PeerList dataset
 ##  	default (none)
