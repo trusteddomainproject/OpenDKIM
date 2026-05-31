@@ -11,6 +11,12 @@ Release procedures for OpenDKIM
 
 3) In the root build directory, build and test the release tarball:
 
+   autoconf 2.72 or later is required to generate a correct ./configure
+   script for projects built with GCC 15+ (which defaults to C23).  Earlier
+   versions silently produce false negatives in feature tests.  Verify with:
+
+	% autoconf --version
+
 	% make distclean
 	% autoreconf -fvi
 	% ./configure
