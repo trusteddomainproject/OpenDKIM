@@ -8,7 +8,7 @@
 #
 # Setup
 #
-AC_PREREQ([2.69])
+AC_PREREQ([2.71])
 
 #
 # Package version
