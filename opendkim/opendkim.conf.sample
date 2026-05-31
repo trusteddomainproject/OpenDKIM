@@ -431,9 +431,12 @@ KeyFile			/var/db/dkim/example.private
 ##  software enforces those restrictions.  See RFC6376, Section 5.4 and
 ##  opendkim.conf(5) for more information.
 ##
-##  Oversigning From is a common and recommended practice:
+##  Oversigning From prevents an attacker who controls an intermediate MTA
+##  from prepending a malicious From header that some MUAs will display
+##  instead of the signed one, undermining DMARC authentication.  From is
+##  oversigned by default; additional headers may be added as needed.
 
-# OversignHeaders	From
+OversignHeaders		From
 
 ##  PeerList dataset
 ##  	default (none)
@@ -631,8 +634,16 @@ Selector		my-selector-name
 ##  Specifies the list of headers which should be included when generating
 ##  signatures.  The string should be a comma-separated list of header names.
 ##  See the opendkim.conf(5) man page for more information.
+##
+##  The RFC 6376 §5.4.1 default set does not include MIME structure headers
+##  (Content-Type, MIME-Version, Content-Transfer-Encoding).  Leaving these
+##  unsigned allows an attacker who can modify a message in transit to change
+##  the MIME structure -- for example, converting a text/plain body to
+##  text/html or wrapping it in a multipart container to inject new content --
+##  without invalidating the DKIM signature.  The delta syntax below extends
+##  the default set to include them.
 
-# SignHeaders		header1,header2,...
+SignHeaders		*,+Content-Type,+MIME-Version,+Content-Transfer-Encoding
 
 ##  SigningTable dataset
 ##  	default (none)

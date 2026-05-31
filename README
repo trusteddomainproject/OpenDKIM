@@ -8,6 +8,37 @@ There is a web site at http://www.trusteddomain.org that is home for the
 latest updates.
 
 
++----------------+
+| SECURITY NOTES |
++----------------+
+
+The most recent stable release (2.10.3, May 2015) and last beta
+(2.11.0-Beta2, November 2018) predate research that identified
+practical attack vectors against DKIM signatures.  Users running
+packages from those releases are strongly encouraged to apply the
+following settings in opendkim.conf:
+
+    OversignHeaders   From
+    SignHeaders       *,+Content-Type,+MIME-Version,+Content-Transfer-Encoding
+
+OversignHeaders From: RFC 5322 requires exactly one From header, but
+that restriction is not universally enforced.  An attacker who can
+modify a message in transit can prepend an additional From header;
+some MUAs will display the injected header rather than the signed one
+while DKIM verification still passes on the original.  Oversigning
+From causes verification to fail whenever a second From header is
+present.  See RFC 6376 Section 8.15.
+
+The SignHeaders extension covers MIME structure headers not included
+in the RFC 6376 default signing set.  Without them, an attacker can
+change Content-Type (e.g. text/plain to text/html) or wrap the body
+in a multipart container to inject new content, without invalidating
+the DKIM signature.
+
+Both settings are the default in the current sample configuration on
+the develop branch.
+
+
 +--------------+
 | INTRODUCTION |
 +--------------+
