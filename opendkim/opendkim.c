@@ -8994,6 +8994,76 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 		}
 	}
 
+	if (conf->conf_oversignhdrs != NULL)
+	{
+		int n;
+		int m;
+		_Bool found;
+		char **effective;
+
+		effective = (conf->conf_signhdrs != NULL)
+		            ? conf->conf_signhdrs
+		            : (char **) dkim_should_signhdrs;
+
+		for (n = 0; conf->conf_oversignhdrs[n] != NULL; n++)
+		{
+			if (conf->conf_oversignhdrs[n][0] == '\0')
+				continue;
+
+			found = FALSE;
+			for (m = 0; effective[m] != NULL; m++)
+			{
+				if (strcasecmp(conf->conf_oversignhdrs[n],
+				               effective[m]) == 0)
+				{
+					found = TRUE;
+					break;
+				}
+			}
+
+			if (!found)
+			{
+				dkimf_log(conf, LOG_WARNING,
+				          "OversignHeaders entry '%s' is not in the signing set; "
+				          "oversigning will have no effect for this header",
+				          conf->conf_oversignhdrs[n]);
+			}
+		}
+	}
+
+	{
+		int n;
+		int m;
+		char **effsign;
+		char **effomit;
+
+		effsign = (conf->conf_signhdrs != NULL)
+		          ? conf->conf_signhdrs
+		          : (char **) dkim_should_signhdrs;
+
+		effomit = (conf->conf_omithdrs != NULL)
+		          ? conf->conf_omithdrs
+		          : (char **) dkim_should_not_signhdrs;
+
+		for (n = 0; effsign[n] != NULL; n++)
+		{
+			if (effsign[n][0] == '\0')
+				continue;
+
+			for (m = 0; effomit[m] != NULL; m++)
+			{
+				if (strcasecmp(effsign[n], effomit[m]) == 0)
+				{
+					dkimf_log(conf, LOG_WARNING,
+					          "header '%s' appears in both SignHeaders and OmitHeaders; "
+					          "it will not be signed",
+					          effsign[n]);
+					break;
+				}
+			}
+		}
+	}
+
 	status = dkim_options(conf->conf_libopendkim, DKIM_OP_SETOPT,
 	                      DKIM_OPTS_TMPDIR,
 	                      (void *) conf->conf_tmpdir,
