@@ -1,4 +1,3 @@
-##
 ## opendkim.conf -- configuration file for OpenDKIM filter
 ##
 ## Copyright (c) 2010-2015, 2018, The Trusted Domain Project.
@@ -395,29 +394,53 @@ KeyFile			/var/db/dkim/example.private
 # NoHeaderB		no
 
 ##  OmitHeaders dataset
-##  	default (none)
+##  	default Return-Path, Received, Comments, Keywords, Bcc, Resent-Bcc, DKIM-Signature
+##
+##  NOTE: This option DOES support the *,+,- delta syntax
 ##
 ##  Specifies a list of headers that should always be omitted when signing.
 ##  Header names should be separated by commas.
+##  
+##  This can be either a static list, or a list starting with * (representing the default),
+##  then modified by adding and removing items with + and -.
+##  
+##  Note that none of the default items in this list are in the default SignHeaders list
+##  This really serves as an extra override (and as a complement to the list of excluded
+##  headers in RFC 6376 section 5.4.1)
 
 # OmitHeaders		header1,header2,...
 
 ##  On-...
 ##
-##  Specifies what to do when certain error conditions are encountered.
+##  Specifies possible overrides for the action taken when various signing and
+##  verification conditions are encountered.  Possible values are:
+##  accept, discard, quarantine, reject, tempfail
 ##
-##  See opendkim.conf(5) for more information.
-
-# On-Default
-# On-BadSignature
-# On-DNSError
-# On-InternalError
-# On-NoSignature
-# On-Security
-# On-SignatureError
+##  These settings are primarily useful during testing, initial deployment,
+##  or troubleshooting.  Changing them in production can silently disable
+##  enforcement; in particular, On-Default accept will cause the filter to
+##  pass messages through regardless of verification errors.
+##
+##  See opendkim.conf(5) for more information and definitions of each condition.
+##
+##  The following example rejects messages with bad signatures, accepts
+##  unsigned messages, and temp-fails on DNS errors.  Note that the code
+##  default for On-BadSignature is "accept"; this example is intentionally
+##  more aggressive:
+##
+# On-Default        accept
+# On-BadSignature   reject
+# On-DNSError       tempfail
+# On-NoSignature    accept
+# On-InternalError  tempfail
+# On-Security       tempfail
+# On-SignatureError reject
 
 ##  OversignHeaders dataset
 ##  	default (none)
+## 
+##  NOTE: Unlike Signheaders and OmitHeaders, this field does NOT support the
+##  *,+,- notation to modify the default set, because there is no default.
 ##
 ##  Specifies a set of header fields that should be included in all signature
 ##  header lists (the "h=" tag) once more than the number of times they were
@@ -435,6 +458,21 @@ KeyFile			/var/db/dkim/example.private
 ##  from prepending a malicious From header that some MUAs will display
 ##  instead of the signed one, undermining DMARC authentication.  From is
 ##  oversigned by default; additional headers may be added as needed.
+##
+##  IMPORTANT: every header listed here must also appear in the set of headers
+##  being signed (see SignHeaders below).  If a header is in OversignHeaders
+##  but not in the signing set, the signature will still verify, but the
+##  oversigning protection will be silently absent.  The SignHeaders line
+##  (later in this file) uses "*" which expands to the RFC 6376 default set; 
+##  that set includes From, so the default OversignHeaders value is safe as written.
+##  If you replace Signheaders "*" with an explicit list, ensure any OversignHeaders
+##  entries are included in that list as well.
+##  
+##  In Short:
+## 
+##  SignHeaders means "Sign these, if present"
+##  OversignHeaders means "Add an extra h= line for these, even if *not* present"
+## 
 
 OversignHeaders		From
 
@@ -496,6 +534,7 @@ OversignHeaders		From
 ##  	default "no"
 ##
 ##  Remove all Authentication-Results: headers on all arriving mail.
+##  This may make it more difficult to diagnose a signing breakage.
 
 # RemoveARAll		No
 
@@ -629,19 +668,42 @@ Selector		my-selector-name
 # SignatureTTL		0
 
 ##  SignHeaders dataset
-##  	default (none)
-##
+##  	default (see "recommended" list below)
+## 
+##  NOTE: This field supports the special *,+,- notation,
+##  
 ##  Specifies the list of headers which should be included when generating
 ##  signatures.  The string should be a comma-separated list of header names.
 ##  See the opendkim.conf(5) man page for more information.
 ##
-##  The RFC 6376 §5.4.1 default set does not include MIME structure headers
+##  RFC 6376 does not specify headers which SHOULD be signed 
+##  (using the special RFC2119 meaning of the word SHOULD)
+##  meaning of the word, other than requiring the From: header.
+##  
+##  However, section 5.4.1 of RFC 6376 calls out a list of "Recommended" headers
+##  which are split out in the RFC by context, as bullet points (such as putting
+##  all the list-* headers together).
+##
+##  OpenDKIM signs all headers in that list, if they are present in the message.
+##
+##  That list is:
+##
+##  From, Reply-To, Subject, Date, To, Cc, Resent-Date, Resent-From, Resent-To, 
+##  Resent-Cc, In-Reply-To, References,List-Id, List-Help, List-Unsubscribe, 
+##  List-Subscribe, List-Post, List-Owner, List-Archive
+## 
+##  The recommended set does not include MIME structure headers such as:
 ##  (Content-Type, MIME-Version, Content-Transfer-Encoding).  Leaving these
 ##  unsigned allows an attacker who can modify a message in transit to change
 ##  the MIME structure -- for example, converting a text/plain body to
 ##  text/html or wrapping it in a multipart container to inject new content --
 ##  without invalidating the DKIM signature.  The delta syntax below extends
 ##  the default set to include them.
+##
+##  The "*" expands to the RFC 6376 section 5.4.1 recommended set, as listed above.
+##  If you replace "*" with a fully explicit list, ensure that any headers
+##  listed in OversignHeaders are also present -- omitting them silently
+##  disables their oversigning protection without any error.
 
 SignHeaders		*,+Content-Type,+MIME-Version,+Content-Transfer-Encoding
 
