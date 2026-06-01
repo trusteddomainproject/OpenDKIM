@@ -55,6 +55,7 @@ This document summarizes the changes merged into the `develop` branch during the
 - **`KeepAuthResults` deleting wrong headers**: Could delete the wrong `Authentication-Results` header when multiple were present. (issue #148)
 - **`AuthservID` with job ID producing invalid header**: Quoting fix for job-ID-appended authserv-ids. (#308, issue #103)
 - **SHA1 on restricted platforms**: On systems where the OS crypto policy disables SHA1 (e.g. RHEL 9 / AlmaLinux 9 DEFAULT policy), `dkim_init()` now probes SHA1 availability at startup and stores the result. Signing returns `DKIM_STAT_SIGGEN` with a clear message; verification sets `DKIM_SIGERROR_UNSUPPORTED_A` and returns `DKIM_STAT_OK` rather than `DKIM_STAT_INTERNAL`. Works correctly for OS-packaged binaries built on permissive systems and deployed to restricted ones, and for operators who re-enable SHA1 after install (update-crypto-policies + reboot). (#365, issue #364)
+- **`dkim_getsighdr_d` off-by-one in tag name copy**: Loop condition `q <= end` allowed the null terminator to be written one byte past the end of the `which` buffer. Changed to `q < end`; null terminator moved outside the loop. Eliminates a `-Wstringop-overflow` GCC warning. (#400)
 
 ---
 
@@ -122,6 +123,7 @@ A systematic audit of memory and resource leaks (issue #272) produced fixes acro
 - **K&R function prototype**: `dkimf_base64_encode_file` was using pre-ANSI K&R declaration style, removed in C23. (#261)
 - **SASL/LDAP pkg-config**: Improved detection. (#192)
 - **Incompatible pointer type warnings**: Fixed in several places. (#214)
+- **`libopendkim/docs` install directory**: HTML documentation was installed to `$(docdir)` via `dist_doc_DATA`; renamed to `dist_html_DATA` so it installs to `$(htmldir)`. Backwards-compatible since `$(htmldir)` defaults to `$(docdir)`. (#399)
 
 ---
 
