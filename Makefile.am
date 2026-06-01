@@ -47,12 +47,14 @@ DISTCHECK_CONFIGURE_FLAGS=--enable-vbr --with-lua --enable-stats --with-odbx --w
 #
 
 # We want to *build and install* these on the target machine.
-nodist_doc_DATA = contrib/systemd/opendkim.tmpfiles \
+nodist_doc_DATA = contrib/openrc/opendkim.openrc \
+                  contrib/systemd/opendkim.tmpfiles \
                   opendkim/opendkim.conf.simple \
                   opendkim/opendkim.conf.simple-verify
 
 # We want to *ship* these.
-EXTRA_DIST =  contrib/systemd/opendkim.tmpfiles.in \
+EXTRA_DIST =  contrib/openrc/opendkim.openrc.in \
+              contrib/systemd/opendkim.tmpfiles.in \
               opendkim/opendkim.conf.simple.in \
               opendkim/opendkim.conf.simple-verify.in
 
