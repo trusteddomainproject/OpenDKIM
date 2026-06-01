@@ -16,6 +16,17 @@ Socket                  inet:8891@localhost
 # (that the included service scripts use) is below.
 #Socket                 local:@RUNSTATEDIR@/opendkim/opendkim.sock
 
+# An unprivileged user to run as. Our service scripts attempt to
+# use the "opendkim" user and group by default.
+#UserID			opendkim
+
+# The UMask applied when creating the PID file (before dropping
+# privileges) and the local UNIX socket (after dropping
+# privileges). To share a socket with e.g. postfix via group
+# permissions, use something like the following.
+#UMask			0117
+
+
 ReportAddress           postmaster@@DOMAIN@
 SendReports             yes
 
