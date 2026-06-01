@@ -61,7 +61,9 @@ EXTRA_DIST =  contrib/systemd/opendkim.tmpfiles.in \
 # be found in the "Installation Directory Variables" section.
 edit = sed -e 's|@DOMAIN[@]|$(DOMAIN)|g' \
            -e 's|@LOCALSTATEDIR[@]|$(localstatedir)|g' \
-           -e 's|@RUNSTATEDIR[@]|$(runstatedir)|g'
+           -e 's|@RUNSTATEDIR[@]|$(runstatedir)|g' \
+           -e 's|@SBINDIR[@]|$(sbindir)|g' \
+           -e 's|@SYSCONFDIR[@]|$(sysconfdir)|g'
 
 # This rule includes EVERY source/intermediate file as a dependency of
 # EVERY output file, which is clearly wrong, but it may be the best we
