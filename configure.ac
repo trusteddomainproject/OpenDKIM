@@ -2733,6 +2733,7 @@ AC_CONFIG_FILES([	Makefile
 			contrib/init/solaris/Makefile
 			contrib/ldap/Makefile
 			contrib/lua/Makefile
+			contrib/openrc/Makefile
 			contrib/patches/Makefile
 			contrib/repute/Makefile
 			contrib/spec/Makefile
