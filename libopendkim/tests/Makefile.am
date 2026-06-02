@@ -53,16 +53,17 @@ if ALL_SYMBOLS
 check_PROGRAMS += t-test49 t-test113 t-test118
 endif
 
-check_DATA = testkeys
-CLEANFILES = $(check_DATA)
-
 # The path "./testkeys" is hard-coded in t-testdata.h
 testkeys: t-setup$(EXEEXT)
 	./t-setup$(EXEEXT)
 
+check_DATA = testkeys
+
 # t-setup needs to run first, before check_PROGRAMS. Put it in
 # EXTRA_PROGRAMS so automake will still build it on demand.
 EXTRA_PROGRAMS = t-setup
+
+CLEANFILES = $(check_DATA) $(EXTRA_PROGRAMS)
 
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
 
