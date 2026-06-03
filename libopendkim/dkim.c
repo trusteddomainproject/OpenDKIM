@@ -7394,11 +7394,11 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 		     pv != NULL;
 		     pv = strtok_r(NULL, DELIMITER, &ctx))
 		{
-			for (p = pv, q = which; *p != '=' && q <= end; p++, q++)
+			for (p = pv, q = which; *p != '=' && q < end; p++, q++)
 			{
 				*q = *p;
-				*(q + 1) = '\0';
 			}
+			*q = '\0';
 
 			whichlen = strlen(which);
 
