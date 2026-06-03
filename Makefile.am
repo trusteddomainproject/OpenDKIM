@@ -72,6 +72,8 @@ $(nodist_doc_DATA): $(doc_DATA_intermediate) $(EXTRA_DIST) Makefile
 	  $(edit) $${srcdir}$@.in > $@.tmp
 	mv $@.tmp $@
 
+# Ensure that anything we build is cleaned up.
+CLEANFILES = $(nodist_doc_DATA)
 
 $(DIST_ARCHIVES): distcheck
 
