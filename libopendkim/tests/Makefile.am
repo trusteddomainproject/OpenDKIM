@@ -45,6 +45,7 @@ check_PROGRAMS = t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test200 t-test201 t-test202 t-test203 \
 	t-test204 t-test205 \
 	t-test206 t-test207 t-test208 \
+	t-test209 t-test210 \
 	t-signperf t-verifyperf
 check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
 	t-signperf-simple-simple \
@@ -244,6 +245,8 @@ t_test205_SOURCES = t-test205.c t-testdata.h
 t_test206_SOURCES = t-test206.c t-testdata.h
 t_test207_SOURCES = t-test207.c t-testdata.h
 t_test208_SOURCES = t-test208.c t-testdata.h
+t_test209_SOURCES = t-test209.c t-testdata.h
+t_test210_SOURCES = t-test210.c t-testdata.h
 
 MOSTLYCLEANFILES=
 
