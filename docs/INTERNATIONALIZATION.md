@@ -152,6 +152,19 @@ OpenDKIM omits the tag entirely, which is valid per RFC 6376 and requires no
 special handling.
 
 
+## Status and roadmap
+
+The changes described in this document are conservative correctness fixes: they
+remove gates that incorrectly rejected valid input (UTF-8 bytes in header field
+bodies; UTF-8 in `i=` local-parts) rather than adding new IDN-aware behavior.
+Full IDN support - automatic U-label conversion, SMTPUTF8-aware signing table
+matching, end-to-end EAI interoperability - is a larger feature that would
+require a dedicated interoperability test suite against real EAI-capable MTAs
+and verifiers before it could be shipped with confidence.  That work is not yet
+planned.  These fixes lay the groundwork without committing to a complete
+implementation.
+
+
 ## Limitations and future work
 
 - **No libidn2 integration.**  Adding automatic U-label to A-label translation
