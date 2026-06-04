@@ -39,12 +39,10 @@ As of the fix for issue #47 (partial RFC 8616 support):
   e.g. `xn--mnchen-3ya.de`).
 
 - **U-labels in configuration.**  If you put a U-label directly in
-  `opendkim.conf` (as the value of `Domain`, `SubDomains`, or a signing table
-  entry), OpenDKIM will pass it as-is to the DNS resolver.  DNS only understands
-  A-labels; the lookup will fail and signing will not occur.
-
-  There is no warning or error for this misconfiguration - the DNS query simply
-  returns no results.
+  `opendkim.conf` (as the value of `Domain`, `SigningTable`, or `KeyTable`),
+  signing will silently fail or DNS lookups will return no results.  Some of
+  these cases now produce a `LOG_WARNING` syslog message; see the Diagnostics
+  section below for details.
 
 
 ## If you MUST use an internationalized domain name
@@ -192,6 +190,29 @@ implementation.
   audited and tested, operators running SMTPUTF8-capable MTAs should verify
   that signing actually occurs for EAI mail (check for a `DKIM-Signature:`
   header on outbound messages) rather than assuming it does.
+
+
+## Diagnostics: what is warned and what fails silently
+
+Not all U-label misconfigurations produce a visible error.  The table below
+describes the outcome for each case.
+
+| Misconfiguration | Outcome |
+|---|---|
+| U-label domain in message `From:`, queried against `SigningTable` | `LOG_WARNING`: "signing domain '...' contains non-ASCII; configure the A-label (Punycode) form in SigningTable and KeyTable" |
+| U-label domain in message `From:`, queried against `Domain` list | `LOG_WARNING`: "signing domain '...' contains non-ASCII; configure the A-label (Punycode) form in Domain" |
+| U-label in the domain column of a `KeyTable` entry | Silent: DNS key lookup returns no results; message is not signed |
+| U-label as a key in `SigningTable` (config entry, never queried) | Silent: entry never matches; no diagnostic at startup or runtime |
+
+The warnings in the first two rows fire at message-processing time, not at
+startup.  They appear in syslog once per message that triggers the condition,
+so they are visible in normal mail logs without requiring additional log level
+configuration.
+
+The silent cases in rows three and four are not yet diagnosed.  If you suspect
+a U-label is present in your `KeyTable` domain column, the symptom will be a
+key-fetch failure logged for that selector and domain; cross-check the domain
+name in that log line against the A-label for your domain.
 
 
 ## Summary
