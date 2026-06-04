@@ -169,6 +169,17 @@ special handling.
   OpenDKIM does not perform any such downgrade; that is the MTA's
   responsibility.
 
+- **Milter-level address parsing for SMTPUTF8 mail is unaudited.**  When an
+  MTA uses the SMTPUTF8 extension (RFC 6531) and delivers a message whose
+  `From:` header contains a U-label domain (e.g. `user@münchen.de`), OpenDKIM
+  must extract that domain to perform signing table and key table lookups.  The
+  address-parsing code in the milter has not been audited for UTF-8 correctness.
+  If it expects ASCII, the lookup will silently fail to match and the message
+  will not be signed, even if the key table entry is correct.  Until this is
+  audited and tested, operators running SMTPUTF8-capable MTAs should verify
+  that signing actually occurs for EAI mail (check for a `DKIM-Signature:`
+  header on outbound messages) rather than assuming it does.
+
 
 ## Summary
 
