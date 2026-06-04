@@ -13477,8 +13477,40 @@ mlfi_eoh(SMFICTX *ctx)
 
 			if (status != DKIM_STAT_OK)
 			{
-				ms = dkimf_libstatus(ctx, dfc->mctx_dkimv,
-				                     "dkim_header()", status);
+				if (status == DKIM_STAT_SYNTAX)
+				{
+					sfsistat action;
+
+					action = dkimf_libstatus(ctx,
+					                         dfc->mctx_dkimv,
+					                         "dkim_header()",
+					                         status);
+					if (action == SMFIS_ACCEPT ||
+					    action == SMFIS_CONTINUE)
+					{
+						/*
+						**  OnBadSignature accept:
+						**  don't return early; let
+						**  mlfi_eom() emit
+						**  dkim=permerror via the
+						**  mctx_headeronly path.
+						*/
+						dfc->mctx_status =
+							DKIMF_STATUS_BADFORMAT;
+						dfc->mctx_addheader = TRUE;
+						dfc->mctx_headeronly = TRUE;
+					}
+					else
+					{
+						ms = action;
+					}
+				}
+				else
+				{
+					ms = dkimf_libstatus(ctx, dfc->mctx_dkimv,
+					                     "dkim_header()",
+					                     status);
+				}
 			}
 		}
 	}
@@ -13571,9 +13603,13 @@ mlfi_eoh(SMFICTX *ctx)
 		return SMFIS_CONTINUE;
 
 	  case DKIM_STAT_NOSIG:
-		dfc->mctx_status = DKIMF_STATUS_NOSIGNATURE;
-		if (conf->conf_alwaysaddar)
-			dfc->mctx_addheader = TRUE;
+		/* don't overwrite BADFORMAT set by a dkim_header() syntax error */
+		if (dfc->mctx_status != DKIMF_STATUS_BADFORMAT)
+		{
+			dfc->mctx_status = DKIMF_STATUS_NOSIGNATURE;
+			if (conf->conf_alwaysaddar)
+				dfc->mctx_addheader = TRUE;
+		}
 		return SMFIS_CONTINUE;
 
 	  case DKIM_STAT_NOKEY:
