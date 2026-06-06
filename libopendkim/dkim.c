@@ -537,11 +537,13 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 
 	for (p = hcopy; *p != '\0'; p++)
 	{
-		if (!isascii(*p) || (!isprint(*p) && !isspace(*p)))
+		/* allow high bytes (UTF-8) in value context (states 2, 3) */
+		if ((!isascii(*p) && state < 2) ||
+		    (isascii(*p) && !isprint(*p) && !isspace(*p)))
 		{
 			dkim_error(dkim,
-			           "invalid character (ASCII 0x%02x at offset %d) in %s data",
-			           *p, p - hcopy, settype);
+			           "invalid character (0x%02x at offset %d) in %s data",
+			           (unsigned char) *p, p - hcopy, settype);
 			if (syntax)
 				dkim_set_free(dkim, set);
 			else
@@ -6681,11 +6683,13 @@ dkim_header(DKIM *dkim, u_char *hdr, size_t len)
 		}
 		else
 		{
-			/* field bodies are printable ASCII, SP, HT, CR, LF */
+			/* field bodies: printable ASCII, SP, HT, CR, LF, or
+			   high bytes (UTF-8, per RFC 8616) */
 			if (!(hdr[c] == 9 ||  /* HT */
 			      hdr[c] == 10 || /* LF */
 			      hdr[c] == 13 || /* CR */
-			      (hdr[c] >= 32 && hdr[c] <= 126) /* SP, print */ ))
+			      (hdr[c] >= 32 && hdr[c] <= 126) || /* SP, print */
+			      hdr[c] >= 128 /* UTF-8 */ ))
 				return DKIM_STAT_SYNTAX;
 		}
 	}

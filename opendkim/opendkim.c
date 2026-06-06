@@ -10056,6 +10056,24 @@ dkimf_apply_signtable(struct msgctx *dfc, DKIMF_DB keydb, DKIMF_DB signdb,
 	assert(user != NULL);
 	assert(domain != NULL);
 
+	if (dolog)
+	{
+		unsigned char *q;
+
+		for (q = domain; *q != '\0'; q++)
+		{
+			if (!isascii(*q))
+			{
+				syslog(LOG_WARNING,
+				       "%s: signing domain '%s' contains non-ASCII; "
+				       "configure the A-label (Punycode) form in "
+				       "SigningTable and KeyTable",
+				       dfc->mctx_jobid, domain);
+				break;
+			}
+		}
+	}
+
 	if (dkimf_db_type(signdb) == DKIMF_DB_TYPE_REFILE)
 	{
 		int status;
@@ -12563,6 +12581,23 @@ mlfi_eoh(SMFICTX *ctx)
 	/* is it a domain we sign for? */
 	if (!domainok && conf->conf_domainsdb != NULL)
 	{
+		if (dolog)
+		{
+			unsigned char *q;
+
+			for (q = dfc->mctx_domain; *q != '\0'; q++)
+			{
+				if (!isascii(*q))
+				{
+					syslog(LOG_WARNING,
+					       "%s: signing domain '%s' contains non-ASCII; "
+					       "configure the A-label (Punycode) form in Domain",
+					       dfc->mctx_jobid, dfc->mctx_domain);
+					break;
+				}
+			}
+		}
+
 		status = dkimf_db_get(conf->conf_domainsdb, dfc->mctx_domain,
 		                      0, NULL, 0, &domainok);
 
