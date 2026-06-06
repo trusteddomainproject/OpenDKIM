@@ -52,6 +52,9 @@ extern void dkim_error (DKIM *, const char *, ...);
 #ifndef T_RRSIG
 # define T_RRSIG		46
 #endif /* ! T_RRSIG */
+#ifndef T_DNAME
+# define T_DNAME		39
+#endif /* ! T_DNAME */
 #ifndef MAX
 # define MAX(x,y)		((x) > (y) ? (x) : (y))
 #endif /* ! MAX */
