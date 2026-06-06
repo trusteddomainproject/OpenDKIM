@@ -43,3 +43,45 @@ jobs:
 
       - name: Test
         run: make check
+
+  build-test-macos:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew install \
+            autoconf automake libtool \
+            openssl \
+            lua \
+            unbound
+
+      - name: Build and install libmilter from source
+        run: |
+          SENDMAIL_VER=8.18.2
+          curl -fsSL "ftp://ftp.sendmail.org/pub/sendmail/sendmail.${SENDMAIL_VER}.tar.gz" | tar xz -C /tmp
+          cd /tmp/sendmail-${SENDMAIL_VER}/libmilter
+          ./Build
+          sudo mkdir -p /usr/local/include/libmilter /usr/local/lib
+          sudo cp ../include/libmilter/mfapi.h ../include/libmilter/mfdef.h /usr/local/include/libmilter/
+          sudo cp "$(find .. -name 'libmilter.a' | head -1)" /usr/local/lib/
+
+      - name: Bootstrap build system
+        run: autoreconf -fvi
+
+      - name: Configure
+        run: |
+          PKG_CONFIG_PATH="$(brew --prefix openssl)/lib/pkgconfig:$(brew --prefix lua)/lib/pkgconfig" \
+          ./configure --enable-lua \
+            --with-unbound="$(brew --prefix unbound)" \
+            CFLAGS='-g -O2 -Wno-pointer-sign -std=gnu11' \
+            CPPFLAGS="-I/usr/local/include" \
+            LDFLAGS="-L/usr/local/lib"
+
+      - name: Build
+        run: make -j$(sysctl -n hw.logicalcpu)
+
+      - name: Test
+        run: make check
