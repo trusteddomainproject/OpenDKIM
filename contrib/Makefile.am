@@ -3,6 +3,6 @@
 
 #AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = convert docs init ldap lua patches repute spec stats systemd
+SUBDIRS = convert docs init ldap lua openrc patches repute spec stats systemd
 
 dist_doc_DATA = README

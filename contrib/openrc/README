@@ -1,0 +1,11 @@
+Service scripts and configuration for the OpenRC[0] init system. They
+are supported by their authors and/or the maintainers of the OpenDKIM
+package[1] in Gentoo linux (presently, one and the same).
+
+OpenRC uses the tmpfiles.d mechanism[2], so the tmpfiles entry in the
+"systemd" subdirectory is relevant here as well.
+
+
+[0] https://github.com/OpenRC/openrc
+[1] https://packages.gentoo.org/packages/mail-filter/opendkim
+[2] https://www.freedesktop.org/software/systemd/man/latest/tmpfiles.d.html

@@ -47,11 +47,15 @@ DISTCHECK_CONFIGURE_FLAGS=--enable-vbr --with-lua --enable-stats --with-odbx --w
 #
 
 # We want to *build and install* these on the target machine.
-nodist_doc_DATA = opendkim/opendkim.conf.simple \
+nodist_doc_DATA = contrib/openrc/opendkim.openrc \
+                  contrib/systemd/opendkim.tmpfiles \
+                  opendkim/opendkim.conf.simple \
                   opendkim/opendkim.conf.simple-verify
 
 # We want to *ship* these.
-EXTRA_DIST =  opendkim/opendkim.conf.simple.in \
+EXTRA_DIST =  contrib/openrc/opendkim.openrc.in \
+              contrib/systemd/opendkim.tmpfiles.in \
+              opendkim/opendkim.conf.simple.in \
               opendkim/opendkim.conf.simple-verify.in
 
 # The next rule allow us to replace bindir, libdir, etc.  within
@@ -59,7 +63,9 @@ EXTRA_DIST =  opendkim/opendkim.conf.simple.in \
 # be found in the "Installation Directory Variables" section.
 edit = sed -e 's|@DOMAIN[@]|$(DOMAIN)|g' \
            -e 's|@LOCALSTATEDIR[@]|$(localstatedir)|g' \
-           -e 's|@RUNSTATEDIR[@]|$(runstatedir)|g'
+           -e 's|@RUNSTATEDIR[@]|$(runstatedir)|g' \
+           -e 's|@SBINDIR[@]|$(sbindir)|g' \
+           -e 's|@SYSCONFDIR[@]|$(sysconfdir)|g'
 
 # This rule includes EVERY source/intermediate file as a dependency of
 # EVERY output file, which is clearly wrong, but it may be the best we
