@@ -1,3 +1,12 @@
+# Prerequisites for all tests. An abuse of check_DATA.
+check_DATA = ../../miltertest/miltertest ../opendkim
+
+# And rules to build them.
+../../miltertest/miltertest:
+	$(MAKE) -C ../../miltertest miltertest
+../opendkim:
+	$(MAKE) -C ../ opendkim
+
 check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-sign-rs-tables-token t-sign-rs-multiple t-sign-rs-mixconf \
 	t-sign-rs-lua t-sign-ss-all t-sign-ss-ltag t-sign-ss-x \
