@@ -6,6 +6,12 @@ if DEBUG
 AM_CFLAGS += -g
 endif
 
+# Ensure that there is a rule for this _in the subdirectory_, so that
+# a bare "make check" knows what to do in an empty tree.
+../libopendkim.la:
+	$(MAKE) -C ../ libopendkim.la
+
+
 LDADD = ../libopendkim.la $(COV_LIBADD) $(LIBCRYPTO_LIBS) $(LIBRESOLV)
 AM_CPPFLAGS = -I..
 
