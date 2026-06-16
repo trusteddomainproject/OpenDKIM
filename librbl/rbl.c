@@ -16,6 +16,7 @@
 #include <string.h>
 #include <assert.h>
 #include <errno.h>
+#include <stdio.h>
 
 /* librbl includes */
 #include "rbl.h"
