@@ -1699,8 +1699,6 @@ main(int argc, char** argv)
 ])
 
 AS_IF([test x"$lua_found" != x"yes"], [
-  AS_IF([test x"$enable_lua_only_signing" = x"yes"],
-    [AC_MSG_ERROR([--enable-lua_only_signing requires Lua support])])
   AS_IF([test x"$enable_statsext" = x"yes"],
     [AC_MSG_ERROR([--enable-statsext requires Lua support])])
   AS_IF([test x"$enable_rbl" = x"yes"],
