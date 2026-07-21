@@ -49,6 +49,26 @@ default to 0, and string and dataset values default to being undefined.
 
 .SH PARAMETERS
 .TP
+.I AddCanonicalizedData (Boolean)
+If true, for every verified signature, adds
+.I X-DKIM-Canonicalized-Header
+and
+.I X-DKIM-Canonicalized-Body
+header fields containing the base64-encoded canonicalized header block and
+body used to verify the signature, tagged with the signature's "d=" and
+"s=" values.  This is independent of the signature's own "r=" reporting
+request and of whether it ultimately passed; it is intended for use by a
+downstream DMARC filter needing the raw bytes for RFC6591 forensic report
+fields defined by RFC9991, since this filter does not otherwise expose
+them.  Turning this on implies the same in-memory temporary file usage as
+.I SendReports
+and
+.I KeepTemporaryFiles,
+but never persists files to disk the way
+.I KeepTemporaryFiles
+does.  Default "false".
+
+.TP
 .I AllowSHA1Only (Boolean)
 Permit verify mode when only SHA1 support is available.  RFC6376 requires
 that verifiers implement both SHA1 and SHA256 support.  Setting this

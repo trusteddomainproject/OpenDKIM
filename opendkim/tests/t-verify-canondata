@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+#
+# simple/simple verifying test with AddCanonicalizedData (should pass)
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-verify-canondata.lua

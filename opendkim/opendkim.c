@@ -236,6 +236,7 @@ struct dkimf_config
 	_Bool		conf_alwaysaddar;	/* always add Auth-Results:? */
 	_Bool		conf_reqreports;	/* request reports */
 	_Bool		conf_sendreports;	/* signature failure reports */
+	_Bool		conf_addcanondata;	/* add canonicalized data headers */
 	_Bool		conf_reqhdrs;		/* required header checks */
 	_Bool		conf_authservidwithjobid; /* use jobids in A-R headers */
 	_Bool		conf_subdomains;	/* sign subdomains */
@@ -740,6 +741,7 @@ void dkimf_sendprogress (const void *);
 sfsistat dkimf_setpriv (SMFICTX *, void *);
 sfsistat dkimf_setreply (SMFICTX *, char *, char *, char *);
 static void dkimf_sigreport (connctx, struct dkimf_config *, char *);
+static void dkimf_add_canon_headers (connctx, struct dkimf_config *, SMFICTX *);
 static void dkimf_log(struct dkimf_config *conf, int priority, const char *format, ...);
 
 /* GLOBALS */
@@ -4201,6 +4203,169 @@ dkimf_add_ar_fields(struct msgctx *dfc, struct dkimf_config *conf,
 }
 
 /*
+**  DKIMF_CANON_HEADER_VALUE -- base64-encode a canonicalization tmp file
+**                              into a malloc'd, NUL-terminated, folded
+**                              header value
+**
+**  Parameters:
+**  	fd -- descriptor of the canonicalization tmp file (header or body)
+**  	prefix -- tag prefix ("d=...; s=...; b=") to prepend on the same
+**  	          line before the base64 data starts
+**
+**  Return value:
+**  	A malloc'd C string ready to hand to dkimf_insheader(), or NULL on
+**  	failure.  Caller must free() the result.
+*/
+
+static char *
+dkimf_canon_header_value(int fd, const char *prefix)
+{
+	long len;
+	char *buf;
+	FILE *tmp;
+
+	if (fd < 0)
+		return NULL;
+
+	tmp = tmpfile();
+	if (tmp == NULL)
+		return NULL;
+
+	fputs(prefix, tmp);
+
+	dkimf_base64_encode_file(fd, tmp, 8, DKIM_HDRMARGIN,
+	                         (int) strlen(prefix));
+
+	len = ftell(tmp);
+	if (len <= 0)
+	{
+		fclose(tmp);
+		return NULL;
+	}
+
+	buf = (char *) malloc((size_t) len + 1);
+	if (buf == NULL)
+	{
+		fclose(tmp);
+		return NULL;
+	}
+
+	rewind(tmp);
+	if (fread(buf, 1, (size_t) len, tmp) != (size_t) len)
+	{
+		free(buf);
+		fclose(tmp);
+		return NULL;
+	}
+	buf[len] = '\0';
+
+	fclose(tmp);
+
+	return buf;
+}
+
+/*
+**  DKIMF_ADD_CANON_HEADERS -- add canonicalized header/body data as milter
+**                             headers, for downstream DMARC forensic
+**                             reporting (RFC 9991 / RFC 6591)
+**
+**  Parameters:
+**  	cc -- connection context
+**  	conf -- configuration handle
+**  	ctx -- milter context
+**
+**  Return value:
+**  	None.
+**
+**  Notes:
+**  	The canonicalized bytes come from the same tmp files the
+**  	SendReports feature uses (see dkimf_sigreport()); they're
+**  	populated for every verified signature regardless of whether it
+**  	requested reporting ("r=y") or ultimately passed.  This emits one
+**  	X-DKIM-Canonicalized-Header/-Body pair per signature, tagged with
+**  	its domain/selector so a downstream consumer (e.g. OpenDMARC) can
+**  	match them against whichever signature it cares about without
+**  	needing a numeric index.
+*/
+
+static void
+dkimf_add_canon_headers(connctx cc, struct dkimf_config *conf, SMFICTX *ctx)
+{
+	int c;
+	int nsigs = 0;
+	msgctx dfc;
+	DKIM_SIGINFO **sigs = NULL;
+
+	assert(cc != NULL);
+	assert(conf != NULL);
+	assert(ctx != NULL);
+
+	dfc = cc->cctx_msg;
+
+	assert(dfc->mctx_dkimv != NULL);
+
+	if (dkim_getsiglist(dfc->mctx_dkimv, &sigs, &nsigs) != DKIM_STAT_OK)
+		return;
+
+	for (c = 0; c < nsigs; c++)
+	{
+		int bfd = -1;
+		int hfd = -1;
+		char *domain;
+		char *selector;
+		char prefix[BUFRSZ];
+		char *hval;
+
+		if (dkim_sig_getreportinfo(dfc->mctx_dkimv, sigs[c],
+		                          &hfd, &bfd,
+		                          NULL, 0, NULL, 0,
+		                          NULL, 0, NULL) != DKIM_STAT_OK)
+			continue;
+
+		domain = (char *) dkim_sig_getdomain(sigs[c]);
+		selector = (char *) dkim_sig_getselector(sigs[c]);
+
+		snprintf(prefix, sizeof prefix, "d=%s; s=%s; b=",
+		         domain != NULL ? domain : "",
+		         selector != NULL ? selector : "");
+
+		if (hfd != -1)
+		{
+			hval = dkimf_canon_header_value(hfd, prefix);
+			if (hval != NULL)
+			{
+				if (dkimf_insheader(ctx, 0,
+				                    "X-DKIM-Canonicalized-Header",
+				                    hval) == MI_FAILURE)
+				{
+					dkimf_log(conf, LOG_ERR,
+					          "%s: X-DKIM-Canonicalized-Header header add failed",
+					          dfc->mctx_jobid);
+				}
+				free(hval);
+			}
+		}
+
+		if (bfd != -1)
+		{
+			hval = dkimf_canon_header_value(bfd, prefix);
+			if (hval != NULL)
+			{
+				if (dkimf_insheader(ctx, 0,
+				                    "X-DKIM-Canonicalized-Body",
+				                    hval) == MI_FAILURE)
+				{
+					dkimf_log(conf, LOG_ERR,
+					          "%s: X-DKIM-Canonicalized-Body header add failed",
+					          dfc->mctx_jobid);
+				}
+				free(hval);
+			}
+		}
+	}
+}
+
+/*
 **  DKIMF_DB_ERROR -- syslog errors related to db retrieval
 **
 **  Parameters:
@@ -6521,6 +6686,13 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  &conf->conf_sendreports,
 			                  sizeof conf->conf_sendreports);
 		}
+
+		if (!conf->conf_addcanondata)
+		{
+			(void) config_get(data, "AddCanonicalizedData",
+			                  &conf->conf_addcanondata,
+			                  sizeof conf->conf_addcanondata);
+		}
 		(void) config_get(data, "MTACommand",
 		                  &conf->conf_mtacommand,
 		                  sizeof conf->conf_mtacommand);
@@ -8829,6 +9001,7 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 	}
 
 	if (conf->conf_sendreports || conf->conf_keeptmpfiles ||
+	    conf->conf_addcanondata ||
 	    conf->conf_stricthdrs || conf->conf_blen || conf->conf_ztags ||
 	    conf->conf_fixcrlf)
 	{
@@ -8844,7 +9017,8 @@ dkimf_config_setlib(struct dkimf_config *conf, char **err)
 			return FALSE;
 		}
 
-		if (conf->conf_sendreports || conf->conf_keeptmpfiles)
+		if (conf->conf_sendreports || conf->conf_keeptmpfiles ||
+		    conf->conf_addcanondata)
 			opts |= DKIM_LIBFLAGS_TMPFILES;
 		if (conf->conf_keeptmpfiles)
 			opts |= DKIM_LIBFLAGS_KEEPFILES;
@@ -15101,6 +15275,10 @@ mlfi_eom(SMFICTX *ctx)
 		if (dfc->mctx_status == DKIMF_STATUS_BAD &&
 		    conf->conf_sendreports)
 			dkimf_sigreport(cc, conf, hostname);
+
+		/* expose canonicalized data for downstream DMARC reporting? */
+		if (conf->conf_addcanondata)
+			dkimf_add_canon_headers(cc, conf, ctx);
 
 #ifdef _FFR_VBR
 	    	if (dkimf_valid_vbr(dfc))
