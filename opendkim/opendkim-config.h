@@ -24,6 +24,7 @@
 /* config definition */
 struct configdef dkimf_config[] =
 {
+	{ "AddCanonicalizedData",	CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AllowSHA1Only",		CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "AlwaysAddARHeader",		CONFIG_TYPE_BOOLEAN,	FALSE },
 #ifdef _FFR_ATPS

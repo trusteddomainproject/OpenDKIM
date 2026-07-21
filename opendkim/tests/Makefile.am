@@ -16,7 +16,7 @@ check_SCRIPTS = t-sign-ss t-sign-rs t-sign-rs-tables t-sign-rs-tables-bad \
 	t-verify-ss-ar-bad t-verify-ss-ar-admd-less \
 	t-dontsign t-peer \
 	t-lua-verify-tests t-sign-ss-macro t-sign-ss-macro-value \
-	t-sign-ss-macro-value-file t-verify-report \
+	t-sign-ss-macro-value-file t-verify-report t-verify-canondata \
 	t-sign-report t-conf-check t-verify-double-from
 
 if LIVE_TESTS
@@ -94,6 +94,7 @@ EXTRA_DIST = \
 	t-peer t-peer.conf t-peer.list t-peer.lua \
 	t-verify-report t-verify-report.conf t-verify-report.txt \
 		t-verify-report.lua \
+	t-verify-canondata t-verify-canondata.conf t-verify-canondata.lua \
 	t-sign-atps t-sign-atps.conf t-sign-atps.lua \
 	t-verify-ss-atps t-verify-ss-atps.conf t-verify-ss-atps.lua \
 	t-conf-check t-conf-check.conf t-conf-check.keytable t-conf-check.lua \

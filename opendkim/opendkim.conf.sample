@@ -29,6 +29,18 @@
 
 ## CONFIGURATION OPTIONS
 
+##  AddCanonicalizedData { yes | no }
+##  	default "no"
+##
+##  If set, adds "X-DKIM-Canonicalized-Header" and "X-DKIM-Canonicalized-Body"
+##  headers for every verified signature, containing the base64-encoded
+##  canonicalized header block and body used to verify it, tagged with the
+##  signature's "d=" and "s=" values.  Intended for use by a downstream
+##  DMARC filter that needs these bytes for RFC9991 forensic report fields.
+##  See opendkim.conf(5) for details.
+
+# AddCanonicalizedData	no
+
 ##  AllowSHA1Only { yes | no }
 ##  	default "no"
 ##
