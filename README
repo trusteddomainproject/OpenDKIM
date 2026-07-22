@@ -109,6 +109,15 @@ o If you wish to interface the filter with LDAP servers, OpenLDAP v2.1.3
 o For local hash or btree database support in either the filter or the
   library, Oracle's BerkeleyDB is required.  All versions are supported.
 
+o LMDB is an optional local key/data store backend (--with-lmdb).  LMDB 1.0
+  changed its on-disk file format in a way that is NOT compatible with 0.9.x,
+  and there is no automatic detection or in-place upgrade of an existing
+  database file: opening a 0.9.x data.mdb with a 1.0.x build (or vice versa)
+  will not work correctly. If you are upgrading the LMDB library on a system
+  where OpenDKIM already has an LMDB-backed database on disk, dump it with
+  the OLD version's mdb_dump before upgrading, then reload it with the NEW
+  version's mdb_load afterward.
+
 o If you are interested in tinkering with the build and packaging structure,
   you may need to upgrade to these versions of GNU's "autotools" components:
 	autoconf (GNU Autoconf) 2.61

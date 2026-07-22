@@ -161,6 +161,7 @@ A systematic audit of memory and resource leaks (issue #272) produced fixes acro
 - **Dual-algorithm signing example**: Added KeyTable example and caveats for signing with both RSA and ed25519. (#270)
 - **`HowToRelease` modernized**: Updated for GitHub workflow, consistent release asset naming. (#338)
 - **Spelling fixes**: Various typos in docs and code comments. (#347)
+- **LMDB 1.0 file format incompatibility**: Documented in the README that LMDB 1.0 changed its on-disk file format incompatibly with 0.9.x, and that there is no automatic detection or upgrade of an existing database file. Operators upgrading the LMDB library on a system with an existing OpenDKIM LMDB database must dump with the old version's mdb_dump and reload with the new version's mdb_load.
 
 ---
 
