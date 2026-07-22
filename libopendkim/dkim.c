@@ -214,7 +214,7 @@ void dkim_error (DKIM *, const char *, ...);
 #define DKIM_ISLWSP(x)  ((x) == 011 || (x) == 013 || (x) == 014 || (x) == 040)
 
 /* recommended list of headers to sign, from RFC6376 Section 5.4 */
-const u_char *dkim_should_signhdrs[] =
+const char *dkim_should_signhdrs[] =
 {
 	"from",
 	"reply-to",
@@ -240,7 +240,7 @@ const u_char *dkim_should_signhdrs[] =
 };
 
 /* recommended list of headers not to sign, from RFC6376 Section 5.4 */
-const u_char *dkim_should_not_signhdrs[] =
+const char *dkim_should_not_signhdrs[] =
 {
 	"return-path",
 	"received",
@@ -250,7 +250,7 @@ const u_char *dkim_should_not_signhdrs[] =
 };
 
 /* required list of headers to sign */
-const u_char *dkim_required_signhdrs[] =
+const char *dkim_required_signhdrs[] =
 {
 	"from",
 	NULL
@@ -1361,7 +1361,7 @@ dkim_set_getudata(DKIM_SET *set)
 */
 
 static struct dkim_header *
-dkim_get_header(DKIM *dkim, u_char *name, size_t namelen, int inst)
+dkim_get_header(DKIM *dkim, char *name, size_t namelen, int inst)
 {
 	size_t len;
 	struct dkim_header *hdr;
@@ -1370,7 +1370,7 @@ dkim_get_header(DKIM *dkim, u_char *name, size_t namelen, int inst)
 	assert(name != NULL);
 
 	if (namelen == 0)
-		len = strlen((char *) name);
+		len = strlen(name);
 	else
 		len = namelen;
 
@@ -1378,7 +1378,7 @@ dkim_get_header(DKIM *dkim, u_char *name, size_t namelen, int inst)
 	{
 		if (hdr->hdr_namelen == len &&
 		    strncasecmp((char *) hdr->hdr_text,
-		                (char *) name, len) == 0)
+		                name, len) == 0)
 		{
 			if (inst == 0)
 				return hdr;
@@ -4151,7 +4151,7 @@ dkim_eom_verify(DKIM *dkim, _Bool *testkey)
 			u_char *domain;
 			u_char *user;
 
-			hdr = dkim_get_header(dkim, (u_char *) DKIM_FROMHEADER,
+			hdr = dkim_get_header(dkim, DKIM_FROMHEADER,
 			                      DKIM_FROMHEADER_LEN, 0);
 			if (hdr == NULL)
 			{
@@ -6162,7 +6162,7 @@ dkim_sig_process(DKIM *dkim, DKIM_SIGINFO *sig)
 		for (c = 0; dkim->dkim_libhandle->dkiml_mbs[c] != NULL; c++)
 		{
 			if (dkim_get_header(dkim,
-			                    dkim->dkim_libhandle->dkiml_mbs[c],
+			                    (char *) dkim->dkim_libhandle->dkiml_mbs[c],
 			                    0, 0) != NULL &&
 			    !dkim_sig_hdrsigned(sig,
 			                        dkim->dkim_libhandle->dkiml_mbs[c]))

@@ -1981,10 +1981,10 @@ extern const char *dkim_getsslbuf (DKIM *dkim);
 extern const char *dkim_sig_getsslbuf (DKIM_SIGINFO *sig);
 
 /* list of headers that should be signed, per RFC6376 Section 5.4 */
-extern const u_char *dkim_should_signhdrs[]; 
+extern const char *dkim_should_signhdrs[];
 
 /* list of headers that should not be signed, per RFC6376 Section 5.4 */
-extern const u_char *dkim_should_not_signhdrs[];
+extern const char *dkim_should_not_signhdrs[];
 
 /*
 **  DKIM_CODE_TO_NAME -- translate a mnemonic code to its name
