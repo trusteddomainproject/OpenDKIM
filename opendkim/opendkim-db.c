@@ -807,7 +807,7 @@ dkimf_db_datasplit(char *buf, size_t buflen,
 		{
 			char *q;
 
-			q = strchr(p, ':');
+			q = memchr(p, ':', remain);
 			if (q != NULL)
 			{
 				clen = q - p;
