@@ -6338,10 +6338,11 @@ dkimf_config_free(struct dkimf_config *conf)
 **  	errlen -- bytes available at "err"
 **
 **  Return value:
-**  	TRUE if no error, FALSE if error.
+**  	TRUE if no error, FALSE if unknown handling key, -1 if invalid
+**  	handling value.
 */
 
-static _Bool
+static int
 dkimf_parsehandler(struct config *cfg, char *name, struct handling *hndl,
                    char *err, size_t errlen)
 {
@@ -6623,28 +6624,28 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 			                  sizeof conf->conf_modestr);
 		}
 
-		if (!dkimf_parsehandler(data, "On-Default",
-		                        &conf->conf_handling, err, errlen) ||
-		    !dkimf_parsehandler(data, "On-BadSignature",
-		                        &conf->conf_handling, err, errlen) ||
-		    !dkimf_parsehandler(data, "On-DNSError",
-		                        &conf->conf_handling, err, errlen) ||
-		    !dkimf_parsehandler(data, "On-KeyNotFound",
-		                        &conf->conf_handling, err, errlen) ||
-		    !dkimf_parsehandler(data, "On-InternalError",
-		                        &conf->conf_handling, err, errlen) ||
-		    !dkimf_parsehandler(data, "On-NoSignature",
-		                        &conf->conf_handling, err, errlen) ||
-		    !dkimf_parsehandler(data, "On-PolicyError",
-		                        &conf->conf_handling, err, errlen) ||
+		if (dkimf_parsehandler(data, "On-Default",
+		                       &conf->conf_handling, err, errlen) != TRUE ||
+		    dkimf_parsehandler(data, "On-BadSignature",
+		                       &conf->conf_handling, err, errlen) != TRUE ||
+		    dkimf_parsehandler(data, "On-DNSError",
+		                       &conf->conf_handling, err, errlen) != TRUE ||
+		    dkimf_parsehandler(data, "On-KeyNotFound",
+		                       &conf->conf_handling, err, errlen) != TRUE ||
+		    dkimf_parsehandler(data, "On-InternalError",
+		                       &conf->conf_handling, err, errlen) != TRUE ||
+		    dkimf_parsehandler(data, "On-NoSignature",
+		                       &conf->conf_handling, err, errlen) != TRUE ||
+		    dkimf_parsehandler(data, "On-PolicyError",
+		                       &conf->conf_handling, err, errlen) != TRUE ||
 #ifdef _FFR_REPUTATION
-		    !dkimf_parsehandler(data, "On-ReptuationError",
-		                        &conf->conf_handling, err, errlen) ||
+		    dkimf_parsehandler(data, "On-ReptuationError",
+		                       &conf->conf_handling, err, errlen) != TRUE ||
 #endif /* _FFR_REPUTATION */
-		    !dkimf_parsehandler(data, "On-Security",
-		                        &conf->conf_handling, err, errlen) ||
-		    !dkimf_parsehandler(data, "On-SignatureError",
-		                        &conf->conf_handling, err, errlen))
+		    dkimf_parsehandler(data, "On-Security",
+		                       &conf->conf_handling, err, errlen) != TRUE ||
+		    dkimf_parsehandler(data, "On-SignatureError",
+		                       &conf->conf_handling, err, errlen) != TRUE)
 			return -1;
 
 		(void) config_get(data, "RemoveARAll", &conf->conf_remarall,
