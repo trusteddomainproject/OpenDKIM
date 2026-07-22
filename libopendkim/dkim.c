@@ -1564,7 +1564,7 @@ dkim_key_hashesok(DKIM_LIB *lib, u_char *hashlist)
 **  	-1 on error
 */
 
-static _Bool
+static int
 dkim_sig_hdrlistok(DKIM *dkim, u_char *hdrlist)
 {
 	_Bool in = FALSE;
