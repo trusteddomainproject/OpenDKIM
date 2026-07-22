@@ -73,6 +73,7 @@ This document summarizes the changes merged into the `develop` branch during the
 - **Segfault with empty `RequiredHeaders`**: assert in selecthdrs when option was set but produced no headers. (#313, issue #174)
 - **`MultipleSignatures` orphaned signreq entries**: Sign request list tail pointer was not maintained, causing use-after-free or missed entries with multiple signatures. (#274)
 - **`DKIMF_STATUS_KEYFAIL` undefined**: Missing define caused incorrect handling of key failure status. (#329)
+- **Stack overflow risk in `dkimf_add_signrequest()` on macOS ARM64**: The function stack-allocated two `MAXBUFRSZ + 1` (65,537-byte) locals, `keydata` and `tmpdata`, totaling over 128 KB. This is harmless on Linux, where pthreads default to an 8 MB stack, but macOS ARM64 libmilter callback threads default to 512 KB; combined with libmilter's own frames and the rest of the `mlfi_eoh()` → `dkimf_apply_signtable()` call chain, an active KeyTable could overrun the stack (`SIGBUS`, `___chkstk_darwin` in a crash trace) during ordinary sign-mode operation. Both buffers are now heap-allocated with `malloc()`/`free()` on every return path. No behavior change. (issue #411)
 
 ---
 
