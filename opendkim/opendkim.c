@@ -5055,7 +5055,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 	size_t keydatasz = 0;
 	struct signreq *new;
 	struct dkimf_db_data dbd[4];
-	char keydata[MAXBUFRSZ + 1];
+	char *keydata = NULL;
 	char domain[DKIM_MAXHOSTNAMELEN + 1];
 	char selector[BUFRSZ + 1];
 	char signalgstr[BUFRSZ + 1];
@@ -5082,9 +5082,19 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 
 		assert(keyname != NULL);
 
+		/*
+		**  keydata is heap-allocated (rather than a MAXBUFRSZ+1
+		**  stack array) because this function runs on a libmilter
+		**  callback thread; on macOS ARM64 those default to a
+		**  512 KB stack, which two 64 KB locals can overrun.
+		*/
+		keydata = malloc(MAXBUFRSZ + 1);
+		if (keydata == NULL)
+			return -1;
+
 		memset(domain, '\0', sizeof domain);
 		memset(selector, '\0', sizeof selector);
-		memset(keydata, '\0', sizeof keydata);
+		memset(keydata, '\0', MAXBUFRSZ + 1);
 		memset(signalgstr, '\0', sizeof signalgstr);
 
 		dbd[0].dbdata_buffer = domain;
@@ -5094,7 +5104,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 		dbd[1].dbdata_buflen = sizeof selector - 1;
 		dbd[1].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 		dbd[2].dbdata_buffer = keydata;
-		dbd[2].dbdata_buflen = sizeof keydata - 1;
+		dbd[2].dbdata_buflen = MAXBUFRSZ;
 		dbd[2].dbdata_flags = DKIMF_DB_DATA_OPTIONAL;
 		dbd[3].dbdata_buffer = signalgstr;
 		dbd[3].dbdata_buflen = sizeof signalgstr - 1;
@@ -5122,11 +5132,15 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 				}
 			}
 
+			free(keydata);
 			return -1;
 		}
 
 		if (!found)
+		{
+			free(keydata);
 			return 1;
+		}
 
 		if (dbd[0].dbdata_buflen == 0 ||
 		    dbd[0].dbdata_buflen == (size_t) -1 ||
@@ -5145,6 +5159,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 				          "key");
 			}
 
+			free(keydata);
 			return 2;
 		}
 
@@ -5158,27 +5173,37 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 				          keyname);
 			}
 
+			free(keydata);
 			return 3;
 		}
 
 		if (keydata[0] == '/')
 		{
 			char *d;
-			char tmpdata[MAXBUFRSZ + 1];
+			char *tmpdata;
 
-			memset(tmpdata, '\0', sizeof tmpdata);
+			tmpdata = malloc(MAXBUFRSZ + 1);
+			if (tmpdata == NULL)
+			{
+				free(keydata);
+				return -1;
+			}
+
+			memset(tmpdata, '\0', MAXBUFRSZ + 1);
 
 			if (domain[0] == '%' && domain[1] == '\0')
 				d = dfc->mctx_domain;
 			else
 				d = domain;
 
-			dkimf_reptoken(tmpdata, sizeof tmpdata, keydata, d);
+			dkimf_reptoken(tmpdata, MAXBUFRSZ + 1, keydata, d);
 
-			memcpy(keydata, tmpdata, sizeof keydata);
+			memcpy(keydata, tmpdata, MAXBUFRSZ + 1);
+
+			free(tmpdata);
 		}
 
-		keydatasz = sizeof keydata - 1;
+		keydatasz = MAXBUFRSZ;
 		insecure = FALSE;
 		if (!dkimf_loadkey(dbd[2].dbdata_buffer, &keydatasz,
 		                   &insecure, err, sizeof err))
@@ -5189,6 +5214,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 				          dbd[2].dbdata_buffer, err);
 			}
 
+			free(keydata);
 			return 2;
 		}
 
@@ -5269,7 +5295,10 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 			}
 
  			if (curconf->conf_safekeys)
+			{
+				free(keydata);
 				return 2;
+			}
 		}
 
 		if (dbd[3].dbdata_buflen > 0 && signalgstr[0] != '\0')
@@ -5286,6 +5315,7 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 					       keyname, signalgstr);
 				}
 
+				free(keydata);
 				return 2;
 			}
 		}
@@ -5293,7 +5323,10 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 
 	new = malloc(sizeof *new);
 	if (new == NULL)
+	{
+		free(keydata);
 		return -1;
+	}
 
 	new->srq_next = NULL;
 	new->srq_dkim = NULL;
@@ -5322,10 +5355,12 @@ dkimf_add_signrequest(struct msgctx *dfc, DKIMF_DB keytable, char *keyname,
 			TRYFREE(new->srq_domain);
 			TRYFREE(new->srq_selector);
 			free(new);
+			free(keydata);
 			return -1;
 		}
 		memset(new->srq_keydata, '\0', keydatasz + 1);
 		memcpy(new->srq_keydata, dbd[2].dbdata_buffer, keydatasz);
+		free(keydata);
 	}
 
 	if (dfc->mctx_srtail != NULL)
