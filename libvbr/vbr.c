@@ -487,16 +487,8 @@ vbr_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
 	if (vq == NULL)
 		return VBR_DNS_ERROR;
 
-	if (ret == -1)
-	{
-		vq->vq_error = errno;
-		vq->vq_buflen = 0;
-	}
-	else
-	{
-		vq->vq_error = 0;
-		vq->vq_buflen = (size_t) ret;
-	}
+	vq->vq_error = 0;
+	vq->vq_buflen = (size_t) ret;
 
 	*qh = (void *) vq;
 

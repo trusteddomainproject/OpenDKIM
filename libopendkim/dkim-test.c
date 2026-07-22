@@ -507,7 +507,7 @@ dkim_test_key2(DKIM_LIB *lib, char *selector, char *domain,
 		{
 			status = 1;
 			snprintf(err, errlen,
-				 "key do not match: local = %zd, remote = %zd",
+				 "keys do not match: local = %zu, remote = %zu",
 			         outkey_len, sig->sig_keylen);
 		}
 

@@ -872,7 +872,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 		if (value != NULL)
 		{
 			uint64_t tmp = 0;
-			char *end;
+			char *end = NULL;
 
 			errno = 0;
 
@@ -909,7 +909,7 @@ dkim_process_set(DKIM *dkim, dkim_set_t type, u_char *str, size_t len,
 		if (value != NULL)
 		{
 			uint64_t tmp = 0;
-			char *end;
+			char *end = NULL;
 
 			errno = 0;
 
@@ -5425,6 +5425,7 @@ dkim_sign(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 		if (strncmp((char *) secretkey, "MII", 3) == 0)
 		{
 			size_t b64len;
+			int declen;
 
 			b64len = strlen((char *) secretkey);
 
@@ -5437,15 +5438,16 @@ dkim_sign(DKIM_LIB *libhandle, const unsigned char *id, void *memclosure,
 				return NULL;
 			}
 
-			new->dkim_keylen = dkim_base64_decode(secretkey,
-			                                      new->dkim_key,
-			                                      b64len);
-			if (new->dkim_keylen <= 0)
+			declen = dkim_base64_decode(secretkey, new->dkim_key,
+			                            b64len);
+			if (declen <= 0)
 			{
 				*statp = DKIM_STAT_NORESOURCE;
 				dkim_free(new);
 				return NULL;
 			}
+
+			new->dkim_keylen = (size_t) declen;
 		}
 		else
 		{
@@ -7541,14 +7543,12 @@ dkim_getsighdr_d(DKIM *dkim, size_t initial, u_char **buf, size_t *buflen)
 			}
 			else
 			{
-				if (!first)
-				{
-					dkim_dstring_cat1(dkim->dkim_hdrbuf,
-					                  ' ');
-					len += 1;
-				}
+				/* "first" is always FALSE here: this branch is
+				   only reached when the "len == 0 || first"
+				   branch above was not taken */
+				dkim_dstring_cat1(dkim->dkim_hdrbuf, ' ');
+				len += 1;
 
-				first = FALSE;
 				dkim_dstring_catn(dkim->dkim_hdrbuf,
 				                  (u_char *) pv,
 				                  pvlen);
