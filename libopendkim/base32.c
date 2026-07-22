@@ -69,7 +69,7 @@ dkim_base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
 		buf[iout] = cb32[((udata[iin] & 0xf8) >> 3)];
 		iout++;
 
-		if (iout >= *buflen || iin >= size)
+		if (iout >= *buflen)
 		{
 			iout--; 	/* previous char is useless */
 			break;
@@ -86,7 +86,7 @@ dkim_base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
 		buf[iout] = cb32[((udata[iin] & 0x3e) >> 1)];
 		iout++;
 
-		if (iout >= *buflen || iin >= size)
+		if (iout >= *buflen)
 		{
 			iout--;		/* previous char is useless */
 			break;
@@ -110,7 +110,7 @@ dkim_base32_encode(char *buf, size_t *buflen, const void *data, size_t size)
 		buf[iout] = cb32[((udata[iin] & 0x7c) >> 2)];
 		iout++;
 
-		if (iout >= *buflen || iin >= size)
+		if (iout >= *buflen)
 		{
 			iout--;		/* previous char is useless */
 			break;

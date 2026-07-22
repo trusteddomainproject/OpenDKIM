@@ -183,16 +183,8 @@ rbl_res_query(void *srv, int type, unsigned char *query, unsigned char *buf,
 	if (rq == NULL)
 		return RBL_DNS_ERROR;
 
-	if (ret == -1)
-	{
-		rq->rq_error = errno;
-		rq->rq_buflen = 0;
-	}
-	else
-	{
-		rq->rq_error = 0;
-		rq->rq_buflen = (size_t) ret;
-	}
+	rq->rq_error = 0;
+	rq->rq_buflen = (size_t) ret;
 
 	*qh = (void *) rq;
 
