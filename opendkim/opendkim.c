@@ -220,9 +220,6 @@ struct dkimf_config
 #if defined(USE_LDAP) || defined(USE_ODBX)
 	_Bool		conf_softstart;		/* do LDAP/SQL soft starts */
 #endif /* defined(USE_LDAP) || defined(USE_ODBX) */
-#ifdef _FFR_LUA_ONLY_SIGNING
-	_Bool		conf_luasigning;	/* signing via Lua only */
-#endif /* _FFR_LUA_ONLY_SIGNING */
 	_Bool		conf_weaksyntax;	/* do weaker syntax checking */
 	_Bool		conf_passmalformed;	/* pass malformed messages */
 	_Bool		conf_logresults;	/* log all results */
@@ -6811,12 +6808,6 @@ dkimf_config_load(struct config *data, struct dkimf_config *conf,
 		                  &conf->conf_weaksyntax,
 		                  sizeof conf->conf_weaksyntax);
 
-#ifdef _FFR_LUA_ONLY_SIGNING
-		(void) config_get(data, "LuaOnlySigning",
-		                  &conf->conf_luasigning,
-		                  sizeof conf->conf_luasigning);
-#endif /* _FFR_LUA_ONLY_SIGNING */
-
 		(void) config_get(data, "IgnoreMalformedMail",
 		                  &conf->conf_passmalformed,
 		                  sizeof conf->conf_passmalformed);
@@ -12890,9 +12881,6 @@ mlfi_eoh(SMFICTX *ctx)
 	/* still no key selected; check the signing table (if any) */
 	if (originok && dfc->mctx_srhead == NULL &&
 	    (user != NULL && dfc->mctx_domain[0] != '\0') && 
-#ifdef _FFR_LUA_ONLY_SIGNING
-	    !conf->conf_luasigning &&
-#endif /* _FFR_LUA_ONLY_SIGNING */
 	    conf->conf_keytabledb != NULL && conf->conf_signtabledb != NULL)
 	{
 		int found;

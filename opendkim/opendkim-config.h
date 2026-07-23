@@ -102,9 +102,6 @@ struct configdef dkimf_config[] =
 #endif /* USE_LDAP */
 	{ "LogResults",			CONFIG_TYPE_BOOLEAN,	FALSE },
 	{ "LogWhy",			CONFIG_TYPE_BOOLEAN,	FALSE },
-#ifdef _FFR_LUA_ONLY_SIGNING
-	{ "LuaOnlySigning",		CONFIG_TYPE_BOOLEAN,	FALSE },
-#endif /* _FFR_LUA_ONLY_SIGNING */
 	{ "MaximumHeaders",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "MaximumSignedBytes",		CONFIG_TYPE_INTEGER,	FALSE },
 	{ "MaximumSignaturesToVerify",	CONFIG_TYPE_INTEGER,	FALSE },
