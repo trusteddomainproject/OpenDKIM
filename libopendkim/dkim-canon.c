@@ -63,9 +63,6 @@
 #define	DKIM_ISWSP(x)	((x) == 011 || (x) == 040)
 #define	DKIM_ISLWSP(x)	((x) == 011 || (x) == 012 || (x) == 015 || (x) == 040)
 
-/* prototypes */
-extern void dkim_error (DKIM *, const char *, ...);
-
 /* ========================= PRIVATE SECTION ========================= */
 
 /*
