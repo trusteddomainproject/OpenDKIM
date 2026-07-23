@@ -24,9 +24,6 @@
 #include "dkim-types.h"
 #include "util.h"
 
-/* prototypes */
-extern void dkim_error (DKIM *, const char *, ...);
-
 /* local definitions needed for DNS queries */
 #define MAXPACKET		8192
 #if defined(__RES) && (__RES >= 19940415)

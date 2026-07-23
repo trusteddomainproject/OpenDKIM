@@ -28,9 +28,6 @@
 #include "dkim-types.h"
 #include "dkim-util.h"
 
-/* prototypes */
-extern void dkim_error (DKIM *, const char *, ...);
-
 /*
 **  DKIM_MALLOC -- allocate memory
 **

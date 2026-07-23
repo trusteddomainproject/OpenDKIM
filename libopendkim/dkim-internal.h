@@ -164,5 +164,7 @@ extern DKIM_NAMETABLE *dkim_table_mandatory;
 extern DKIM_STAT dkim_process_set (DKIM *, dkim_set_t, u_char *, size_t,
                                        void *, _Bool, const char *);
 extern DKIM_STAT dkim_siglist_setup (DKIM *);
+extern DKIM_STAT dkim_get_key (DKIM *, DKIM_SIGINFO *, _Bool);
+extern void dkim_error (DKIM *, const char *, ...);
 
 #endif /* ! _DKIM_INTERNAL_H_ */
