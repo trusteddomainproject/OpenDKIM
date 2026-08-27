@@ -711,7 +711,7 @@ one entry is "*", which stands for the default set itself and causes the
 remaining entries to be interpreted as a delta to that default; for example,
 "*,+foobar" will use the entire default list plus the name "foobar", while
 "*,-Bcc" would use the entire default list except for the "Bcc" entry.
-.PP
+
 Note that none of the headers in the default OmitHeaders list appear in the
 default
 .I SignHeaders
@@ -748,7 +748,7 @@ any kind is encountered.  This is processed before the other "On-" values
 so it can be used as a blanket setting followed by specific overrides.
 Possible values are the same as those for
 .IR On-BadSignature .
-.PP
+
 Use with caution in production: setting this to
 .I accept
 will cause the filter to pass messages through regardless of any verification
@@ -821,7 +821,7 @@ later additions; it is not necessary to list it more times than that.
 Note that this technique is useful even for header fields that RFC5322
 permits only once (such as From), since not all mail-handling software
 enforces RFC5322 header field count restrictions.
-.PP
+
 Oversigning
 .I From
 is strongly recommended and is the default.  A message with multiple
@@ -836,7 +836,7 @@ displaying the injected header rather than the signed one.  Oversigning
 prevents this by causing verification to fail whenever a second
 .I From
 header is present.  See also RFC6376 Section 8.15 and RFC5322 Section 3.6.
-.PP
+
 The oversigning mechanism works by appending each listed field name an extra
 time to the signature's
 .I h=
@@ -854,7 +854,7 @@ listed here must therefore also appear in
 (or be covered by the
 .I *
 default expansion).  See RFC6376, Section 5.4 for further discussion.
-.PP
+
 Unlike
 .I SignHeaders
 and
@@ -1146,7 +1146,7 @@ one entry is "*", which stands for the default set itself and causes the
 remaining entries to be interpreted as a delta to that default; for example,
 "*,+foobar" will use the entire default list plus the name "foobar", while
 "*,-Bcc" would use the entire default list except for the "Bcc" entry.
-.PP
+
 The RFC 6376 default set does not include MIME structure headers.
 The recommended configuration extends the default with
 .IR Content-Type ,
@@ -1170,7 +1170,7 @@ container allows new content to be injected after the signed portion.
 See also the
 .I OversignHeaders
 setting and RFC6376 Section 8.15.
-.PP
+
 If you specify an explicit header list without
 .IR * ,
 be careful not to omit any field that is also listed in
