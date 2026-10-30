@@ -365,7 +365,7 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 					{
 						decode++;
 
-						if (q <= end)
+						if (q < end)
 						{
 							*q = *x;
 							q++;
@@ -401,7 +401,7 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 				{
 					decode++;
 
-					if (q <= end)
+					if (q < end)
 					{
 						*q = *x;
 						q++;
@@ -411,7 +411,7 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 			start = NULL;
 			stop = NULL;
 
-			if (q <= end)
+			if (q < end)
 			{
 				*q = xl;
 				q++;
@@ -443,7 +443,7 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 				{
 					decode++;
 
-					if (q <= end)
+					if (q < end)
 					{
 						*q = *x;
 						q++;
@@ -455,7 +455,7 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 			{
 				decode++;
 
-				if (q <= end)
+				if (q < end)
 				{
 					*q = '\n';
 					q++;
@@ -464,12 +464,12 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 			else
 			{
 				decode += 2;
-				if (q <= end)
+				if (q < end)
 				{
 					*q = '\r';
 					q++;
 				}
-				if (q <= end)
+				if (q < end)
 				{
 					*q = '\n';
 					q++;
@@ -496,7 +496,7 @@ dkim_qp_decode(unsigned char *in, unsigned char *out, int outlen)
 		{
 			decode++;
 
-			if (q <= end)
+			if (q < end)
 			{
 				*q = *x;
 				q++;
