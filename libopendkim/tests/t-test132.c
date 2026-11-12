@@ -160,7 +160,7 @@ main(int argc, char **argv)
 	memset(largebuf, '\0', sizeof largebuf);
 	status = dkim_sig_getidentity(dkim, sig, smallbuf, sizeof smallbuf);
 	assert(status == DKIM_STAT_NORESOURCE);
-	assert(memcmp(smallbuf, IDENT, sizeof smallbuf) == 0);
+	assert(memcmp(smallbuf, IDENT, sizeof smallbuf - 1) == 0);
 	status = dkim_sig_getidentity(dkim, sig, largebuf, sizeof largebuf);
 	assert(status == DKIM_STAT_OK);
 	assert(strcmp(largebuf, IDENT) == 0);

@@ -997,6 +997,14 @@ dkim_canon_selecthdrs(DKIM *dkim, u_char *hdrlist, struct dkim_header **ptrs,
 	shcnt = 0;
 	for (c = 0; c < n; c++)
 	{
+		if (shcnt >= nptrs)
+		{
+			dkim_error(dkim, "too many headers (found %d, max %d)",
+			           shcnt, nptrs);
+			DKIM_FREE(dkim, lhdrs);
+			DKIM_FREE(dkim, hdrs);
+			return -1;
+		}
 		lhdrs[shcnt] = NULL;
 
 		len = MIN(DKIM_MAXHEADER, strlen((char *) hdrs[c]));
