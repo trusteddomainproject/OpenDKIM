@@ -2731,10 +2731,10 @@ mt_header(lua_State *l)
 	size_t buflen;
 	size_t s;
 	char *bp;
+	char *buf;
 	char *name;
 	char *value;
 	struct mt_context *ctx;
-	char buf[BUFRSZ];
 
 	assert(l != NULL);
 
@@ -2758,6 +2758,18 @@ mt_header(lua_State *l)
 		s++;
 #endif /* SMFIP_HDR_LEADSPC */
 
+	/*
+	**  The composed field can be larger than BUFRSZ; size the buffer
+	**  from the inputs rather than truncating or overflowing it.
+	*/
+
+	buf = (char *) malloc(s);
+	if (buf == NULL)
+	{
+		lua_pushstring(l, "mt.header(): malloc() failed");
+		return 1;
+	}
+
 	bp = buf;
 	memcpy(buf, name, strlen(name) + 1);
 	bp += strlen(name) + 1;
@@ -2768,21 +2780,26 @@ mt_header(lua_State *l)
 	memcpy(bp, value, strlen(value) + 1);
 
 	if (!mt_assert_state(ctx, STATE_DATA))
+	{
+		free(buf);
 		lua_error(l);
+	}
 
 	if (CHECK_MPOPTS(ctx, SMFIP_NOHDRS))
 	{
+		free(buf);
 		lua_pushstring(l, "mt.header(): negotiated SMFIP_NOHDRS");
 		lua_error(l);
 	}
 
 	if (!mt_milter_write(ctx->ctx_fd, SMFIC_HEADER, buf, s))
 	{
+		free(buf);
 		lua_pushstring(l, "mt.milter_write() failed");
 		return 1;
 	}
 
-	buflen = sizeof buf;
+	buflen = s;
 
 	rcmd = SMFIR_CONTINUE;
 
@@ -2790,6 +2807,7 @@ mt_header(lua_State *l)
 	{
 		if (!mt_milter_read(ctx->ctx_fd, &rcmd, buf, &buflen))
 		{
+			free(buf);
 			lua_pushstring(l, "mt.milter_read() failed");
 			return 1;
 		}
@@ -2808,6 +2826,8 @@ mt_header(lua_State *l)
 		        "%s: header sent on fd %d, reply '%c'\n",
 		        progname, ctx->ctx_fd, rcmd);
 	}
+
+	free(buf);
 
 	lua_pushnil(l);
 
