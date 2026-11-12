@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# simple/simple verifying test with an Authentication-Results header larger
+# than DKIM_MAXHEADER (should be removed)
+
+if [ x"$srcdir" = x"" ]
+then
+	srcdir=`pwd`
+fi
+
+../../miltertest/miltertest $MILTERTESTFLAGS -s $srcdir/t-verify-ss-ar-oversized.lua

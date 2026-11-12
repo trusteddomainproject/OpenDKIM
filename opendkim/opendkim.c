@@ -14263,6 +14263,21 @@ mlfi_eom(SMFICTX *ctx)
 						  dfc->mctx_jobid,
 						  hdr->hdr_hdr);
 
+					/*
+					**  An unparseable field cannot be
+					**  vetted, so do not let it survive
+					**  the removal pass.
+					*/
+
+					if (dkimf_chgheader(ctx, hdr->hdr_hdr,
+					                    c,
+					                    NULL) != MI_SUCCESS)
+					{
+						dkimf_log(conf, LOG_WARNING,
+							  "failed to remove %s: header",
+							  hdr->hdr_hdr);
+					}
+
 					continue;
 				}
 
