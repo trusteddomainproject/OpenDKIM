@@ -227,6 +227,10 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 		sig->sig_dnssec_key = dnssec;
 	}
 
+	/* never trust a resolver-reported length beyond the answer buffer */
+	if (anslen > sizeof ansbuf)
+		anslen = sizeof ansbuf;
+
 	/* set up pointers */
 	memcpy(&hdr, ansbuf, sizeof hdr);
 	cp = (u_char *) &ansbuf + HFIXEDSZ;
@@ -383,14 +387,33 @@ dkim_get_key_dns(DKIM *dkim, DKIM_SIGINFO *sig, u_char *buf, size_t buflen)
 	eob = buf + buflen - 1;
 	while (rdlength > 0 && p < eob)
 	{
+		/* the length byte itself must be inside the message */
+		if (cp >= eom)
+		{
+			dkim_error(dkim, "'%s' reply corrupt", qname);
+			return DKIM_STAT_SYNTAX;
+		}
+
 		c = *cp++;
 		rdlength--;
+
+		/* a character-string may not extend past the RDLENGTH */
+		if (c > rdlength)
+		{
+			dkim_error(dkim, "'%s' reply corrupt", qname);
+			return DKIM_STAT_SYNTAX;
+		}
+
 		while (c > 0 && p < eob)
 		{
 			*p++ = *cp++;
 			c--;
 			rdlength--;
 		}
+
+		/* skip the rest of a string that did not fit in "buf" */
+		cp += c;
+		rdlength -= c;
 	}
 
 #ifdef QUERY_CACHE
